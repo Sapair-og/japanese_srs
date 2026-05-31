@@ -202,7 +202,10 @@ export default function App() {
 
   // Fetch initial profile, stats, and vocabulary list from Supabase
   useEffect(() => {
-    if (!userId) return;
+    if (!userId) {
+      setIsLoading(false);
+      return;
+    }
     
     async function loadData() {
       try {

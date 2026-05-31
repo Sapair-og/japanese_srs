@@ -1240,7 +1240,7 @@ export default function QuizCard({
               
               {/* FRONT FACE */}
               <div 
-                className={`flip-card-front claude-panel study-card-hover border-claude-border p-8 sm:p-12 text-center relative overflow-hidden shadow-md ${
+                className={`flip-card-front claude-panel study-card-hover border-claude-border p-5 sm:p-12 text-center relative overflow-hidden shadow-md ${
                   isShake ? 'animate-shake border-claude-error' : ''
                 }`}
               >
@@ -1334,7 +1334,7 @@ export default function QuizCard({
                       <div className="space-y-3">
                         <div className="text-[10px] uppercase tracking-wider font-extrabold text-claude-text-muted">Type the reading of this Kanji:</div>
                         <div className="flex items-center justify-center gap-4">
-                          <div className={`text-5xl sm:text-6xl font-bold tracking-wider text-claude-text-heading ${useSerif ? 'japanese-serif' : 'japanese-sans'}`}>
+                          <div className={`text-3xl sm:text-6xl font-bold tracking-wider text-claude-text-heading ${useSerif ? 'japanese-serif' : 'japanese-sans'}`}>
                             {currentCard.kanji}
                           </div>
                           <button
@@ -1386,7 +1386,7 @@ export default function QuizCard({
                         
                         {/* Kanji representation and Speaker button inline */}
                         <div className="flex items-center justify-center gap-4">
-                          <div className={`text-6xl sm:text-7xl font-bold tracking-wider text-claude-text-heading ${useSerif ? 'japanese-serif' : 'japanese-sans'}`}>
+                          <div className={`text-4xl sm:text-7xl font-bold tracking-wider text-claude-text-heading ${useSerif ? 'japanese-serif' : 'japanese-sans'}`}>
                             {currentCard.kanji}
                           </div>
                           <button
@@ -1402,7 +1402,7 @@ export default function QuizCard({
                       /* If only Hiragana exists, show it with speaker */
                       <div className="space-y-3">
                         <div className="flex items-center justify-center gap-4">
-                          <div className={`text-6xl sm:text-7xl font-bold tracking-wider text-claude-text-heading ${useSerif ? 'japanese-serif' : 'japanese-sans'}`}>
+                          <div className={`text-4xl sm:text-7xl font-bold tracking-wider text-claude-text-heading ${useSerif ? 'japanese-serif' : 'japanese-sans'}`}>
                             {currentCard.hiragana}
                           </div>
                           <button
@@ -1430,7 +1430,7 @@ export default function QuizCard({
 
               {/* BACK FACE */}
               <div 
-                className={`flip-card-back claude-panel study-card-hover border-claude-border p-8 sm:p-12 text-center relative overflow-hidden shadow-md flex flex-col justify-center items-center ${
+                className={`flip-card-back claude-panel study-card-hover border-claude-border p-5 sm:p-12 text-center relative overflow-hidden shadow-md flex flex-col justify-center items-center ${
                   answerMode === 'typed'
                     ? typedAnswer && (typedAnswer.toLowerCase().trim() === currentCard.hiragana.toLowerCase().trim() || (currentCard.romaji && typedAnswer.toLowerCase().trim() === currentCard.romaji.toLowerCase().trim()))
                       ? 'border-claude-success/60'

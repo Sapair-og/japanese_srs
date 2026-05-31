@@ -74,7 +74,7 @@ export default function Dashboard({
     <div className="max-w-6xl mx-auto w-full px-2 py-4 md:py-8 animate-fade-in space-y-6">
       
       {/* Top Banner Greeting with welcome chibi illustration */}
-      <div className="relative overflow-hidden claude-panel border-claude-border rounded-3xl p-6 md:p-8 flex flex-col md:flex-row justify-between items-center gap-6 bg-gradient-to-r from-claude-coral/5 to-transparent">
+      <div className="relative overflow-hidden claude-panel border-claude-border rounded-3xl p-5 md:p-8 flex flex-col md:flex-row justify-between items-center gap-4 sm:gap-6 bg-gradient-to-r from-claude-coral/5 to-transparent">
         {/* Aesthetic Animated Background Overlay */}
         <div 
           className="absolute inset-0 opacity-[0.08] dark:opacity-[0.1] pointer-events-none transition-opacity duration-300"
@@ -142,7 +142,7 @@ export default function Dashboard({
 
         {/* Simplified Study Call-to-action Card */}
         {hasCards ? (
-          <div className="claude-panel border-claude-border p-6 md:p-8 rounded-3xl relative overflow-hidden flex flex-col sm:flex-row items-center justify-between gap-6 bg-gradient-to-br from-claude-coral/5 to-transparent shadow-xs">
+          <div className="claude-panel border-claude-border p-5 md:p-8 rounded-3xl relative overflow-hidden flex flex-col sm:flex-row items-center justify-between gap-4 sm:gap-6 bg-gradient-to-br from-claude-coral/5 to-transparent shadow-xs">
             <div className="space-y-1 text-center sm:text-left">
               <h2 className="text-xl font-bold text-claude-text-heading claude-serif">Ready to review Japanese vocabulary?</h2>
               <p className="text-xs text-claude-text-muted max-w-lg">
@@ -160,7 +160,7 @@ export default function Dashboard({
             </button>
           </div>
         ) : (
-          <div className="claude-panel border-claude-border p-8 rounded-3xl text-center space-y-4">
+          <div className="claude-panel border-claude-border p-5 sm:p-8 rounded-3xl text-center space-y-4">
             <p className="text-xs text-claude-text-muted">
               {isAdmin 
                 ? "You don't have any vocabulary cards in your library yet! Load the JLPT demo set or import custom cards to start studying."
@@ -190,7 +190,7 @@ export default function Dashboard({
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           
           {/* Streak Widget Card */}
-          <div className="claude-panel border-claude-border rounded-3xl p-6 relative overflow-hidden flex flex-col justify-between items-center text-center shadow-xs">
+          <div className="claude-panel border-claude-border rounded-3xl p-4 sm:p-6 relative overflow-hidden flex flex-col justify-between items-center text-center shadow-xs">
             <div className="text-4xl mb-2 animate-pulse-subtle">🔥</div>
             <div>
               <span className="text-[10px] font-extrabold uppercase tracking-wider text-claude-coral">Daily Streak</span>
@@ -205,7 +205,7 @@ export default function Dashboard({
           </div>
 
           {/* Weekly Heatmap Tracker Widget [Anki/GitHub inspired] */}
-          <div className="claude-panel border-claude-border rounded-3xl p-6 flex flex-col justify-between space-y-4 shadow-xs select-none">
+          <div className="claude-panel border-claude-border rounded-3xl p-4 sm:p-6 flex flex-col justify-between space-y-4 shadow-xs select-none">
             <div className="flex items-center justify-between">
               <span className="text-[9px] font-extrabold uppercase tracking-widest text-claude-coral block">
                 Activity Heatmap
@@ -260,7 +260,7 @@ export default function Dashboard({
           </div>
 
           {/* Learning Tip Card */}
-          <div className="claude-panel border-claude-border rounded-3xl p-6 flex flex-col justify-between space-y-3 shadow-xs">
+          <div className="claude-panel border-claude-border rounded-3xl p-4 sm:p-6 flex flex-col justify-between space-y-3 shadow-xs">
             <div className="flex items-center gap-2 text-xs font-bold text-claude-text-heading">
               <span>💡</span>
               <span className="claude-serif">Learning Tip</span>
@@ -275,7 +275,7 @@ export default function Dashboard({
         </div>
 
         {/* Recent Study Sessions Logs Panel */}
-        <div className="claude-panel border-claude-border rounded-3xl p-6 md:p-8 space-y-4 shadow-xs">
+        <div className="claude-panel border-claude-border rounded-3xl p-4 sm:p-8 space-y-4 shadow-xs">
           <div className="flex justify-between items-center select-none">
             <div>
               <span className="text-[10px] font-extrabold uppercase tracking-wider text-claude-coral">Performance History</span>
@@ -315,7 +315,7 @@ export default function Dashboard({
                 return (
                   <div
                     key={session.id}
-                    className="p-4 bg-claude-sidebar/20 border border-claude-border/60 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:border-claude-border transition-colors group"
+                    className="p-3 sm:p-4 bg-claude-sidebar/20 border border-claude-border/60 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-3 hover:border-claude-border transition-colors group"
                   >
                     <div className="flex items-center gap-3">
                       <div className="w-9 h-9 rounded-xl bg-claude-coral/10 border border-claude-coral/25 flex items-center justify-center text-sm">

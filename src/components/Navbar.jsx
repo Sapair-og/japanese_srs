@@ -46,7 +46,7 @@ const getAvatarUrl = (style, seed) => {
   return `https://api.dicebear.com/7.x/${style}/svg?seed=${seed}`;
 };
 
-export default function Navbar({ activeTab, setActiveTab, hasCards, themeRegion, themeMode, onChangeTheme, profile, onUpdateProfile, bgMusicEnabled, onToggleMusic }) {
+export default function Navbar({ activeTab, setActiveTab, hasCards, themeRegion, themeMode, onChangeTheme, profile, onUpdateProfile, bgMusicEnabled, onToggleMusic, onSignOut, userEmail }) {
   const [themeDropdownOpen, setThemeDropdownOpen] = useState(false);
   const [showAllThemes, setShowAllThemes] = useState(false);
 
@@ -428,6 +428,15 @@ export default function Navbar({ activeTab, setActiveTab, hasCards, themeRegion,
               ⚙️
             </span>
           </div>
+          
+          <button 
+            onClick={onSignOut}
+            className="w-full flex items-center justify-center gap-1.5 py-2 mt-2 border border-dashed border-red-500/20 hover:border-red-500/40 bg-red-600/5 hover:bg-red-600/10 text-red-600 font-extrabold rounded-xl transition-all text-[10px] cursor-pointer"
+            title={`Logged in as ${userEmail}`}
+          >
+            <span>🚪</span>
+            <span className="truncate">Sign Out ({userEmail})</span>
+          </button>
         </div>
       </aside>
 
@@ -550,6 +559,22 @@ export default function Navbar({ activeTab, setActiveTab, hasCards, themeRegion,
                 className="flex-1 px-4 py-2 bg-claude-coral hover:bg-claude-coral/90 text-white rounded-xl text-[10px] font-extrabold transition-colors cursor-pointer"
               >
                 Save Changes
+              </button>
+            </div>
+
+            {/* Sign Out Option inside modal */}
+            <div className="pt-2.5 border-t border-claude-border/50 flex flex-col gap-2">
+              <div className="text-[8px] font-bold text-claude-text-muted text-center truncate">
+                Authenticated as: <span className="text-claude-text-heading">{userEmail}</span>
+              </div>
+              <button
+                onClick={() => {
+                  setIsModalOpen(false);
+                  onSignOut();
+                }}
+                className="w-full py-2 bg-red-600/5 hover:bg-red-600/10 text-red-600 border border-red-500/20 hover:border-red-500/40 rounded-xl text-[10px] font-black transition-all cursor-pointer text-center"
+              >
+                🚪 Sign Out
               </button>
             </div>
 

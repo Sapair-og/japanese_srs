@@ -12,8 +12,7 @@ import LoadingScreen from './components/LoadingScreen';
 import CursorTrail from './components/CursorTrail';
 import StudyGuide from './components/StudyGuide';
 import { generateMnemonic } from './utils/mnemonicGenerator';
-
-const USER_ID = 'default_user';
+import Auth from './components/Auth';
 
 const parseDbTheme = (dbThemeString) => {
   const theme = dbThemeString || 'theme-claude-light';
@@ -43,7 +42,10 @@ const parseDbTheme = (dbThemeString) => {
 };
 
 export default function App() {
-  const userId = USER_ID;
+  const [session, setSession] = useState(null);
+  const [authLoading, setAuthLoading] = useState(true);
+  const userId = session?.user?.id;
+  const isAdmin = session?.user?.email === import.meta.env.VITE_ADMIN_EMAIL;
   const [activeTab, setActiveTab] = useState('dashboard');
   const [isLoading, setIsLoading] = useState(true);
   
@@ -120,18 +122,8 @@ export default function App() {
   // Unique question key/index to force QuizCard unmount/remount on incorrect recycling
   const [questionIndex, setQuestionIndex] = useState(0);
 
-  // Studied dates heatmap tracking list state
-  const [studiedDates, setStudiedDates] = useState(() => {
-    const saved = localStorage.getItem('jp_vocab_studied_dates');
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch (e) {
-        return [];
-      }
-    }
-    return [];
-  });
+  // Studied dates heatmap tracking list state (synced with db)
+  const [studiedDates, setStudiedDates] = useState([]);
 
   // Background music state
   const [bgMusicEnabled, setBgMusicEnabled] = useState(() => {
@@ -193,8 +185,25 @@ export default function App() {
 
 
 
+  // Auth listener for session changes
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setAuthLoading(false);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+      setAuthLoading(false);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
   // Fetch initial profile, stats, and vocabulary list from Supabase
   useEffect(() => {
+    if (!userId) return;
+    
     async function loadData() {
       try {
         setIsLoading(true);
@@ -210,7 +219,7 @@ export default function App() {
           // Profile does not exist yet, create a default profile record
           const defaultProfile = {
             id: userId,
-            name: 'Luna-chan',
+            name: session?.user?.user_metadata?.full_name || 'Luna-chan',
             title: 'Chibi Student',
             avatar_seed: 'Luna',
             avatar_style: 'adventurer',
@@ -277,20 +286,21 @@ export default function App() {
             totalCorrect: statsData.total_correct,
             lastStudiedDate: statsData.last_studied_date
           });
-          
-          if (statsData.last_studied_date) {
-            setStudiedDates(prev => {
-              if (!prev.includes(statsData.last_studied_date)) {
-                const next = [...prev, statsData.last_studied_date];
-                localStorage.setItem('jp_vocab_studied_dates_' + userId, JSON.stringify(next));
-                return next;
-              }
-              return prev;
-            });
-          }
         }
 
-        // 3. Fetch vocabulary list
+        // 3. Fetch user study heatmap dates
+        let { data: datesData, error: datesError } = await supabase
+          .from('user_study_dates')
+          .select('studied_date')
+          .eq('user_id', userId);
+
+        if (datesData) {
+          setStudiedDates(datesData.map(d => d.studied_date));
+        } else {
+          setStudiedDates([]);
+        }
+
+        // 4. Fetch vocabulary list
         let { data: vocabData, error: vocabError } = await supabase
           .from('vocabulary')
           .select('*')
@@ -308,7 +318,7 @@ export default function App() {
     }
 
     loadData();
-  }, []);
+  }, [userId]);
 
   // Keep sessionLimit in sync with vocabList changes
   useEffect(() => {
@@ -585,21 +595,88 @@ export default function App() {
     }
 
     // Update studied dates heatmap log on correct answer
-    if (isCorrect) {
+    if (isCorrect && userId) {
+      supabase
+        .from('user_study_dates')
+        .insert([{ user_id: userId, studied_date: today }])
+        .then(({ error: dError }) => {
+          if (dError && dError.code !== '23505') { // Ignore duplicate keys
+            console.error('Error logging study date:', dError);
+          }
+        });
+
       setStudiedDates(prev => {
         if (!prev.includes(today)) {
-          const next = [...prev, today];
-          localStorage.setItem('jp_vocab_studied_dates', JSON.stringify(next));
-          return next;
+          return [...prev, today];
         }
         return prev;
       });
     }
 
-
-
     // Always increment the question index key to force component remounting
     setQuestionIndex(prev => prev + 1);
+  };
+
+  // Sign out the current user session
+  const handleSignOut = async () => {
+    if (window.confirm('Are you sure you want to sign out of your study workspace?')) {
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        console.error('Error signing out:', error);
+      } else {
+        setSession(null);
+        setVocabList([]);
+        setStats({
+          streak: 0,
+          totalAttempts: 0,
+          totalCorrect: 0,
+          lastStudiedDate: null
+        });
+        setStudiedDates([]);
+        setActiveQueue([]);
+        setActiveTab('dashboard');
+      }
+    }
+  };
+
+  // Clear user-specific statistics and study dates
+  const handleClearStats = async () => {
+    if (window.confirm('Are you sure you want to reset your study stats and heatmap history? This will not affect the shared vocabulary database.')) {
+      try {
+        const resetStats = {
+          streak: 0,
+          total_attempts: 0,
+          total_correct: 0,
+          last_studied_date: null
+        };
+
+        const { error: statsError } = await supabase
+          .from('user_stats')
+          .update(resetStats)
+          .eq('id', userId);
+
+        const { error: datesError } = await supabase
+          .from('user_study_dates')
+          .delete()
+          .eq('user_id', userId);
+
+        if (!statsError && !datesError) {
+          setStats({
+            streak: 0,
+            totalAttempts: 0,
+            totalCorrect: 0,
+            lastStudiedDate: null
+          });
+          setStudiedDates([]);
+          alert('Your personal study progress and logs have been cleared.');
+        } else {
+          console.error('Error resetting user stats:', statsError, datesError);
+          alert('Failed to reset stats. Please try again.');
+        }
+      } catch (err) {
+        console.error('Error in handleClearStats:', err);
+      }
+    }
   };
 
   const handleUpdateProfile = async (newProfile) => {
@@ -675,10 +752,19 @@ export default function App() {
     setActiveTab(tabId);
   };
 
-  if (isLoading) {
+  if (authLoading || isLoading) {
     return (
       <>
         <LoadingScreen />
+        <CursorTrail />
+      </>
+    );
+  }
+
+  if (!session) {
+    return (
+      <>
+        <Auth />
         <CursorTrail />
       </>
     );
@@ -742,6 +828,8 @@ export default function App() {
         onUpdateProfile={handleUpdateProfile}
         bgMusicEnabled={bgMusicEnabled}
         onToggleMusic={() => setBgMusicEnabled(prev => !prev)}
+        onSignOut={handleSignOut}
+        userEmail={session?.user?.email}
       />
 
       {/* Main Content Area */}
@@ -753,6 +841,7 @@ export default function App() {
             onStartSession={handleStartSession}
             onLoadDemo={handleLoadDemo}
             onClearAll={handleClearAll}
+            onClearStats={handleClearStats}
             setActiveTab={handleNavTabClick}
             difficulty={difficulty}
             setDifficulty={setDifficulty}
@@ -762,6 +851,7 @@ export default function App() {
             onResetConfig={handleResetSessionConfig}
             studiedDates={studiedDates}
             onTriggerPreview={setErrorPreviewType}
+            isAdmin={isAdmin}
           />
         )}
 
@@ -801,6 +891,7 @@ export default function App() {
             onLoadDemo={handleLoadDemo}
             onDeleteWord={handleDeleteWord}
             onAddWord={handleAddWord}
+            isAdmin={isAdmin}
           />
         )}
 

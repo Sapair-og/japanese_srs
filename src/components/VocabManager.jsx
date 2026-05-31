@@ -2,7 +2,7 @@ import { useState, useRef } from 'react';
 import { supabase } from '../utils/supabaseClient';
 import { toKana } from 'wanakana';
 
-export default function VocabManager({ vocabList, onImportVocab, onClearAll, onLoadDemo, onDeleteWord, onAddWord }) {
+export default function VocabManager({ vocabList, onImportVocab, onClearAll, onLoadDemo, onDeleteWord, onAddWord, isAdmin }) {
   const [jsonText, setJsonText] = useState('');
   const [errorMsg, setErrorMsg] = useState(null);
   const [successMsg, setSuccessMsg] = useState(null);
@@ -348,25 +348,28 @@ export default function VocabManager({ vocabList, onImportVocab, onClearAll, onL
           <h1 className="text-3xl font-extrabold text-claude-text-heading claude-serif">Vocabulary Repository</h1>
           <p className="text-xs text-claude-text-muted">Import custom lists, input manual terms, or clear databases.</p>
         </div>
-        <div className="flex gap-2">
-          <button
-            onClick={onLoadDemo}
-            className="px-4 py-2 text-xs font-bold bg-claude-card border border-claude-border hover:border-claude-coral rounded-xl text-claude-text-heading transition-colors cursor-pointer"
-          >
-            Load Demo Cards 📚
-          </button>
-          <button
-            onClick={onClearAll}
-            className="px-4 py-2 text-xs font-bold bg-red-950/15 border border-red-900/10 hover:bg-red-900/20 rounded-xl text-red-500 transition-colors cursor-pointer"
-          >
-            Clear Database 🗑️
-          </button>
-        </div>
+        {isAdmin && (
+          <div className="flex gap-2">
+            <button
+              onClick={onLoadDemo}
+              className="px-4 py-2 text-xs font-bold bg-claude-card border border-claude-border hover:border-claude-coral rounded-xl text-claude-text-heading transition-colors cursor-pointer"
+            >
+              Load Demo Cards 📚
+            </button>
+            <button
+              onClick={onClearAll}
+              className="px-4 py-2 text-xs font-bold bg-red-950/15 border border-red-900/10 hover:bg-red-900/20 rounded-xl text-red-500 transition-colors cursor-pointer"
+            >
+              Clear Database 🗑️
+            </button>
+          </div>
+        )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Left Column: Input Forms */}
-        <div className="lg:col-span-5 space-y-6">
+        {isAdmin && (
+          <div className="lg:col-span-5 space-y-6">
           {/* JSON Ingestion Card */}
           <div className="claude-panel border-claude-border rounded-3xl p-6 space-y-4 shadow-md">
             <h2 className="text-lg font-bold text-claude-text-heading flex items-center gap-2 claude-serif">
@@ -606,10 +609,11 @@ export default function VocabManager({ vocabList, onImportVocab, onClearAll, onL
               </button>
             </form>
           </div>
-        </div>
+          </div>
+        )}
 
         {/* Right Column: Searchable Word List */}
-        <div className="lg:col-span-7 space-y-4">
+        <div className={isAdmin ? "lg:col-span-7 space-y-4" : "lg:col-span-12 space-y-4"}>
           <div className="claude-panel border-claude-border rounded-3xl p-6 shadow-md flex-1 flex flex-col h-[600px]">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-lg font-bold text-claude-text-heading flex items-center gap-2 claude-serif">
@@ -680,13 +684,15 @@ export default function VocabManager({ vocabList, onImportVocab, onClearAll, onL
                         <div className="text-xs text-claude-text">{word.english}</div>
                       </div>
                     </div>
-                    <button
-                      onClick={() => onDeleteWord(word)}
-                      className="text-claude-text-muted hover:text-rose-400 p-1.5 hover:bg-red-950/20 rounded-lg transition-colors border border-transparent hover:border-red-900/20 md:opacity-0 md:group-hover:opacity-100 focus:opacity-100 cursor-pointer"
-                      title="Delete card"
-                    >
-                      🗑️
-                    </button>
+                    {isAdmin && (
+                      <button
+                        onClick={() => onDeleteWord(word)}
+                        className="text-claude-text-muted hover:text-rose-400 p-1.5 hover:bg-red-950/20 rounded-lg transition-colors border border-transparent hover:border-red-900/20 md:opacity-0 md:group-hover:opacity-100 focus:opacity-100 cursor-pointer"
+                        title="Delete card"
+                      >
+                        🗑️
+                      </button>
+                    )}
                   </div>
                 ))
               ) : (

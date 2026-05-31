@@ -8,6 +8,7 @@ export default function Dashboard({
   onStartSession, 
   onLoadDemo, 
   onClearAll, 
+  onClearStats,
   setActiveTab,
   difficulty,
   setDifficulty,
@@ -16,7 +17,8 @@ export default function Dashboard({
   profile,
   onResetConfig,
   studiedDates = [],
-  onTriggerPreview
+  onTriggerPreview,
+  isAdmin
 }) {
   const [showSettings, setShowSettings] = useState(false);
   const hasCards = vocabList && vocabList.length > 0;
@@ -104,7 +106,7 @@ export default function Dashboard({
         </div>
 
         <div className="flex flex-col sm:flex-row gap-2 z-10 w-full md:w-auto">
-          {!hasCards && (
+          {!hasCards && isAdmin && (
             <>
               <button
                 onClick={onLoadDemo}
@@ -160,22 +162,27 @@ export default function Dashboard({
         ) : (
           <div className="claude-panel border-claude-border p-8 rounded-3xl text-center space-y-4">
             <p className="text-xs text-claude-text-muted">
-              You don't have any vocabulary cards in your library yet! Load the JLPT demo set or import custom cards to start studying.
+              {isAdmin 
+                ? "You don't have any vocabulary cards in your library yet! Load the JLPT demo set or import custom cards to start studying."
+                : "No vocabulary cards are available in the shared library yet. Please ask the administrator to upload cards."
+              }
             </p>
-            <div className="flex flex-col sm:flex-row justify-center gap-3">
-              <button
-                onClick={onLoadDemo}
-                className="px-5 py-3 text-xs bg-claude-sidebar border border-claude-border hover:border-claude-coral text-claude-text-heading font-semibold rounded-xl transition-all cursor-pointer"
-              >
-                Load Demo Words 📚
-              </button>
-              <button
-                onClick={() => setActiveTab('vocab')}
-                className="px-5 py-3 text-xs bg-claude-coral text-white hover:bg-claude-coral/90 font-semibold rounded-xl transition-all cursor-pointer"
-              >
-                Import Custom JSON 📝
-              </button>
-            </div>
+            {isAdmin && (
+              <div className="flex flex-col sm:flex-row justify-center gap-3">
+                <button
+                  onClick={onLoadDemo}
+                  className="px-5 py-3 text-xs bg-claude-sidebar border border-claude-border hover:border-claude-coral text-claude-text-heading font-semibold rounded-xl transition-all cursor-pointer"
+                >
+                  Load Demo Words 📚
+                </button>
+                <button
+                  onClick={() => setActiveTab('vocab')}
+                  className="px-5 py-3 text-xs bg-claude-coral text-white hover:bg-claude-coral/90 font-semibold rounded-xl transition-all cursor-pointer"
+                >
+                  Import Custom JSON 📝
+                </button>
+              </div>
+            )}
           </div>
         )}
 
@@ -388,32 +395,51 @@ export default function Dashboard({
               </p>
               
               <div className="space-y-2.5">
-                <button
-                  onClick={() => {
-                    onLoadDemo();
-                    setShowSettings(false);
-                  }}
-                  className="w-full text-left px-4 py-3 bg-claude-card hover:bg-claude-sidebar rounded-xl border border-claude-border transition-colors flex items-center justify-between cursor-pointer group"
-                >
-                  <div>
-                    <span className="text-xs font-bold text-claude-text-heading block">Load Demo Vocabulary</span>
-                    <span className="text-[9px] text-claude-text-muted block mt-0.5">Populate database with 20 JLPT cards</span>
-                  </div>
-                  <span className="text-sm group-hover:translate-x-0.5 transition-transform">📚</span>
-                </button>
+                {isAdmin && (
+                  <>
+                    <button
+                      onClick={() => {
+                        onLoadDemo();
+                        setShowSettings(false);
+                      }}
+                      className="w-full text-left px-4 py-3 bg-claude-card hover:bg-claude-sidebar rounded-xl border border-claude-border transition-colors flex items-center justify-between cursor-pointer group"
+                    >
+                      <div>
+                        <span className="text-xs font-bold text-claude-text-heading block">Load Demo Vocabulary</span>
+                        <span className="text-[9px] text-claude-text-muted block mt-0.5">Populate database with 20 JLPT cards</span>
+                      </div>
+                      <span className="text-sm group-hover:translate-x-0.5 transition-transform">📚</span>
+                    </button>
 
+                    <button
+                      onClick={() => {
+                        onClearAll();
+                        setShowSettings(false);
+                      }}
+                      className="w-full text-left px-4 py-3 bg-red-950/10 hover:bg-red-950/20 rounded-xl border border-red-900/10 transition-colors flex items-center justify-between cursor-pointer group"
+                    >
+                      <div>
+                        <span className="text-xs font-bold text-red-500 block">Reset All Lists & Stats</span>
+                        <span className="text-[9px] text-red-400 block mt-0.5">Deletes all vocabulary and statistics permanently</span>
+                      </div>
+                      <span className="text-sm group-hover:scale-110 transition-transform">⚠️</span>
+                    </button>
+                  </>
+                )}
+
+                {/* Progress reset for current user */}
                 <button
                   onClick={() => {
-                    onClearAll();
+                    onClearStats();
                     setShowSettings(false);
                   }}
-                  className="w-full text-left px-4 py-3 bg-red-950/10 hover:bg-red-950/20 rounded-xl border border-red-900/10 transition-colors flex items-center justify-between cursor-pointer group"
+                  className="w-full text-left px-4 py-3 bg-amber-500/10 hover:bg-amber-500/20 rounded-xl border border-amber-500/10 transition-colors flex items-center justify-between cursor-pointer group"
                 >
                   <div>
-                    <span className="text-xs font-bold text-red-500 block">Reset All Lists & Stats</span>
-                    <span className="text-[9px] text-red-400 block mt-0.5">Deletes all vocabulary and statistics permanently</span>
+                    <span className="text-xs font-bold text-amber-600 dark:text-amber-500 block">Reset My Study Progress & Heatmap</span>
+                    <span className="text-[9px] text-amber-500/80 block mt-0.5">Resets your personal score stats and learning dates to zero</span>
                   </div>
-                  <span className="text-sm group-hover:scale-110 transition-transform">⚠️</span>
+                  <span className="text-sm group-hover:scale-110 transition-transform">🔄</span>
                 </button>
 
                 <button
@@ -430,39 +456,43 @@ export default function Dashboard({
                   <span className="text-sm group-hover:scale-110 transition-transform">🗑️</span>
                 </button>
 
-                <p className="text-[9px] text-claude-text-muted leading-relaxed uppercase tracking-wider font-extrabold mt-3 border-t border-claude-border/30 pt-3">
-                  Gen Z Error Page Previews 💀
-                </p>
-                
-                <div className="grid grid-cols-3 gap-2">
-                  <button
-                    onClick={() => {
-                      onTriggerPreview('404');
-                      setShowSettings(false);
-                    }}
-                    className="py-2 bg-claude-sidebar border border-claude-border rounded-xl text-[9px] font-bold hover:border-claude-coral transition-colors cursor-pointer text-center text-claude-text-heading"
-                  >
-                    🪦 404
-                  </button>
-                  <button
-                    onClick={() => {
-                      onTriggerPreview('offline');
-                      setShowSettings(false);
-                    }}
-                    className="py-2 bg-claude-sidebar border border-claude-border rounded-xl text-[9px] font-bold hover:border-claude-coral transition-colors cursor-pointer text-center text-claude-text-heading"
-                  >
-                    🦖 Offline
-                  </button>
-                  <button
-                    onClick={() => {
-                      onTriggerPreview('database');
-                      setShowSettings(false);
-                    }}
-                    className="py-2 bg-claude-sidebar border border-claude-border rounded-xl text-[9px] font-bold hover:border-claude-coral transition-colors cursor-pointer text-center text-claude-text-heading"
-                  >
-                    👻 DB Error
-                  </button>
-                </div>
+                {isAdmin && (
+                  <>
+                    <p className="text-[9px] text-claude-text-muted leading-relaxed uppercase tracking-wider font-extrabold mt-3 border-t border-claude-border/30 pt-3">
+                      Gen Z Error Page Previews 💀
+                    </p>
+                    
+                    <div className="grid grid-cols-3 gap-2">
+                      <button
+                        onClick={() => {
+                          onTriggerPreview('404');
+                          setShowSettings(false);
+                        }}
+                        className="py-2 bg-claude-sidebar border border-claude-border rounded-xl text-[9px] font-bold hover:border-claude-coral transition-colors cursor-pointer text-center text-claude-text-heading"
+                      >
+                        🪦 404
+                      </button>
+                      <button
+                        onClick={() => {
+                          onTriggerPreview('offline');
+                          setShowSettings(false);
+                        }}
+                        className="py-2 bg-claude-sidebar border border-claude-border rounded-xl text-[9px] font-bold hover:border-claude-coral transition-colors cursor-pointer text-center text-claude-text-heading"
+                      >
+                        🦖 Offline
+                      </button>
+                      <button
+                        onClick={() => {
+                          onTriggerPreview('database');
+                          setShowSettings(false);
+                        }}
+                        className="py-2 bg-claude-sidebar border border-claude-border rounded-xl text-[9px] font-bold hover:border-claude-coral transition-colors cursor-pointer text-center text-claude-text-heading"
+                      >
+                        👻 DB Error
+                      </button>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
 

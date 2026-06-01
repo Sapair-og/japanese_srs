@@ -13,6 +13,8 @@ import CursorTrail from './components/CursorTrail';
 import StudyGuide from './components/StudyGuide';
 import { generateMnemonic } from './utils/mnemonicGenerator';
 import Auth from './components/Auth';
+import { initWasm } from './utils/strokeMatcher';
+
 
 const parseDbTheme = (dbThemeString) => {
   const theme = dbThemeString || 'theme-claude-light';
@@ -54,7 +56,6 @@ export default function App() {
   const [dbError, setDbError] = useState(false);
   const [errorPreviewType, setErrorPreviewType] = useState(null);
 
-  // Sync network state change listeners
   useEffect(() => {
     const handleOnline = () => setIsOffline(false);
     const handleOffline = () => setIsOffline(true);
@@ -65,6 +66,12 @@ export default function App() {
       window.removeEventListener('offline', handleOffline);
     };
   }, []);
+
+  // Initialize WebAssembly stroke matcher engine
+  useEffect(() => {
+    initWasm();
+  }, []);
+
   
   // Theme states representing current Genshin region and light/dark mode
   const [themeRegion, setThemeRegion] = useState('liyue');

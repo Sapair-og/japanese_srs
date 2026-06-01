@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { generateMnemonic } from '../utils/mnemonicGenerator';
 import { toKana } from 'wanakana';
+import { strokeMatcher } from '../utils/strokeMatcher';
 
 export default function QuizCard({ 
   currentCard, 
@@ -41,9 +42,187 @@ export default function QuizCard({
   });
   const [typedAnswer, setTypedAnswer] = useState('');
 
+  // Calligraphy drawing states
+  const [charIndex, setCharIndex] = useState(0);
+  const [userStrokes, setUserStrokes] = useState([]);
+  const [currentStroke, setCurrentStroke] = useState([]);
+  const [isDrawing, setIsDrawing] = useState(false);
+  const [targetStrokes, setTargetStrokes] = useState(null);
+  const [svgPaths, setSvgPaths] = useState([]);
+  const [strokeResult, setStrokeResult] = useState(null);
+  const [drawingFeedback, setDrawingFeedback] = useState([]);
+
+  const currentWord = currentCard ? (currentCard.hiragana || '') : '';
+  const currentTargetChar = currentWord[charIndex] || '';
+
   useEffect(() => {
     localStorage.setItem('jp_vocab_answermode', answerMode);
   }, [answerMode]);
+
+  // Utility to sample points from SVG path command using native browser SVG API
+  const samplePointsFromPath = (pathD, numSamples = 32) => {
+    try {
+      const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      path.setAttribute("d", pathD);
+      const totalLen = path.getTotalLength();
+      const points = [];
+      for (let i = 0; i < numSamples; i++) {
+        const fraction = i / (numSamples - 1);
+        const pt = path.getPointAtLength(fraction * totalLen);
+        points.push({ x: pt.x, y: pt.y });
+      }
+      return points;
+    } catch (err) {
+      console.error("Error sampling SVG path:", err);
+      return [];
+    }
+  };
+
+  // Calligraphy SVG loader
+  useEffect(() => {
+    if (answerMode !== 'calligraphy' || !currentTargetChar) return;
+    
+    let active = true;
+    setTargetStrokes(null);
+    setSvgPaths([]);
+    setUserStrokes([]);
+    setStrokeResult(null);
+    setDrawingFeedback([]);
+    
+    async function fetchSvg() {
+      try {
+        let res = await fetch(`/strokesvg/hiragana/${encodeURIComponent(currentTargetChar)}.svg`);
+        if (!res.ok) {
+          res = await fetch(`/strokesvg/katakana/${encodeURIComponent(currentTargetChar)}.svg`);
+        }
+        if (!res.ok) throw new Error("SVG not found");
+        
+        const text = await res.text();
+        if (!active) return;
+        
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(text, "image/svg+xml");
+        const paths = doc.querySelectorAll('g[data-strokesvg="strokes"] path');
+        
+        const tStrokes = [];
+        const dStrings = [];
+        paths.forEach(p => {
+          const d = p.getAttribute("d");
+          if (d) {
+            dStrings.push(d);
+            tStrokes.push(samplePointsFromPath(d, 32));
+          }
+        });
+        
+        setTargetStrokes(tStrokes);
+        setSvgPaths(dStrings);
+      } catch (err) {
+        console.warn("Failed to load stroke SVG for character:", currentTargetChar, err);
+      }
+    }
+    
+    fetchSvg();
+    return () => { active = false; };
+  }, [currentTargetChar, answerMode]);
+
+  const getCanvasCoords = (e) => {
+    const canvas = drawingCanvasRef.current;
+    if (!canvas) return { x: 0, y: 0 };
+    const rect = canvas.getBoundingClientRect();
+    
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    
+    return {
+      x: ((clientX - rect.left) / rect.width) * 1024,
+      y: ((clientY - rect.top) / rect.height) * 1024
+    };
+  };
+
+  const handleDrawStart = (e) => {
+    if (isChecking) return;
+    e.preventDefault();
+    setIsDrawing(true);
+    const coords = getCanvasCoords(e);
+    setCurrentStroke([coords]);
+  };
+
+  const handleDrawMove = (e) => {
+    if (!isDrawing || isChecking) return;
+    e.preventDefault();
+    const coords = getCanvasCoords(e);
+    setCurrentStroke(prev => [...prev, coords]);
+  };
+
+  const handleDrawEnd = (e) => {
+    if (!isDrawing) return;
+    setIsDrawing(false);
+    
+    if (currentStroke.length > 1) {
+      const nextStrokes = [...userStrokes, currentStroke];
+      setUserStrokes(nextStrokes);
+      
+      if (targetStrokes && targetStrokes.length > 0) {
+        const strokeIdx = userStrokes.length;
+        const targetStroke = targetStrokes[strokeIdx];
+        
+        if (targetStroke) {
+          const res = strokeMatcher.matchSingleStroke(currentStroke, targetStroke);
+          let feedback = 'correct';
+          if (res.score < 0.6) {
+            feedback = 'error-shape';
+          } else if (!res.isDirectionCorrect) {
+            feedback = 'error-direction';
+          }
+          setDrawingFeedback(prev => [...prev, feedback]);
+        }
+      }
+    }
+    setCurrentStroke([]);
+  };
+
+  // Auto check calligraphy when finished all strokes
+  useEffect(() => {
+    if (answerMode !== 'calligraphy' || !targetStrokes || targetStrokes.length === 0 || userStrokes.length === 0) return;
+    
+    if (userStrokes.length === targetStrokes.length) {
+      setIsChecking(true);
+      
+      const res = strokeMatcher.matchAllStrokes(userStrokes, targetStrokes);
+      setStrokeResult(res);
+      
+      const isCorrect = res.score >= 0.65 && res.isOrderCorrect && res.isDirectionCorrect;
+      
+      if (isCorrect) {
+        if (charIndex < currentWord.length - 1) {
+          playCorrectSound();
+          spawnParticles();
+          setTimeout(() => {
+            setCharIndex(prev => prev + 1);
+            setUserStrokes([]);
+            setDrawingFeedback([]);
+            setStrokeResult(null);
+            setIsChecking(false);
+          }, 1000);
+        } else {
+          playCorrectSound();
+          spawnParticles();
+          setTimeout(() => {
+            onAnswer(true, currentCard);
+            setCharIndex(0);
+          }, 1200);
+        }
+      } else {
+        playIncorrectSound();
+        setIsShake(true);
+        setTimeout(() => {
+          setIsShake(false);
+          onAnswer(false, currentCard);
+          setCharIndex(0);
+        }, 1500);
+      }
+    }
+  }, [userStrokes.length, targetStrokes, answerMode]);
 
   // Timer Session Stats
   const [timeLeft, setTimeLeft] = useState(timePerCard);
@@ -388,6 +567,7 @@ export default function QuizCard({
   }, [themeRegion, themeMode]);
 
   const canvasRef = useRef(null);
+  const drawingCanvasRef = useRef(null);
   const animationFrameId = useRef(null);
   const particles = useRef([]);
 
@@ -778,6 +958,10 @@ export default function QuizCard({
     setIsChecking(false);
     setIsShake(false);
     setTypedAnswer('');
+    setCharIndex(0);
+    setUserStrokes([]);
+    setDrawingFeedback([]);
+    setStrokeResult(null);
 
     // Filter out cards with same english definition (prevent duplicate correct answers)
     const otherCards = allCards.filter(
@@ -1004,17 +1188,23 @@ export default function QuizCard({
               <div className="flex items-center justify-between p-3.5 bg-claude-sidebar/40 border border-claude-border rounded-2xl select-none">
                 <div className="space-y-0.5">
                   <span className="text-xs font-bold text-claude-text-heading block">Quiz Answer Mode ✍️</span>
-                  <span className="text-[9px] text-claude-text-muted block">Choose multiple choice options or type the Japanese reading</span>
+                  <span className="text-[9px] text-claude-text-muted block">Choose multiple choice, type reading, or draw characters</span>
                 </div>
                 <button
-                  onClick={() => setAnswerMode(answerMode === 'mc' ? 'typed' : 'mc')}
+                  onClick={() => {
+                    if (answerMode === 'mc') setAnswerMode('typed');
+                    else if (answerMode === 'typed') setAnswerMode('calligraphy');
+                    else setAnswerMode('mc');
+                  }}
                   className={`px-3 py-1.5 rounded-lg border text-[10px] font-extrabold transition-all cursor-pointer ${
-                    answerMode === 'typed' 
+                    answerMode !== 'mc' 
                       ? 'bg-claude-coral/15 border-claude-coral text-claude-coral' 
                       : 'bg-claude-card border-claude-border text-claude-text-muted hover:text-claude-text-heading'
                   }`}
                 >
-                  {answerMode === 'typed' ? 'Typed Reading' : 'Multiple Choice'}
+                  {answerMode === 'mc' && 'Multiple Choice'}
+                  {answerMode === 'typed' && 'Typed Reading'}
+                  {answerMode === 'calligraphy' && 'Calligraphy Drawing'}
                 </button>
               </div>
 
@@ -1328,8 +1518,121 @@ export default function QuizCard({
                 </div>
 
                 {/* Word Display Area */}
-                <div className="py-6 min-h-[160px] flex flex-col justify-center items-center">
-                  {answerMode === 'typed' ? (
+                <div className="py-6 min-h-[160px] flex flex-col justify-center items-center w-full">
+                  {answerMode === 'calligraphy' ? (
+                    <div className="space-y-4 w-full">
+                      <div className="relative w-full aspect-square max-w-[240px] sm:max-w-[280px] bg-claude-sidebar/20 border border-claude-border rounded-2xl overflow-hidden mx-auto select-none">
+                        
+                        {/* Stencil Tracing Outline */}
+                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-15 text-claude-text select-none">
+                          {targetStrokes ? (
+                            <svg viewBox="0 0 1024 1024" className="w-full h-full stroke-current fill-none stroke-[32px] stroke-linecap-round stroke-linejoin-round">
+                              {svgPaths.map((d, i) => (
+                                <path key={i} d={d} />
+                              ))}
+                            </svg>
+                          ) : (
+                            <span className="text-[120px] font-bold japanese-serif">{currentTargetChar}</span>
+                          )}
+                        </div>
+
+                        {/* Interactive Drawing Board Canvas */}
+                        <canvas
+                          ref={drawingCanvasRef}
+                          onMouseDown={handleDrawStart}
+                          onMouseMove={handleDrawMove}
+                          onMouseUp={handleDrawEnd}
+                          onMouseLeave={handleDrawEnd}
+                          onTouchStart={handleDrawStart}
+                          onTouchMove={handleDrawMove}
+                          onTouchEnd={handleDrawEnd}
+                          className="absolute inset-0 w-full h-full cursor-crosshair z-20"
+                          width={1024}
+                          height={1024}
+                        />
+
+                        {/* Live Tracing Lines Overlay */}
+                        <svg viewBox="0 0 1024 1024" className="absolute inset-0 w-full h-full pointer-events-none z-10 fill-none stroke-linecap-round stroke-linejoin-round">
+                          {userStrokes.map((stroke, sIdx) => {
+                            const feedback = drawingFeedback[sIdx];
+                            let strokeColor = 'var(--accent-coral, #cc5a37)';
+                            if (feedback === 'correct') strokeColor = '#10b981';
+                            if (feedback === 'error-shape' || feedback === 'error-direction') strokeColor = '#ef4444';
+                            
+                            const pathData = stroke.map((pt, pIdx) => `${pIdx === 0 ? 'M' : 'L'} ${pt.x} ${pt.y}`).join(' ');
+                            return (
+                              <path
+                                key={sIdx}
+                                d={pathData}
+                                stroke={strokeColor}
+                                strokeWidth="32"
+                              />
+                            );
+                          })}
+                          {currentStroke.length > 1 && (
+                            <path
+                              d={currentStroke.map((pt, pIdx) => `${pIdx === 0 ? 'M' : 'L'} ${pt.x} ${pt.y}`).join(' ')}
+                              stroke="var(--accent-coral, #cc5a37)"
+                              strokeWidth="32"
+                            />
+                          )}
+                        </svg>
+                      </div>
+
+                      {/* Manual Self-Check fallback if no stroke vectors are found */}
+                      {!targetStrokes && (
+                        <div className="flex gap-2 justify-center py-1 relative z-30">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              playCorrectSound();
+                              spawnParticles();
+                              onAnswer(true, currentCard);
+                            }}
+                            className="px-4 py-1.5 bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 rounded-lg text-[10px] font-bold cursor-pointer"
+                          >
+                            ✓ Correct
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              playIncorrectSound();
+                              setIsShake(true);
+                              setTimeout(() => {
+                                setIsShake(false);
+                                setUserStrokes([]);
+                              }, 1000);
+                              onAnswer(false, currentCard);
+                            }}
+                            className="px-4 py-1.5 bg-red-500/10 border border-red-500/30 text-red-500 rounded-lg text-[10px] font-bold cursor-pointer"
+                          >
+                            ✗ Incorrect
+                          </button>
+                        </div>
+                      )}
+
+                      {/* Control Panel (Clear & Progress info) */}
+                      <div className="flex justify-between items-center max-w-[240px] sm:max-w-[280px] mx-auto py-0.5 select-none relative z-30">
+                        <span className="text-[8px] uppercase font-bold text-claude-text-muted">
+                          {targetStrokes 
+                            ? `Draw: "${currentTargetChar}" (${charIndex + 1}/${currentWord.length})`
+                            : `Free Draw: "${currentWord}"`
+                          }
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setUserStrokes([]);
+                            setDrawingFeedback([]);
+                            setStrokeResult(null);
+                          }}
+                          className="px-2.5 py-1 bg-claude-sidebar border border-claude-border hover:border-claude-coral/55 text-claude-text-muted hover:text-claude-coral rounded-lg text-[8px] font-bold cursor-pointer"
+                        >
+                          Clear 🧹
+                        </button>
+                      </div>
+                    </div>
+                  ) : answerMode === 'typed' ? (
                     currentCard.kanji ? (
                       <div className="space-y-3">
                         <div className="text-[10px] uppercase tracking-wider font-extrabold text-claude-text-muted">Type the reading of this Kanji:</div>
@@ -1349,7 +1652,7 @@ export default function QuizCard({
                     ) : (
                       <div className="space-y-3">
                         <div className="text-[10px] uppercase tracking-wider font-extrabold text-claude-text-muted">Type the Japanese reading for:</div>
-                        <div className="text-3xl font-extrabold text-claude-text-heading claude-serif tracking-wide py-2">
+                        <div className="text-2xl sm:text-3xl font-extrabold text-claude-text-heading claude-serif tracking-wide py-2">
                           {currentCard.english}
                         </div>
                         <button
@@ -1473,93 +1776,92 @@ export default function QuizCard({
           </div>
 
           {/* Answer Selections Grid */}
-          <div className="grid grid-cols-1 gap-3">
-            {answerMode === 'typed' ? (
-              <form onSubmit={handleTypedSubmit} className="w-full space-y-3">
-                <div className="relative">
-                  <input
-                    type="text"
-                    value={typedAnswer}
-                    disabled={isChecking}
-                    onChange={(e) => setTypedAnswer(toKana(e.target.value, { IMEMode: true }))}
-                    placeholder={isChecking ? "Reviewing..." : "Type reading in Hiragana... (e.g. neko)"}
-                    autoFocus
-                    className={`w-full py-4 px-6 border rounded-2xl font-bold text-base sm:text-lg focus:outline-none transition-all duration-150 shadow-sm text-center ${
-                      isChecking
-                        ? typedAnswer.toLowerCase().trim() === currentCard.hiragana.toLowerCase().trim() || (currentCard.romaji && typedAnswer.toLowerCase().trim() === currentCard.romaji.toLowerCase().trim())
-                          ? 'bg-claude-success border-claude-success text-white'
-                          : 'bg-claude-error border-claude-error text-white'
-                        : 'bg-claude-card border-claude-border focus:border-claude-coral text-claude-text-heading'
-                    }`}
-                  />
-                  {!isChecking && typedAnswer && (
-                    <button
-                      type="button"
-                      onClick={() => setTypedAnswer('')}
-                      className="absolute right-4 top-1/2 -translate-y-1/2 text-claude-text-muted hover:text-claude-text-heading text-sm p-1 hover:bg-claude-sidebar rounded-full cursor-pointer"
-                    >
-                      ✕
-                    </button>
-                  )}
-                </div>
-                
-                <button
-                  type="submit"
-                  disabled={isChecking || !typedAnswer.trim()}
-                  className={`w-full py-3.5 premium-btn-coral text-white font-bold rounded-2xl text-sm transition-all flex items-center justify-center gap-2 cursor-pointer ${
-                    isChecking || !typedAnswer.trim() ? 'opacity-60 cursor-not-allowed' : ''
-                  }`}
-                >
-                  Submit Answer ⚡
-                </button>
-              </form>
-            ) : (
-              choices.map((choice, index) => {
-                const isSelected = selectedChoice === choice;
-                const isCorrectDefinition = choice.toLowerCase().trim() === currentCard.english.toLowerCase().trim();
-
-                // Set dynamic styles for option feedback states
-                let buttonClass = 'bg-claude-card border-claude-border hover:border-claude-coral/50 text-claude-text hover:text-claude-text-heading';
-                
-                if (isChecking) {
-                  if (isCorrectDefinition) {
-                    // Correct answer is highlighted in green
-                    buttonClass = 'bg-claude-success border-claude-success text-white scale-[1.01]';
-                  } else if (isSelected) {
-                    // Chosen incorrect option is highlighted in red
-                    buttonClass = 'bg-claude-error border-claude-error text-white scale-[0.99]';
-                  } else {
-                    // Other options are dimmed
-                    buttonClass = 'bg-claude-card/25 border-claude-border/25 text-claude-text-muted/40 cursor-not-allowed scale-[0.98]';
-                  }
-                }
-
-                return (
+          {answerMode !== 'calligraphy' && (
+            <div className="grid grid-cols-1 gap-3 w-full">
+              {answerMode === 'typed' ? (
+                <form onSubmit={handleTypedSubmit} className="w-full space-y-3">
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={typedAnswer}
+                      disabled={isChecking}
+                      onChange={(e) => setTypedAnswer(toKana(e.target.value, { IMEMode: true }))}
+                      placeholder={isChecking ? "Reviewing..." : "Type reading in Hiragana... (e.g. neko)"}
+                      autoFocus
+                      className={`w-full py-4 px-6 border rounded-2xl font-bold text-base sm:text-lg focus:outline-none transition-all duration-150 shadow-sm text-center ${
+                        isChecking
+                          ? typedAnswer.toLowerCase().trim() === currentCard.hiragana.toLowerCase().trim() || (currentCard.romaji && typedAnswer.toLowerCase().trim() === currentCard.romaji.toLowerCase().trim())
+                            ? 'bg-claude-success border-claude-success text-white'
+                            : 'bg-claude-error border-claude-error text-white'
+                          : 'bg-claude-card border-claude-border focus:border-claude-coral text-claude-text-heading'
+                      }`}
+                    />
+                    {!isChecking && typedAnswer && (
+                      <button
+                        type="button"
+                        onClick={() => setTypedAnswer('')}
+                        className="absolute right-4 top-1/2 -translate-y-1/2 text-claude-text-muted hover:text-claude-text-heading text-sm p-1 hover:bg-claude-sidebar rounded-full cursor-pointer"
+                      >
+                        ✕
+                      </button>
+                    )}
+                  </div>
+                  
                   <button
-                    key={index}
-                    disabled={isChecking}
-                    onClick={() => handleChoiceClick(choice)}
-                    className={`w-full py-4 px-6 border text-left rounded-2xl font-bold text-sm sm:text-base flex justify-between items-center transition-all duration-150 shadow-sm cursor-pointer ${buttonClass}`}
+                    type="submit"
+                    disabled={isChecking || !typedAnswer.trim()}
+                    className={`w-full py-3.5 premium-btn-coral text-white font-bold rounded-2xl text-sm transition-all flex items-center justify-center gap-2 cursor-pointer ${
+                      isChecking || !typedAnswer.trim() ? 'opacity-60 cursor-not-allowed' : ''
+                    }`}
                   >
-                    <div className="flex items-center gap-3">
-                      {!isChecking && (
-                        <span className="text-[9px] font-black border border-claude-border bg-claude-sidebar text-claude-text-muted px-1.5 py-0.5 rounded shadow-xs select-none">
-                          {index + 1}
-                        </span>
-                      )}
-                      <span>{choice}</span>
-                    </div>
-                    {isChecking && isCorrectDefinition && (
-                      <span className="text-xl animate-fade-in">✓</span>
-                    )}
-                    {isChecking && isSelected && !isCorrectDefinition && (
-                      <span className="text-xl animate-fade-in">✗</span>
-                    )}
+                    Submit Answer ⚡
                   </button>
-                );
-              })
-            )}
-          </div>
+                </form>
+              ) : (
+                choices.map((choice, index) => {
+                  const isSelected = selectedChoice === choice;
+                  const isCorrectDefinition = choice.toLowerCase().trim() === currentCard.english.toLowerCase().trim();
+
+                  // Set dynamic styles for option feedback states
+                  let buttonClass = 'bg-claude-card border-claude-border hover:border-claude-coral/55 text-claude-text hover:text-claude-text-heading';
+                  
+                  if (isChecking) {
+                    if (isCorrectDefinition) {
+                      buttonClass = 'bg-claude-success border-claude-success text-white scale-[1.01]';
+                    } else if (isSelected) {
+                      buttonClass = 'bg-claude-error border-claude-error text-white scale-[0.99]';
+                    } else {
+                      buttonClass = 'bg-claude-card/25 border-claude-border/25 text-claude-text-muted/40 cursor-not-allowed scale-[0.98]';
+                    }
+                  }
+
+                  return (
+                    <button
+                      key={index}
+                      disabled={isChecking}
+                      onClick={() => handleChoiceClick(choice)}
+                      className={`w-full py-4 px-6 border text-left rounded-2xl font-bold text-sm sm:text-base flex justify-between items-center transition-all duration-150 shadow-sm cursor-pointer ${buttonClass}`}
+                    >
+                      <div className="flex items-center gap-3">
+                        {!isChecking && (
+                          <span className="text-[9px] font-black border border-claude-border bg-claude-sidebar text-claude-text-muted px-1.5 py-0.5 rounded shadow-xs select-none">
+                            {index + 1}
+                          </span>
+                        )}
+                        <span>{choice}</span>
+                      </div>
+                      {isChecking && isCorrectDefinition && (
+                        <span className="text-xl animate-fade-in">✓</span>
+                      )}
+                      {isChecking && isSelected && !isCorrectDefinition && (
+                        <span className="text-xl animate-fade-in">✗</span>
+                      )}
+                    </button>
+                  );
+                })
+              )}
+            </div>
+          )}
         </div>
       </div>
     </>

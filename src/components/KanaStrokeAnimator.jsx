@@ -124,7 +124,7 @@ export function StrokeSvg({
       let currentDelay = 100 + globalDelayOffset;
       const timeouts = [];
 
-      strokes.forEach((stroke, i) => {
+      strokes.forEach(stroke => {
         let length = 1000;
         if (stroke instanceof SVGGElement) {
           let sum = 0;
@@ -187,7 +187,7 @@ export function StrokeSvg({
 }
 
 // Math helper to get local step index for split characters
-export function getCharacterStepIndex(charIndex, globalIdx, strokeCounts) {
+function getCharacterStepIndex(charIndex, globalIdx, strokeCounts) {
   let startStep = 0;
   for (let k = 0; k < charIndex; k++) {
     startStep += strokeCounts[k];
@@ -236,7 +236,9 @@ export default function KanaStrokeAnimator({
   useEffect(() => {
     if (!activeDrawKana) return;
 
-    setLoading(true);
+    Promise.resolve().then(() => {
+      setLoading(true);
+    });
     const chars = [...activeDrawKana.kana];
 
     const promises = chars.map(char => {

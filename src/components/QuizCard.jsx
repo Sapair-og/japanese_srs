@@ -828,15 +828,15 @@ export default function QuizCard({
 
   // Keyboard hotkeys handler
   useEffect(() => {
-    if (totalSessionCards === 0 || !currentCard || isChecking) {
+    if (totalSessionCards === 0 || !currentCard || isChecking || historyIndex !== -1) {
       return;
     }
 
     const handleKeyDown = (e) => {
       if (['1', '2', '3', '4'].includes(e.key)) {
         const idx = parseInt(e.key) - 1;
-        if (choices[idx]) {
-          handleChoiceClick(choices[idx]);
+        if (displayChoices[idx]) {
+          handleChoiceClick(displayChoices[idx]);
         }
       }
       
@@ -854,7 +854,7 @@ export default function QuizCard({
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [currentCard, isChecking, choices, totalSessionCards]);
+  }, [currentCard, isChecking, displayChoices, totalSessionCards, historyIndex]);
 
 
 

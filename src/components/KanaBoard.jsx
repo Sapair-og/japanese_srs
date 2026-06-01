@@ -909,7 +909,8 @@ export default function KanaBoard({ themeRegion, themeMode }) {
                         onTouchStart={handleDrawStart}
                         onTouchMove={handleDrawMove}
                         onTouchEnd={handleDrawEnd}
-                        className="absolute inset-0 w-full h-full cursor-crosshair z-20"
+                        className="absolute inset-0 w-full h-full cursor-crosshair z-20 touch-none"
+                        style={{ touchAction: 'none' }}
                         width={1024}
                         height={1024}
                       />

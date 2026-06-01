@@ -416,15 +416,28 @@ export default function KanaBoard({ themeRegion, themeMode }) {
         
         const parser = new DOMParser();
         const doc = parser.parseFromString(text, "image/svg+xml");
-        const paths = doc.querySelectorAll('g[data-strokesvg="strokes"] path');
+        
+        // Parse direct children (paths or groups) to count strokes accurately
+        const strokeElements = doc.querySelectorAll('g[data-strokesvg="strokes"] > path, g[data-strokesvg="strokes"] > g');
         
         const tStrokes = [];
         const dStrings = [];
-        paths.forEach(p => {
-          const d = p.getAttribute("d");
-          if (d) {
-            dStrings.push(d);
-            tStrokes.push(samplePointsFromPath(d, 32));
+        
+        strokeElements.forEach(el => {
+          let pathElement = null;
+          if (el.tagName.toLowerCase() === 'path') {
+            pathElement = el;
+          } else if (el.tagName.toLowerCase() === 'g') {
+            // Take the first path in the group as the main stroke trajectory
+            pathElement = el.querySelector('path');
+          }
+          
+          if (pathElement) {
+            const d = pathElement.getAttribute("d");
+            if (d) {
+              dStrings.push(d);
+              tStrokes.push(samplePointsFromPath(d, 32));
+            }
           }
         });
         

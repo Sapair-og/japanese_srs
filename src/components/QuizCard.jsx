@@ -1387,7 +1387,7 @@ export default function QuizCard({
               
               {/* FRONT FACE */}
               <div 
-                className={`flip-card-front claude-panel study-card-hover border-claude-border p-5 sm:p-12 text-center relative overflow-hidden shadow-md ${
+                className={`flip-card-front claude-panel border-claude-border p-5 sm:p-12 text-center relative overflow-hidden shadow-md ${
                   isShake ? 'animate-shake border-claude-error' : ''
                 }`}
               >
@@ -1582,7 +1582,7 @@ export default function QuizCard({
 
               {/* BACK FACE */}
               <div 
-                className={`flip-card-back claude-panel study-card-hover border-claude-border p-5 sm:p-12 text-center relative overflow-hidden shadow-md flex flex-col justify-center items-center ${
+                className={`flip-card-back claude-panel border-claude-border p-5 sm:p-12 text-center relative overflow-hidden shadow-md flex flex-col justify-center items-center ${
                   historyIndex !== -1
                     ? 'border-claude-success/60'
                     : answerMode === 'typed'

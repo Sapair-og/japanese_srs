@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { supabase } from '../utils/supabaseClient';
 
 export default function Auth() {
@@ -10,6 +10,119 @@ export default function Auth() {
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState(null);
   const [successMsg, setSuccessMsg] = useState(null);
+
+  const canvasRef = useRef(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+
+    let animationId;
+    let width = (canvas.width = window.innerWidth);
+    let height = (canvas.height = window.innerHeight);
+
+    const charPool = 'あいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほまみむめもやゆよらりるれろわをんアイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン学習日本語漢字書道練習記憶単語美道心和'.split('');
+
+    let gridItems = [];
+    const spacing = 48; 
+
+    const initGrid = () => {
+      if (!canvas) return;
+      width = canvas.width = window.innerWidth;
+      height = canvas.height = window.innerHeight;
+      gridItems = [];
+
+      const cols = Math.ceil(width / spacing) + 1;
+      const rows = Math.ceil(height / spacing) + 1;
+
+      for (let c = 0; c < cols; c++) {
+        for (let r = 0; r < rows; r++) {
+          gridItems.push({
+            x: c * spacing + (Math.random() - 0.5) * 8,
+            y: r * spacing + (Math.random() - 0.5) * 8,
+            char: charPool[Math.floor(Math.random() * charPool.length)],
+            baseSize: 11 + Math.random() * 4,
+            angle: (Math.random() - 0.5) * 0.15
+          });
+        }
+      }
+    };
+
+    initGrid();
+    window.addEventListener('resize', initGrid);
+
+    const mouse = { x: -1000, y: -1000 };
+
+    const handleMouseMove = (e) => {
+      mouse.x = e.clientX;
+      mouse.y = e.clientY;
+    };
+
+    const handleMouseLeave = () => {
+      mouse.x = -1000;
+      mouse.y = -1000;
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseleave', handleMouseLeave);
+
+    const animate = () => {
+      ctx.clearRect(0, 0, width, height);
+
+      const isDark = document.documentElement.classList.contains('dark');
+      const baseColor = isDark ? '148, 163, 184' : '100, 116, 139'; // slate-400 / slate-500
+
+      ctx.textBaseline = 'middle';
+      ctx.textAlign = 'center';
+
+      for (let i = 0; i < gridItems.length; i++) {
+        const item = gridItems[i];
+        const dx = mouse.x - item.x;
+        const dy = mouse.y - item.y;
+        const dist = Math.hypot(dx, dy);
+
+        const radius = 170;
+        const maxScale = 2.6;
+
+        let scale = 1;
+        let opacity = isDark ? 0.07 : 0.11;
+
+        if (dist < radius) {
+          const factor = 1 - dist / radius; 
+          const easeFactor = Math.sin(factor * Math.PI / 2);
+          scale = 1 + (maxScale - 1) * easeFactor;
+          opacity = (isDark ? 0.07 : 0.11) + (0.42 - (isDark ? 0.07 : 0.11)) * easeFactor; 
+        }
+
+        ctx.save();
+        ctx.translate(item.x, item.y);
+        ctx.rotate(item.angle);
+        
+        ctx.font = `bold ${item.baseSize * scale}px "Hiragino Kaku Gothic Pro", "MS Gothic", sans-serif`;
+        ctx.fillStyle = `rgba(${baseColor}, ${opacity})`;
+        
+        if (scale > 1.25) {
+          ctx.shadowBlur = (scale - 1) * 7;
+          ctx.shadowColor = `rgba(${baseColor}, ${opacity * 0.75})`;
+        }
+
+        ctx.fillText(item.char, 0, 0);
+        ctx.restore();
+      }
+
+      animationId = requestAnimationFrame(animate);
+    };
+
+    animate();
+
+    return () => {
+      cancelAnimationFrame(animationId);
+      window.removeEventListener('resize', initGrid);
+      window.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseleave', handleMouseLeave);
+    };
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -64,9 +177,12 @@ export default function Auth() {
 
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-claude-bg px-4 select-none animate-fade-in relative overflow-hidden">
+      {/* Interactive magnifying Japanese character background */}
+      <canvas ref={canvasRef} className="absolute inset-0 w-full h-full pointer-events-none z-0" />
+
       {/* Decorative ambient background blur blobs */}
-      <div className="absolute top-1/4 left-1/4 w-72 h-72 rounded-full bg-claude-coral/10 blur-3xl pointer-events-none" />
-      <div className="absolute bottom-1/4 right-1/4 w-80 h-80 rounded-full bg-amber-500/10 blur-3xl pointer-events-none" />
+      <div className="absolute top-1/4 left-1/4 w-72 h-72 rounded-full bg-claude-coral/10 blur-3xl pointer-events-none z-0" />
+      <div className="absolute bottom-1/4 right-1/4 w-80 h-80 rounded-full bg-amber-500/10 blur-3xl pointer-events-none z-0" />
 
       {/* Main Auth Container Panel */}
       <div className="claude-panel rounded-3xl p-8 sm:p-10 w-full max-w-md shadow-lg bg-claude-card relative z-10 space-y-6">

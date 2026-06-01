@@ -45,10 +45,14 @@ export default function QuizCard({
 
 
   const currentWord = currentCard ? (currentCard.hiragana || '') : '';
-  const currentTargetChar = currentWord[charIndex] || '';
 
   useEffect(() => {
-    localStorage.setItem('jp_vocab_answermode', answerMode);
+    if (answerMode === 'calligraphy') {
+      setAnswerMode('mc');
+      localStorage.setItem('jp_vocab_answermode', 'mc');
+    } else {
+      localStorage.setItem('jp_vocab_answermode', answerMode);
+    }
   }, [answerMode]);
 
 
@@ -790,10 +794,6 @@ export default function QuizCard({
     setIsChecking(false);
     setIsShake(false);
     setTypedAnswer('');
-    setCharIndex(0);
-    setUserStrokes([]);
-    setDrawingFeedback([]);
-    setStrokeResult(null);
 
     // Filter out cards with same english definition (prevent duplicate correct answers)
     const otherCards = allCards.filter(

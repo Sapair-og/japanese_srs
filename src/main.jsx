@@ -5,10 +5,15 @@ import App from './App.jsx'
 import { registerSW } from 'virtual:pwa-register'
 
 // Automatically refresh the page when a new version of the app is detected
-const updateSW = registerSW({
+let updateSW;
+updateSW = registerSW({
   onNeedRefresh() {
     console.log("New version detected, auto-refreshing page...");
-    updateSW(true);
+    if (typeof updateSW === 'function') {
+      updateSW(true);
+    } else {
+      window.location.reload();
+    }
   },
   onOfflineReady() {
     console.log("App ready for offline use.");

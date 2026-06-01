@@ -565,3 +565,11 @@ body {
   height: 100%;
 }
 
+/* Calligraphy grid background for character practice tracing box */
+.calligraphy-grid {
+  background-image: 
+    linear-gradient(to right, rgba(204, 90, 55, 0.12) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(204, 90, 55, 0.12) 1px, transparent 1px);
+  background-size: 50% 50%;
+  background-position: center;
+}

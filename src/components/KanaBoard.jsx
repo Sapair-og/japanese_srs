@@ -9,6 +9,8 @@ import {
   katakanaYoon
 } from '../utils/kanaData';
 import KanaStrokeAnimator from './KanaStrokeAnimator';
+import { strokeMatcher } from '../utils/strokeMatcher';
+
 
 
 
@@ -24,6 +26,19 @@ export default function KanaBoard({ themeRegion, themeMode }) {
   const [selectedRows, setSelectedRows] = useState([]);
   const [drillLength, setDrillLength] = useState(10);
   const [drillActive, setDrillActive] = useState(false);
+  const [drillMode, setDrillMode] = useState('mc'); // 'mc' or 'calligraphy'
+
+  // Calligraphy drawing states for practice drills
+  const [userStrokes, setUserStrokes] = useState([]);
+  const [targetStrokes, setTargetStrokes] = useState(null);
+  const [svgPaths, setSvgPaths] = useState([]);
+  const [drawingFeedback, setDrawingFeedback] = useState([]);
+
+  // Refs for high-performance canvas gestures without triggering React state updates on every move
+  const isDrawingRef = useRef(false);
+  const currentStrokeRef = useRef([]);
+  const drawingCanvasRef = useRef(null);
+
   
   // Active Drill session state
   const [drillQueue, setDrillQueue] = useState([]);
@@ -356,6 +371,192 @@ export default function KanaBoard({ themeRegion, themeMode }) {
     setDrillCompleted(false);
   };
 
+  // Utility to sample points from SVG path command using native browser SVG API
+  const samplePointsFromPath = (pathD, numSamples = 32) => {
+    try {
+      const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      path.setAttribute("d", pathD);
+      const totalLen = path.getTotalLength();
+      const points = [];
+      for (let i = 0; i < numSamples; i++) {
+        const fraction = i / (numSamples - 1);
+        const pt = path.getPointAtLength(fraction * totalLen);
+        points.push({ x: pt.x, y: pt.y });
+      }
+      return points;
+    } catch (err) {
+      console.error("Error sampling SVG path:", err);
+      return [];
+    }
+  };
+
+  // Calligraphy SVG loader for drills
+  useEffect(() => {
+    if (!drillActive || drillMode !== 'calligraphy' || drillCompleted) return;
+    const currentItem = drillQueue[currentDrillIndex];
+    if (!currentItem) return;
+    
+    let active = true;
+    setTargetStrokes(null);
+    setSvgPaths([]);
+    setUserStrokes([]);
+    setDrawingFeedback([]);
+    
+    async function fetchSvg() {
+      try {
+        const char = currentItem.kana;
+        let res = await fetch(`/strokesvg/hiragana/${encodeURIComponent(char)}.svg`);
+        if (!res.ok) {
+          res = await fetch(`/strokesvg/katakana/${encodeURIComponent(char)}.svg`);
+        }
+        if (!res.ok) throw new Error("SVG not found");
+        
+        const text = await res.text();
+        if (!active) return;
+        
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(text, "image/svg+xml");
+        const paths = doc.querySelectorAll('g[data-strokesvg="strokes"] path');
+        
+        const tStrokes = [];
+        const dStrings = [];
+        paths.forEach(p => {
+          const d = p.getAttribute("d");
+          if (d) {
+            dStrings.push(d);
+            tStrokes.push(samplePointsFromPath(d, 32));
+          }
+        });
+        
+        setTargetStrokes(tStrokes);
+        setSvgPaths(dStrings);
+      } catch (err) {
+        console.warn("Failed to load stroke SVG for character:", currentItem.kana, err);
+      }
+    }
+    
+    fetchSvg();
+    return () => { active = false; };
+  }, [currentDrillIndex, drillActive, drillMode, drillCompleted]);
+
+  // High-performance canvas coordinates & drawing methods
+  const getCanvasCoords = (e) => {
+    const canvas = drawingCanvasRef.current;
+    if (!canvas) return { x: 0, y: 0 };
+    const rect = canvas.getBoundingClientRect();
+    
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    
+    return {
+      x: ((clientX - rect.left) / rect.width) * 1024,
+      y: ((clientY - rect.top) / rect.height) * 1024
+    };
+  };
+
+  const handleDrawStart = (e) => {
+    if (isChecking) return;
+    e.preventDefault();
+    isDrawingRef.current = true;
+    const coords = getCanvasCoords(e);
+    currentStrokeRef.current = [coords];
+    
+    const canvas = drawingCanvasRef.current;
+    if (canvas) {
+      const ctx = canvas.getContext('2d');
+      ctx.beginPath();
+      ctx.moveTo(coords.x, coords.y);
+      ctx.strokeStyle = 'var(--accent-coral, #cc5a37)';
+      ctx.lineWidth = 32;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+    }
+  };
+
+  const handleDrawMove = (e) => {
+    if (!isDrawingRef.current || isChecking) return;
+    e.preventDefault();
+    const coords = getCanvasCoords(e);
+    currentStrokeRef.current.push(coords);
+    
+    const canvas = drawingCanvasRef.current;
+    if (canvas) {
+      const ctx = canvas.getContext('2d');
+      ctx.lineTo(coords.x, coords.y);
+      ctx.stroke();
+    }
+  };
+
+  const handleDrawEnd = (e) => {
+    if (!isDrawingRef.current) return;
+    isDrawingRef.current = false;
+    
+    if (currentStrokeRef.current.length > 1) {
+      const completedStroke = [...currentStrokeRef.current];
+      const nextStrokes = [...userStrokes, completedStroke];
+      setUserStrokes(nextStrokes);
+      
+      if (targetStrokes && targetStrokes.length > 0) {
+        const strokeIdx = userStrokes.length;
+        const targetStroke = targetStrokes[strokeIdx];
+        
+        if (targetStroke) {
+          const res = strokeMatcher.matchSingleStroke(completedStroke, targetStroke);
+          let feedback = 'correct';
+          if (res.score < 0.6) {
+            feedback = 'error-shape';
+          } else if (!res.isDirectionCorrect) {
+            feedback = 'error-direction';
+          }
+          setDrawingFeedback(prev => [...prev, feedback]);
+        }
+      }
+    }
+    
+    const canvas = drawingCanvasRef.current;
+    if (canvas) {
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+    
+    currentStrokeRef.current = [];
+  };
+
+  // Auto check calligraphy when finished all strokes
+  useEffect(() => {
+    if (!drillActive || drillMode !== 'calligraphy' || !targetStrokes || targetStrokes.length === 0 || userStrokes.length === 0) return;
+    
+    if (userStrokes.length === targetStrokes.length) {
+      setIsChecking(true);
+      
+      const res = strokeMatcher.matchAllStrokes(userStrokes, targetStrokes);
+      const isCorrect = res.score >= 0.65 && res.isOrderCorrect && res.isDirectionCorrect;
+      
+      if (isCorrect) {
+        playCorrectSound();
+        spawnParticles();
+        setDrillScore(prev => prev + 1);
+        setTimeout(() => {
+          advanceDrill();
+          setUserStrokes([]);
+          setDrawingFeedback([]);
+          setIsChecking(false);
+        }, 1000);
+      } else {
+        playIncorrectSound();
+        setIsShake(true);
+        setTimeout(() => {
+          setIsShake(false);
+          advanceDrill();
+          setUserStrokes([]);
+          setDrawingFeedback([]);
+          setIsChecking(false);
+        }, 1500);
+      }
+    }
+  }, [userStrokes.length, targetStrokes, drillMode]);
+
+
   return (
     <div className="max-w-6xl mx-auto w-full px-2 py-4 md:py-8 animate-fade-in space-y-6">
       
@@ -551,6 +752,35 @@ export default function KanaBoard({ themeRegion, themeMode }) {
                 </div>
               </div>
 
+              {/* Drill Type selection option */}
+              <div className="space-y-2">
+                <label className="text-[10px] uppercase font-bold text-claude-text-muted tracking-wider block">
+                  Drill Type
+                </label>
+                <div className="flex bg-claude-sidebar/60 border border-claude-border p-1 rounded-xl gap-1">
+                  <button
+                    onClick={() => setDrillMode('mc')}
+                    className={`flex-1 py-1.5 rounded-lg text-[10px] font-bold transition-all cursor-pointer ${
+                      drillMode === 'mc'
+                        ? 'bg-claude-card text-claude-coral shadow-xs border border-claude-border/40 font-extrabold'
+                        : 'text-claude-text-muted hover:text-claude-text-heading'
+                    }`}
+                  >
+                    📋 Multiple Choice
+                  </button>
+                  <button
+                    onClick={() => setDrillMode('calligraphy')}
+                    className={`flex-1 py-1.5 rounded-lg text-[10px] font-bold transition-all cursor-pointer ${
+                      drillMode === 'calligraphy'
+                        ? 'bg-claude-card text-claude-coral shadow-xs border border-claude-border/40 font-extrabold'
+                        : 'text-claude-text-muted hover:text-claude-text-heading'
+                    }`}
+                  >
+                    🖌️ Calligraphy Tracing
+                  </button>
+                </div>
+              </div>
+
               {/* Drill count limit */}
               <div className="space-y-2">
                 <div className="flex justify-between items-baseline">
@@ -623,72 +853,213 @@ export default function KanaBoard({ themeRegion, themeMode }) {
               />
             </div>
 
-            {/* Drill Quiz Card */}
-            <div 
-              className={`claude-panel study-card-hover border-claude-border rounded-3xl p-12 sm:p-16 text-center relative overflow-hidden shadow-md ${
-                isShake ? 'animate-shake border-claude-error' : ''
-              } ${
-                isChecking && selectedChoice === drillQueue[currentDrillIndex].romaji
-                  ? 'border-claude-success' 
-                  : ''
-              }`}
-            >
-              {/* Transparent Canvas for Sakura Particle Burst */}
-              <canvas 
-                ref={canvasRef} 
-                className="absolute inset-0 w-full h-full pointer-events-none z-30" 
-              />
-              <div className="absolute top-4 right-4">
-                <button
-                  onClick={() => speakJapanese(drillQueue[currentDrillIndex].kana)}
-                  className="w-9 h-9 rounded-full bg-claude-sidebar border border-claude-border hover:border-claude-coral/55 flex items-center justify-center text-xs transition-all cursor-pointer shadow-sm text-claude-text hover:text-claude-coral"
-                  title="Listen pronunciation"
+            {/* Drill Quiz Card & Input Methods */}
+            {drillMode === 'calligraphy' ? (
+              <div className="space-y-4 w-full">
+                {/* Tracing Canvas Container */}
+                <div 
+                  className={`claude-panel border-claude-border rounded-3xl p-6 sm:p-8 text-center relative overflow-hidden shadow-md ${
+                    isShake ? 'animate-shake border-claude-error' : ''
+                  }`}
                 >
-                  🔊
-                </button>
-              </div>
+                  {/* Transparent Canvas for Sakura Particle Burst */}
+                  <canvas 
+                    ref={canvasRef} 
+                    className="absolute inset-0 w-full h-full pointer-events-none z-30" 
+                  />
 
-              <div className="py-6 min-h-[160px] flex flex-col justify-center items-center">
-                <span className="text-[10px] uppercase tracking-wider font-extrabold bg-claude-sidebar text-claude-coral px-3 py-1 rounded-full border border-claude-border mb-4">
-                  {activeType === 'hiragana' ? 'Hiragana Drill' : 'Katakana Drill'}
-                </span>
-                
-                <div className="text-7xl sm:text-8xl font-black text-claude-text-heading japanese-serif tracking-wider">
-                  {drillQueue[currentDrillIndex]?.kana}
+                  {/* Top Header controls */}
+                  <div className="absolute top-4 left-4 text-[10px] font-black text-claude-text-muted uppercase tracking-wider select-none">
+                    Write this Kana: <span className="text-claude-coral bg-claude-coral/10 px-2 py-0.5 border border-claude-coral/20 rounded font-black">{drillQueue[currentDrillIndex]?.romaji}</span>
+                  </div>
+
+                  <div className="absolute top-4 right-4 z-30 flex gap-2">
+                    <button
+                      onClick={() => speakJapanese(drillQueue[currentDrillIndex]?.kana)}
+                      className="w-8 h-8 rounded-full bg-claude-sidebar border border-claude-border hover:border-claude-coral/55 flex items-center justify-center text-xs transition-all cursor-pointer shadow-sm text-claude-text hover:text-claude-coral"
+                      title="Listen pronunciation"
+                    >
+                      🔊
+                    </button>
+                  </div>
+
+                  {/* Draw box */}
+                  <div className="py-2 flex flex-col items-center">
+                    <div className="relative w-full aspect-square max-w-[240px] sm:max-w-[280px] bg-claude-sidebar/20 border border-claude-border rounded-2xl overflow-hidden mx-auto select-none calligraphy-grid">
+                      {/* Stencil Tracing Outline */}
+                      <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-15 text-claude-text select-none">
+                        {targetStrokes ? (
+                          <svg viewBox="0 0 1024 1024" className="w-full h-full stroke-current fill-none stroke-[32px] stroke-linecap-round stroke-linejoin-round">
+                            {svgPaths.map((d, i) => (
+                              <path key={i} d={d} />
+                            ))}
+                          </svg>
+                        ) : (
+                          <span className="text-[120px] font-bold japanese-serif">{drillQueue[currentDrillIndex]?.kana}</span>
+                        )}
+                      </div>
+
+                      {/* High-Performance Gesture Canvas */}
+                      <canvas
+                        ref={drawingCanvasRef}
+                        onMouseDown={handleDrawStart}
+                        onMouseMove={handleDrawMove}
+                        onMouseUp={handleDrawEnd}
+                        onMouseLeave={handleDrawEnd}
+                        onTouchStart={handleDrawStart}
+                        onTouchMove={handleDrawMove}
+                        onTouchEnd={handleDrawEnd}
+                        className="absolute inset-0 w-full h-full cursor-crosshair z-20"
+                        width={1024}
+                        height={1024}
+                      />
+
+                      {/* SVG Live Render Overlay */}
+                      <svg viewBox="0 0 1024 1024" className="absolute inset-0 w-full h-full pointer-events-none z-10 fill-none stroke-linecap-round stroke-linejoin-round">
+                        {userStrokes.map((stroke, sIdx) => {
+                          const feedback = drawingFeedback[sIdx];
+                          let strokeColor = 'var(--accent-coral, #cc5a37)';
+                          if (feedback === 'correct') strokeColor = '#10b981';
+                          if (feedback === 'error-shape' || feedback === 'error-direction') strokeColor = '#ef4444';
+                          
+                          const pathData = stroke.map((pt, pIdx) => `${pIdx === 0 ? 'M' : 'L'} ${pt.x} ${pt.y}`).join(' ');
+                          return (
+                            <path
+                              key={sIdx}
+                              d={pathData}
+                              stroke={strokeColor}
+                              strokeWidth="32"
+                            />
+                          );
+                        })}
+                      </svg>
+                    </div>
+
+                    {/* Manual self check fallback if no stroke details are loaded */}
+                    {!targetStrokes && (
+                      <div className="flex gap-2 justify-center mt-4 relative z-30 w-full max-w-[240px] sm:max-w-[280px]">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            playCorrectSound();
+                            spawnParticles();
+                            setDrillScore(prev => prev + 1);
+                            advanceDrill();
+                            setUserStrokes([]);
+                            setDrawingFeedback([]);
+                          }}
+                          className="flex-1 py-2 bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 rounded-xl text-[10px] font-bold cursor-pointer"
+                        >
+                          ✓ Correct
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            playIncorrectSound();
+                            setIsShake(true);
+                            setTimeout(() => {
+                              setIsShake(false);
+                              advanceDrill();
+                              setUserStrokes([]);
+                              setDrawingFeedback([]);
+                            }, 1200);
+                          }}
+                          className="flex-1 py-2 bg-red-500/10 border border-red-500/30 text-red-500 rounded-xl text-[10px] font-bold cursor-pointer"
+                        >
+                          ✗ Incorrect
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Control Panel (Clear & Progress info) */}
+                <div className="flex justify-between items-center max-w-md mx-auto py-1 px-2 select-none relative z-30">
+                  <span className="text-[9px] uppercase font-bold text-claude-text-muted">
+                    {targetStrokes 
+                      ? `Draw Stroke: ${userStrokes.length + 1} of ${targetStrokes.length}`
+                      : `Trace character: "${drillQueue[currentDrillIndex]?.kana}"`
+                    }
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setUserStrokes([]);
+                      setDrawingFeedback([]);
+                    }}
+                    className="px-3 py-1.5 bg-claude-sidebar border border-claude-border hover:border-claude-coral/55 text-claude-text-muted hover:text-claude-coral rounded-lg text-[9px] font-bold cursor-pointer transition-all"
+                  >
+                    Clear Canvas 🧹
+                  </button>
                 </div>
               </div>
-            </div>
+            ) : (
+              <>
+                <div 
+                  className={`claude-panel study-card-hover border-claude-border rounded-3xl p-12 sm:p-16 text-center relative overflow-hidden shadow-md ${
+                    isShake ? 'animate-shake border-claude-error' : ''
+                  } ${
+                    isChecking && selectedChoice === drillQueue[currentDrillIndex].romaji
+                      ? 'border-claude-success' 
+                      : ''
+                  }`}
+                >
+                  <canvas 
+                    ref={canvasRef} 
+                    className="absolute inset-0 w-full h-full pointer-events-none z-30" 
+                  />
+                  <div className="absolute top-4 right-4">
+                    <button
+                      onClick={() => speakJapanese(drillQueue[currentDrillIndex].kana)}
+                      className="w-9 h-9 rounded-full bg-claude-sidebar border border-claude-border hover:border-claude-coral/55 flex items-center justify-center text-xs transition-all cursor-pointer shadow-sm text-claude-text hover:text-claude-coral"
+                      title="Listen pronunciation"
+                    >
+                      🔊
+                    </button>
+                  </div>
 
-            {/* Multiple choices */}
-            <div className="grid grid-cols-2 gap-3">
-              {drillChoices.map((choice, idx) => {
-                const isSelected = selectedChoice === choice;
-                const isCorrect = choice === drillQueue[currentDrillIndex]?.romaji;
+                  <div className="py-6 min-h-[160px] flex flex-col justify-center items-center">
+                    <span className="text-[10px] uppercase tracking-wider font-extrabold bg-claude-sidebar text-claude-coral px-3 py-1 rounded-full border border-claude-border mb-4">
+                      {activeType === 'hiragana' ? 'Hiragana Drill' : 'Katakana Drill'}
+                    </span>
+                    
+                    <div className="text-7xl sm:text-8xl font-black text-claude-text-heading japanese-serif tracking-wider">
+                      {drillQueue[currentDrillIndex]?.kana}
+                    </div>
+                  </div>
+                </div>
 
-                let buttonClass = 'bg-claude-card border-claude-border hover:border-claude-coral/50 text-claude-text hover:text-claude-text-heading';
-                
-                if (isChecking) {
-                  if (isCorrect) {
-                    buttonClass = 'bg-claude-success border-claude-success text-white scale-[1.01]';
-                  } else if (isSelected) {
-                    buttonClass = 'bg-claude-error border-claude-error text-white scale-[0.99]';
-                  } else {
-                    buttonClass = 'bg-claude-card/25 border-claude-border/25 text-claude-text-muted/40 cursor-not-allowed scale-[0.98]';
-                  }
-                }
+                <div className="grid grid-cols-2 gap-3">
+                  {drillChoices.map((choice, idx) => {
+                    const isSelected = selectedChoice === choice;
+                    const isCorrect = choice === drillQueue[currentDrillIndex]?.romaji;
 
-                return (
-                  <button
-                    key={idx}
-                    disabled={isChecking}
-                    onClick={() => handleChoiceClick(choice)}
-                    className={`py-4 px-6 border text-center rounded-2xl font-bold text-sm sm:text-base flex justify-center items-center transition-all duration-150 shadow-xs cursor-pointer ${buttonClass}`}
-                  >
-                    <span>{choice}</span>
-                  </button>
-                );
-              })}
-            </div>
+                    let buttonClass = 'bg-claude-card border-claude-border hover:border-claude-coral/55 text-claude-text hover:text-claude-text-heading';
+                    
+                    if (isChecking) {
+                      if (isCorrect) {
+                        buttonClass = 'bg-claude-success border-claude-success text-white scale-[1.01]';
+                      } else if (isSelected) {
+                        buttonClass = 'bg-claude-error border-claude-error text-white scale-[0.99]';
+                      } else {
+                        buttonClass = 'bg-claude-card/25 border-claude-border/25 text-claude-text-muted/40 cursor-not-allowed scale-[0.98]';
+                      }
+                    }
+
+                    return (
+                      <button
+                        key={idx}
+                        disabled={isChecking}
+                        onClick={() => handleChoiceClick(choice)}
+                        className={`py-4 px-6 border text-center rounded-2xl font-bold text-sm sm:text-base flex justify-center items-center transition-all duration-150 shadow-xs cursor-pointer ${buttonClass}`}
+                      >
+                        <span>{choice}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </>
+            )}
 
           </div>
         </div>

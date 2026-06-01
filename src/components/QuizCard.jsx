@@ -29,7 +29,40 @@ export default function QuizCard({
   themeRegion,
   themeMode
 }) {
-  const [choices, setChoices] = useState([]);
+  const [displayCard, setDisplayCard] = useState(currentCard);
+  const [displayChoices, setDisplayChoices] = useState(() => {
+    if (!currentCard) return [];
+    const otherCards = allCards.filter(
+      c => c.english.toLowerCase().trim() !== currentCard.english.toLowerCase().trim()
+    );
+    let candidates = [];
+    if (difficulty === 'hard' && currentCard.group) {
+      candidates = otherCards.filter(
+        c => c.group && c.group.toLowerCase().trim() === currentCard.group.toLowerCase().trim()
+      );
+    }
+    let uniqueOtherMeanings = Array.from(new Set(candidates.map(c => c.english)));
+    if (uniqueOtherMeanings.length < 3) {
+      const genericMeanings = Array.from(new Set(otherCards.map(c => c.english)));
+      for (const meaning of genericMeanings) {
+        if (!uniqueOtherMeanings.includes(meaning)) {
+          uniqueOtherMeanings.push(meaning);
+        }
+        if (uniqueOtherMeanings.length >= 3) break;
+      }
+    }
+    const shuffledOthers = uniqueOtherMeanings.sort(() => 0.5 - Math.random());
+    const incorrect = shuffledOthers.slice(0, 3);
+    const fallbackList = ['hello / good day', 'goodbye', 'thank you', 'excuse me / sorry', 'water', 'yes', 'no'];
+    while (incorrect.length < 3) {
+      const fb = fallbackList[Math.floor(Math.random() * fallbackList.length)];
+      if (fb.toLowerCase().trim() !== currentCard.english.toLowerCase().trim() && !incorrect.includes(fb)) {
+        incorrect.push(fb);
+      }
+    }
+    return [currentCard.english, ...incorrect].sort(() => 0.5 - Math.random());
+  });
+
   const [selectedChoice, setSelectedChoice] = useState(null);
   const [isChecking, setIsChecking] = useState(false);
   const [isShake, setIsShake] = useState(false);
@@ -41,6 +74,10 @@ export default function QuizCard({
     return localStorage.getItem('jp_vocab_answermode') || 'mc';
   });
   const [typedAnswer, setTypedAnswer] = useState('');
+
+  const [correctHistory, setCorrectHistory] = useState([]);
+  const [historyIndex, setHistoryIndex] = useState(-1);
+  const [isHistoryFlipped, setIsHistoryFlipped] = useState(false);
 
 
 
@@ -630,6 +667,7 @@ export default function QuizCard({
     if (isCorrect) {
       playCorrectSound();
       spawnParticles();
+      setCorrectHistory(prev => [...prev, currentCard]);
       setTimeout(() => {
         onAnswer(true, currentCard);
         setTypedAnswer('');
@@ -659,6 +697,7 @@ export default function QuizCard({
     if (isCorrect) {
       playCorrectSound();
       spawnParticles();
+      setCorrectHistory(prev => [...prev, currentCard]);
       setTimeout(() => {
         onAnswer(true, currentCard);
       }, 1000);
@@ -671,6 +710,28 @@ export default function QuizCard({
     }
   };
 
+  const handleHistoryBack = () => {
+    if (timerEnabled) return;
+    setIsHistoryFlipped(false);
+    if (historyIndex === -1) {
+      setHistoryIndex(correctHistory.length - 1);
+    } else if (historyIndex > 0) {
+      setHistoryIndex(prev => prev - 1);
+    }
+  };
+
+  const handleHistoryForward = () => {
+    if (timerEnabled) return;
+    setIsHistoryFlipped(false);
+    if (historyIndex === -1) {
+      setHistoryIndex(correctHistory.length - 1);
+    } else if (historyIndex === correctHistory.length - 1) {
+      setHistoryIndex(-1);
+    } else {
+      setHistoryIndex(prev => prev + 1);
+    }
+  };
+
   // Reset/Initialize session timer states
   useEffect(() => {
     if (totalSessionCards === 0) {
@@ -680,11 +741,23 @@ export default function QuizCard({
       setCardStartTime(null);
       setIsTimeoutOccurred(false);
       setSessionSaved(false);
+      setCorrectHistory([]);
+      setHistoryIndex(-1);
+      setIsHistoryFlipped(false);
     } else if (!sessionStartTime) {
       setSessionStartTime(performance.now());
       setSessionSaved(false);
     }
   }, [totalSessionCards]);
+
+  // Reset session history on initial launch of a session
+  useEffect(() => {
+    if (totalSessionCards > 0 && queueLength === totalSessionCards) {
+      setCorrectHistory([]);
+      setHistoryIndex(-1);
+      setIsHistoryFlipped(false);
+    }
+  }, [currentCard, totalSessionCards, queueLength]);
 
   // Save session to history when queue completes
   useEffect(() => {
@@ -785,59 +858,75 @@ export default function QuizCard({
 
 
 
-  // Generate multiple choice options whenever the current card changes
+  // Generate multiple choice options and synchronize transition to next card
   useEffect(() => {
-    if (!currentCard) return;
+    if (!currentCard) {
+      setDisplayCard(null);
+      setDisplayChoices([]);
+      return;
+    }
 
-    // Reset states
-    setSelectedChoice(null);
-    setIsChecking(false);
-    setIsShake(false);
-    setTypedAnswer('');
-
-    // Filter out cards with same english definition (prevent duplicate correct answers)
-    const otherCards = allCards.filter(
-      c => c.english.toLowerCase().trim() !== currentCard.english.toLowerCase().trim()
-    );
-    
-    let candidates = [];
-    if (difficulty === 'hard' && currentCard.group) {
-      // Find cards in the same lexical/verb group (e.g. Ru-Verb, Noun, etc.)
-      candidates = otherCards.filter(
-        c => c.group && c.group.toLowerCase().trim() === currentCard.group.toLowerCase().trim()
+    const generateChoicesForCard = (card) => {
+      const otherCards = allCards.filter(
+        c => c.english.toLowerCase().trim() !== card.english.toLowerCase().trim()
       );
-    }
-    
-    // Extract unique english definitions from matching-group cards
-    let uniqueOtherMeanings = Array.from(new Set(candidates.map(c => c.english)));
-    
-    // If not enough words in same group, pad with generic words from the entire database
-    if (uniqueOtherMeanings.length < 3) {
-      const genericMeanings = Array.from(new Set(otherCards.map(c => c.english)));
-      for (const meaning of genericMeanings) {
-        if (!uniqueOtherMeanings.includes(meaning)) {
-          uniqueOtherMeanings.push(meaning);
+      
+      let candidates = [];
+      if (difficulty === 'hard' && card.group) {
+        candidates = otherCards.filter(
+          c => c.group && c.group.toLowerCase().trim() === card.group.toLowerCase().trim()
+        );
+      }
+      
+      let uniqueOtherMeanings = Array.from(new Set(candidates.map(c => c.english)));
+      
+      if (uniqueOtherMeanings.length < 3) {
+        const genericMeanings = Array.from(new Set(otherCards.map(c => c.english)));
+        for (const meaning of genericMeanings) {
+          if (!uniqueOtherMeanings.includes(meaning)) {
+            uniqueOtherMeanings.push(meaning);
+          }
+          if (uniqueOtherMeanings.length >= 3) break;
         }
-        if (uniqueOtherMeanings.length >= 3) break;
       }
-    }
 
-    // Shuffle and pick 3 incorrect options
-    const shuffledOthers = uniqueOtherMeanings.sort(() => 0.5 - Math.random());
-    const incorrect = shuffledOthers.slice(0, 3);
-    
-    // Fallbacks if vocab database is extremely tiny (e.g. 1-2 words total)
-    const fallbackList = ['hello / good day', 'goodbye', 'thank you', 'excuse me / sorry', 'water', 'yes', 'no'];
-    while (incorrect.length < 3) {
-      const fb = fallbackList[Math.floor(Math.random() * fallbackList.length)];
-      if (fb.toLowerCase().trim() !== currentCard.english.toLowerCase().trim() && !incorrect.includes(fb)) {
-        incorrect.push(fb);
+      const shuffledOthers = uniqueOtherMeanings.sort(() => 0.5 - Math.random());
+      const incorrect = shuffledOthers.slice(0, 3);
+      
+      const fallbackList = ['hello / good day', 'goodbye', 'thank you', 'excuse me / sorry', 'water', 'yes', 'no'];
+      while (incorrect.length < 3) {
+        const fb = fallbackList[Math.floor(Math.random() * fallbackList.length)];
+        if (fb.toLowerCase().trim() !== card.english.toLowerCase().trim() && !incorrect.includes(fb)) {
+          incorrect.push(fb);
+        }
       }
-    }
 
-    // Combine correct and incorrect, and shuffle to determine final layout
-    const combined = [currentCard.english, ...incorrect].sort(() => 0.5 - Math.random());
-    setChoices(combined);
+      const combined = [card.english, ...incorrect].sort(() => 0.5 - Math.random());
+      return combined;
+    };
+
+    if (isChecking) {
+      // The card is currently flipped. Start the flip-back transition first.
+      setIsChecking(false);
+      setIsShake(false);
+      setSelectedChoice(null);
+      
+      // Delay updating displayCard and displayChoices until the flip-back animation finishes (600ms)
+      const timer = setTimeout(() => {
+        setDisplayCard(currentCard);
+        setDisplayChoices(generateChoicesForCard(currentCard));
+        setTypedAnswer('');
+      }, 600);
+
+      return () => clearTimeout(timer);
+    } else {
+      // The card is already facing front. Update immediately.
+      setSelectedChoice(null);
+      setIsShake(false);
+      setTypedAnswer('');
+      setDisplayCard(currentCard);
+      setDisplayChoices(generateChoicesForCard(currentCard));
+    }
   }, [currentCard, allCards, difficulty, questionIndex]);
 
   if (totalSessionCards === 0) {
@@ -1218,6 +1307,7 @@ export default function QuizCard({
     ? Math.round(((totalSessionCards - queueLength) / totalSessionCards) * 100) 
     : 0;
 
+  const cardToRender = historyIndex !== -1 ? correctHistory[historyIndex] : (displayCard || currentCard);
 
   return (
     <>
@@ -1254,9 +1344,46 @@ export default function QuizCard({
             />
           </div>
 
+          {/* History Navigation Bar */}
+          {!timerEnabled && correctHistory.length > 0 && (
+            <div className="flex justify-between items-center bg-claude-card border border-claude-border rounded-2xl px-4 py-2.5 text-xs font-bold text-claude-text select-none shadow-sm animate-fade-in">
+              <button
+                type="button"
+                onClick={handleHistoryBack}
+                disabled={historyIndex === 0}
+                className={`px-3 py-1.5 rounded-lg border border-claude-border bg-claude-sidebar transition-all flex items-center justify-center gap-1 cursor-pointer text-[10px] ${
+                  historyIndex === 0 ? 'opacity-40 cursor-not-allowed' : 'hover:border-claude-coral hover:text-claude-coral hover:scale-[1.02]'
+                }`}
+                title="Previous correct card"
+              >
+                ⬅️ Back
+              </button>
+              <span className="text-claude-text-muted text-[10px]">
+                {historyIndex === -1 
+                  ? `Review Mode: ${correctHistory.length} correct cards available` 
+                  : `Reviewing: Card ${historyIndex + 1} of ${correctHistory.length}`}
+              </span>
+              <button
+                type="button"
+                onClick={handleHistoryForward}
+                className="px-3 py-1.5 rounded-lg border border-claude-border bg-claude-sidebar transition-all flex items-center justify-center gap-1 cursor-pointer text-[10px] hover:border-claude-coral hover:text-claude-coral hover:scale-[1.02]"
+                title="Next card / Active card"
+              >
+                {historyIndex === -1 ? 'Review History 🔍' : historyIndex === correctHistory.length - 1 ? 'Active Card ⚡' : 'Next ➡️'}
+              </button>
+            </div>
+          )}
+
           {/* Core Flashcard Container */}
-          <div className="flip-card-container">
-            <div className={`flip-card-inner ${isChecking ? 'flipped' : ''}`}>
+          <div 
+            className={`flip-card-container ${historyIndex !== -1 ? 'cursor-pointer select-none' : ''}`}
+            onClick={() => {
+              if (historyIndex !== -1) {
+                setIsHistoryFlipped(prev => !prev);
+              }
+            }}
+          >
+            <div className={`flip-card-inner ${(historyIndex !== -1 ? isHistoryFlipped : isChecking) ? 'flipped' : ''}`}>
               
               {/* FRONT FACE */}
               <div 
@@ -1281,7 +1408,7 @@ export default function QuizCard({
                 {/* Config switches (Furigana / Romaji / AutoSpeak / Fonts) */}
                 <div className="absolute top-4 right-4 flex gap-2 z-10">
                   <button
-                    onClick={() => setUseSerif(!useSerif)}
+                    onClick={(e) => { e.stopPropagation(); setUseSerif(!useSerif); }}
                     className={`w-8 h-8 rounded-lg border flex items-center justify-center text-xs font-bold transition-all cursor-pointer ${
                       useSerif 
                         ? 'bg-claude-card border-claude-border text-claude-text-heading' 
@@ -1292,7 +1419,7 @@ export default function QuizCard({
                     {useSerif ? '明' : 'ゴ'}
                   </button>
                   <button
-                    onClick={() => setShowFurigana(!showFurigana)}
+                    onClick={(e) => { e.stopPropagation(); setShowFurigana(!showFurigana); }}
                     className={`w-8 h-8 rounded-lg border flex items-center justify-center text-xs font-bold transition-all cursor-pointer ${
                       showFurigana 
                         ? 'bg-claude-coral/10 border-claude-coral/30 text-claude-coral' 
@@ -1303,7 +1430,7 @@ export default function QuizCard({
                     あ
                   </button>
                   <button
-                    onClick={() => setShowRomaji(!showRomaji)}
+                    onClick={(e) => { e.stopPropagation(); setShowRomaji(!showRomaji); }}
                     className={`w-8 h-8 rounded-lg border flex items-center justify-center text-xs font-bold transition-all cursor-pointer ${
                       showRomaji 
                         ? 'bg-claude-coral/10 border-claude-coral/30 text-claude-coral' 
@@ -1314,7 +1441,7 @@ export default function QuizCard({
                     A
                   </button>
                   <button
-                    onClick={() => setAutoSpeak(!autoSpeak)}
+                    onClick={(e) => { e.stopPropagation(); setAutoSpeak(!autoSpeak); }}
                     className={`w-8 h-8 rounded-lg border flex items-center justify-center text-xs font-bold transition-all cursor-pointer ${
                       autoSpeak 
                         ? 'bg-amber-500/10 border-amber-500/30 text-amber-600 dark:text-amber-400' 
@@ -1325,7 +1452,7 @@ export default function QuizCard({
                     🔊
                   </button>
                   <button
-                    onClick={() => setTimerEnabled(!timerEnabled)}
+                    onClick={(e) => { e.stopPropagation(); setTimerEnabled(!timerEnabled); }}
                     className={`w-8 h-8 rounded-lg border flex items-center justify-center text-xs font-bold transition-all cursor-pointer ${
                       timerEnabled 
                         ? 'bg-amber-500/10 border-amber-500/30 text-amber-600 dark:text-amber-400' 
@@ -1339,9 +1466,14 @@ export default function QuizCard({
 
                 {/* Badges Row */}
                 <div className="flex justify-center items-center gap-3 mb-4 select-none pt-4">
-                  {currentCard.group && (
+                  {historyIndex !== -1 && (
+                    <span className="text-[10px] uppercase tracking-wider font-extrabold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 px-3 py-1 rounded-full border border-emerald-500/25">
+                      ✓ Correctly Answered
+                    </span>
+                  )}
+                  {cardToRender.group && (
                     <span className="text-[10px] uppercase tracking-wider font-extrabold bg-claude-sidebar text-claude-coral px-3 py-1 rounded-full border border-claude-border">
-                      {currentCard.group}
+                      {cardToRender.group}
                       {difficulty === 'hard' && ' • Hard'}
                     </span>
                   )}
@@ -1350,15 +1482,15 @@ export default function QuizCard({
                 {/* Word Display Area */}
                 <div className="py-6 min-h-[160px] flex flex-col justify-center items-center w-full">
                   {answerMode === 'typed' ? (
-                    currentCard.kanji ? (
+                    cardToRender.kanji ? (
                       <div className="space-y-3">
                         <div className="text-[10px] uppercase tracking-wider font-extrabold text-claude-text-muted">Type the reading of this Kanji:</div>
                         <div className="flex items-center justify-center gap-4">
                           <div className={`text-3xl sm:text-6xl font-bold tracking-wider text-claude-text-heading ${useSerif ? 'japanese-serif' : 'japanese-sans'}`}>
-                            {currentCard.kanji}
+                            {cardToRender.kanji}
                           </div>
                           <button
-                            onClick={() => speakJapanese(currentCard.hiragana)}
+                            onClick={(e) => { e.stopPropagation(); speakJapanese(cardToRender.hiragana); }}
                             className="w-10 h-10 rounded-full bg-claude-sidebar border border-claude-border hover:border-claude-coral/55 flex items-center justify-center text-base hover:scale-105 transition-all cursor-pointer shadow-sm text-claude-text hover:text-claude-coral"
                             title="Listen to Japanese pronunciation"
                           >
@@ -1370,10 +1502,10 @@ export default function QuizCard({
                       <div className="space-y-3">
                         <div className="text-[10px] uppercase tracking-wider font-extrabold text-claude-text-muted">Type the Japanese reading for:</div>
                         <div className="text-2xl sm:text-3xl font-extrabold text-claude-text-heading claude-serif tracking-wide py-2">
-                          {currentCard.english}
+                          {cardToRender.english}
                         </div>
                         <button
-                          onClick={() => speakJapanese(currentCard.hiragana)}
+                          onClick={(e) => { e.stopPropagation(); speakJapanese(cardToRender.hiragana); }}
                           className="w-10 h-10 rounded-full bg-claude-sidebar border border-claude-border hover:border-claude-coral/55 flex items-center justify-center text-base hover:scale-105 transition-all cursor-pointer shadow-sm text-claude-text hover:text-claude-coral mx-auto"
                           title="Listen to Japanese pronunciation"
                         >
@@ -1382,7 +1514,7 @@ export default function QuizCard({
                       </div>
                     )
                   ) : (
-                    currentCard.kanji ? (
+                    cardToRender.kanji ? (
                       <div className="space-y-3">
                         {/* Pronunciation Hints Row */}
                         <div className="flex justify-center items-center gap-3 text-sm min-h-[24px]">
@@ -1391,15 +1523,15 @@ export default function QuizCard({
                               showFurigana ? 'opacity-100' : 'opacity-0 select-none'
                             }`}
                           >
-                            {currentCard.hiragana}
+                            {cardToRender.hiragana}
                           </span>
-                          {currentCard.romaji && (
+                          {cardToRender.romaji && (
                             <span 
                               className={`text-claude-text-muted italic transition-opacity duration-300 ${
                                 showRomaji ? 'opacity-100' : 'opacity-0 select-none'
                               }`}
                             >
-                              [{currentCard.romaji}]
+                              [{cardToRender.romaji}]
                             </span>
                           )}
                         </div>
@@ -1407,10 +1539,10 @@ export default function QuizCard({
                         {/* Kanji representation and Speaker button inline */}
                         <div className="flex items-center justify-center gap-4">
                           <div className={`text-4xl sm:text-7xl font-bold tracking-wider text-claude-text-heading ${useSerif ? 'japanese-serif' : 'japanese-sans'}`}>
-                            {currentCard.kanji}
+                            {cardToRender.kanji}
                           </div>
                           <button
-                            onClick={() => speakJapanese(currentCard.hiragana)}
+                            onClick={(e) => { e.stopPropagation(); speakJapanese(cardToRender.hiragana); }}
                             className="w-10 h-10 rounded-full bg-claude-sidebar border border-claude-border hover:border-claude-coral/55 flex items-center justify-center text-base hover:scale-105 transition-all cursor-pointer shadow-sm text-claude-text hover:text-claude-coral"
                             title="Listen to Japanese pronunciation"
                           >
@@ -1423,23 +1555,23 @@ export default function QuizCard({
                       <div className="space-y-3">
                         <div className="flex items-center justify-center gap-4">
                           <div className={`text-4xl sm:text-7xl font-bold tracking-wider text-claude-text-heading ${useSerif ? 'japanese-serif' : 'japanese-sans'}`}>
-                            {currentCard.hiragana}
+                            {cardToRender.hiragana}
                           </div>
                           <button
-                            onClick={() => speakJapanese(currentCard.hiragana)}
+                            onClick={(e) => { e.stopPropagation(); speakJapanese(cardToRender.hiragana); }}
                             className="w-10 h-10 rounded-full bg-claude-sidebar border border-claude-border hover:border-claude-coral/55 flex items-center justify-center text-base hover:scale-105 transition-all cursor-pointer shadow-sm text-claude-text hover:text-claude-coral"
                             title="Listen to Japanese pronunciation"
                           >
                             🔊
                           </button>
                         </div>
-                        {currentCard.romaji && (
+                        {cardToRender.romaji && (
                           <div 
                             className={`text-claude-text-muted text-lg transition-opacity duration-300 italic min-h-[28px] ${
                               showRomaji ? 'opacity-100' : 'opacity-0 select-none'
                             }`}
                           >
-                            {currentCard.romaji}
+                            {cardToRender.romaji}
                           </div>
                         )}
                       </div>
@@ -1451,13 +1583,15 @@ export default function QuizCard({
               {/* BACK FACE */}
               <div 
                 className={`flip-card-back claude-panel study-card-hover border-claude-border p-5 sm:p-12 text-center relative overflow-hidden shadow-md flex flex-col justify-center items-center ${
-                  answerMode === 'typed'
-                    ? typedAnswer && (typedAnswer.toLowerCase().trim() === currentCard.hiragana.toLowerCase().trim() || (currentCard.romaji && typedAnswer.toLowerCase().trim() === currentCard.romaji.toLowerCase().trim()))
-                      ? 'border-claude-success/60'
-                      : 'border-claude-error/60'
-                    : selectedChoice && selectedChoice.toLowerCase().trim() === currentCard.english.toLowerCase().trim()
-                      ? 'border-claude-success/60'
-                      : 'border-claude-error/60'
+                  historyIndex !== -1
+                    ? 'border-claude-success/60'
+                    : answerMode === 'typed'
+                      ? typedAnswer && (typedAnswer.toLowerCase().trim() === (displayCard || currentCard).hiragana.toLowerCase().trim() || ((displayCard || currentCard).romaji && typedAnswer.toLowerCase().trim() === (displayCard || currentCard).romaji.toLowerCase().trim()))
+                        ? 'border-claude-success/60'
+                        : 'border-claude-error/60'
+                      : selectedChoice && selectedChoice.toLowerCase().trim() === (displayCard || currentCard).english.toLowerCase().trim()
+                        ? 'border-claude-success/60'
+                        : 'border-claude-error/60'
                 }`}
               >
                 {/* Visual Mnemonic Callout & Correct Meaning */}
@@ -1466,7 +1600,7 @@ export default function QuizCard({
                     <div className="space-y-1">
                       <span className="text-[8px] uppercase font-bold text-claude-text-muted tracking-wider block">Japanese</span>
                       <div className="text-3xl font-black text-claude-text-heading japanese-serif">
-                        {currentCard.kanji || currentCard.hiragana}
+                        {cardToRender.kanji || cardToRender.hiragana}
                       </div>
                     </div>
 
@@ -1474,7 +1608,7 @@ export default function QuizCard({
                     <div className="space-y-1">
                       <span className="text-[8px] uppercase font-bold text-claude-text-muted tracking-wider block">Correct Definition</span>
                       <div className="inline-block text-sm font-black text-white bg-claude-coral px-4 py-1.5 rounded-2xl capitalize shadow-sm">
-                        {currentCard.english}
+                        {cardToRender.english}
                       </div>
                     </div>
 
@@ -1482,7 +1616,7 @@ export default function QuizCard({
                     <div className="p-3 bg-claude-sidebar/55 border border-claude-border/80 rounded-2xl max-w-sm mx-auto text-left space-y-1.5">
                       <span className="text-[8px] uppercase font-extrabold text-claude-coral tracking-widest block">💡 Memory Mnemonic Trick</span>
                       <p className="text-[10px] font-bold text-claude-text leading-relaxed">
-                        {currentCard.mnemonic || generateMnemonic(currentCard.hiragana, currentCard.romaji, currentCard.english)}
+                        {cardToRender.mnemonic || generateMnemonic(cardToRender.hiragana, cardToRender.romaji, cardToRender.english)}
                       </p>
                     </div>
                   </div>
@@ -1493,90 +1627,108 @@ export default function QuizCard({
           </div>
 
           {/* Answer Selections Grid */}
-            <div className="grid grid-cols-1 gap-3 w-full">
-              {answerMode === 'typed' ? (
-                <form onSubmit={handleTypedSubmit} className="w-full space-y-3">
-                  <div className="relative">
-                    <input
-                      type="text"
-                      value={typedAnswer}
-                      disabled={isChecking}
-                      onChange={(e) => setTypedAnswer(toKana(e.target.value, { IMEMode: true }))}
-                      placeholder={isChecking ? "Reviewing..." : "Type reading in Hiragana... (e.g. neko)"}
-                      autoFocus
-                      className={`w-full py-4 px-6 border rounded-2xl font-bold text-base sm:text-lg focus:outline-none transition-all duration-150 shadow-sm text-center ${
-                        isChecking
-                          ? typedAnswer.toLowerCase().trim() === currentCard.hiragana.toLowerCase().trim() || (currentCard.romaji && typedAnswer.toLowerCase().trim() === currentCard.romaji.toLowerCase().trim())
-                            ? 'bg-claude-success border-claude-success text-white'
-                            : 'bg-claude-error border-claude-error text-white'
-                          : 'bg-claude-card border-claude-border focus:border-claude-coral text-claude-text-heading'
-                      }`}
-                    />
-                    {!isChecking && typedAnswer && (
-                      <button
-                        type="button"
-                        onClick={() => setTypedAnswer('')}
-                        className="absolute right-4 top-1/2 -translate-y-1/2 text-claude-text-muted hover:text-claude-text-heading text-sm p-1 hover:bg-claude-sidebar rounded-full cursor-pointer"
-                      >
-                        ✕
-                      </button>
-                    )}
-                  </div>
-                  
-                  <button
-                    type="submit"
-                    disabled={isChecking || !typedAnswer.trim()}
-                    className={`w-full py-3.5 premium-btn-coral text-white font-bold rounded-2xl text-sm transition-all flex items-center justify-center gap-2 cursor-pointer ${
-                      isChecking || !typedAnswer.trim() ? 'opacity-60 cursor-not-allowed' : ''
+          <div className="grid grid-cols-1 gap-3 w-full">
+            {historyIndex !== -1 ? (
+              <div className="claude-panel border-claude-border p-6 rounded-2xl text-center space-y-4 shadow-sm select-none animate-fade-in bg-claude-sidebar/20">
+                <div className="text-2xl">💡</div>
+                <div className="space-y-1">
+                  <span className="text-xs font-extrabold text-claude-text-heading block">You are reviewing a past correct question</span>
+                  <span className="text-[10px] text-claude-text-muted block">Tap the card above to toggle showing translation and memory mnemonic!</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setHistoryIndex(-1);
+                    setIsHistoryFlipped(false);
+                  }}
+                  className="px-4 py-2 bg-claude-coral text-white text-[10px] font-black rounded-xl cursor-pointer hover:opacity-95 transition-opacity mx-auto block"
+                >
+                  Resume Active Quiz ⚡
+                </button>
+              </div>
+            ) : answerMode === 'typed' ? (
+              <form onSubmit={handleTypedSubmit} className="w-full space-y-3">
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={typedAnswer}
+                    disabled={isChecking}
+                    onChange={(e) => setTypedAnswer(toKana(e.target.value, { IMEMode: true }))}
+                    placeholder={isChecking ? "Reviewing..." : "Type reading in Hiragana... (e.g. neko)"}
+                    autoFocus
+                    className={`w-full py-4 px-6 border rounded-2xl font-bold text-base sm:text-lg focus:outline-none transition-all duration-150 shadow-sm text-center ${
+                      isChecking
+                        ? typedAnswer.toLowerCase().trim() === (displayCard || currentCard).hiragana.toLowerCase().trim() || ((displayCard || currentCard).romaji && typedAnswer.toLowerCase().trim() === (displayCard || currentCard).romaji.toLowerCase().trim())
+                          ? 'bg-claude-success border-claude-success text-white'
+                          : 'bg-claude-error border-claude-error text-white'
+                        : 'bg-claude-card border-claude-border focus:border-claude-coral text-claude-text-heading'
                     }`}
-                  >
-                    Submit Answer ⚡
-                  </button>
-                </form>
-              ) : (
-                choices.map((choice, index) => {
-                  const isSelected = selectedChoice === choice;
-                  const isCorrectDefinition = choice.toLowerCase().trim() === currentCard.english.toLowerCase().trim();
-
-                  // Set dynamic styles for option feedback states
-                  let buttonClass = 'bg-claude-card border-claude-border hover:border-claude-coral/55 text-claude-text hover:text-claude-text-heading';
-                  
-                  if (isChecking) {
-                    if (isCorrectDefinition) {
-                      buttonClass = 'bg-claude-success border-claude-success text-white scale-[1.01]';
-                    } else if (isSelected) {
-                      buttonClass = 'bg-claude-error border-claude-error text-white scale-[0.99]';
-                    } else {
-                      buttonClass = 'bg-claude-card/25 border-claude-border/25 text-claude-text-muted/40 cursor-not-allowed scale-[0.98]';
-                    }
-                  }
-
-                  return (
+                  />
+                  {!isChecking && typedAnswer && (
                     <button
-                      key={index}
-                      disabled={isChecking}
-                      onClick={() => handleChoiceClick(choice)}
-                      className={`w-full py-4 px-6 border text-left rounded-2xl font-bold text-sm sm:text-base flex justify-between items-center transition-all duration-150 shadow-sm cursor-pointer ${buttonClass}`}
+                      type="button"
+                      onClick={() => setTypedAnswer('')}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-claude-text-muted hover:text-claude-text-heading text-sm p-1 hover:bg-claude-sidebar rounded-full cursor-pointer"
                     >
-                      <div className="flex items-center gap-3">
-                        {!isChecking && (
-                          <span className="text-[9px] font-black border border-claude-border bg-claude-sidebar text-claude-text-muted px-1.5 py-0.5 rounded shadow-xs select-none">
-                            {index + 1}
-                          </span>
-                        )}
-                        <span>{choice}</span>
-                      </div>
-                      {isChecking && isCorrectDefinition && (
-                        <span className="text-xl animate-fade-in">✓</span>
-                      )}
-                      {isChecking && isSelected && !isCorrectDefinition && (
-                        <span className="text-xl animate-fade-in">✗</span>
-                      )}
+                      ✕
                     </button>
-                  );
-                })
-              )}
-            </div>
+                  )}
+                </div>
+                
+                <button
+                  type="submit"
+                  disabled={isChecking || !typedAnswer.trim()}
+                  className={`w-full py-3.5 premium-btn-coral text-white font-bold rounded-2xl text-sm transition-all flex items-center justify-center gap-2 cursor-pointer ${
+                    isChecking || !typedAnswer.trim() ? 'opacity-60 cursor-not-allowed' : ''
+                  }`}
+                >
+                  Submit Answer ⚡
+                </button>
+              </form>
+            ) : (
+              displayChoices.map((choice, index) => {
+                const isSelected = selectedChoice === choice;
+                const isCorrectDefinition = choice.toLowerCase().trim() === (displayCard || currentCard).english.toLowerCase().trim();
+
+                // Set dynamic styles for option feedback states
+                let buttonClass = 'bg-claude-card border-claude-border hover:border-claude-coral/55 text-claude-text hover:text-claude-text-heading';
+                
+                if (isChecking) {
+                  if (isCorrectDefinition) {
+                    buttonClass = 'bg-claude-success border-claude-success text-white scale-[1.01]';
+                  } else if (isSelected) {
+                    buttonClass = 'bg-claude-error border-claude-error text-white scale-[0.99]';
+                  } else {
+                    buttonClass = 'bg-claude-card/25 border-claude-border/25 text-claude-text-muted/40 cursor-not-allowed scale-[0.98]';
+                  }
+                }
+
+                return (
+                  <button
+                    key={index}
+                    disabled={isChecking}
+                    onClick={() => handleChoiceClick(choice)}
+                    className={`w-full py-4 px-6 border text-left rounded-2xl font-bold text-sm sm:text-base flex justify-between items-center transition-all duration-150 shadow-sm cursor-pointer ${buttonClass}`}
+                  >
+                    <div className="flex items-center gap-3">
+                      {!isChecking && (
+                        <span className="text-[9px] font-black border border-claude-border bg-claude-sidebar text-claude-text-muted px-1.5 py-0.5 rounded shadow-xs select-none">
+                          {index + 1}
+                        </span>
+                      )}
+                      <span>{choice}</span>
+                    </div>
+                    {isChecking && isCorrectDefinition && (
+                      <span className="text-xl animate-fade-in">✓</span>
+                    )}
+                    {isChecking && isSelected && !isCorrectDefinition && (
+                      <span className="text-xl animate-fade-in">✗</span>
+                    )}
+                  </button>
+                );
+              })
+            )}
+          </div>
         </div>
       </div>
     </>

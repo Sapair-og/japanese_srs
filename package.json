@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "build-wasm": "npx wasm-pack build wasm-stroke-matcher --target web --out-dir pkg",
     "lint": "eslint .",
     "preview": "vite preview"
   },

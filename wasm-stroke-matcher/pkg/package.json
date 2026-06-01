@@ -1,0 +1,15 @@
+{
+  "name": "wasm-stroke-matcher",
+  "type": "module",
+  "version": "0.1.0",
+  "files": [
+    "wasm_stroke_matcher_bg.wasm",
+    "wasm_stroke_matcher.js",
+    "wasm_stroke_matcher.d.ts"
+  ],
+  "main": "wasm_stroke_matcher.js",
+  "types": "wasm_stroke_matcher.d.ts",
+  "sideEffects": [
+    "./snippets/*"
+  ]
+}

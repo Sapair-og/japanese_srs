@@ -162,8 +162,7 @@ let wasmInstance = null;
 
 export async function initWasm() {
   try {
-    // Dynamic import to prevent Vite from failing compilation if WASM isn't built yet
-    const wasm = await import(/* @vite-ignore */ '../../wasm-stroke-matcher/pkg/wasm_stroke_matcher.js');
+    const wasm = await import('../../wasm-stroke-matcher/pkg/wasm_stroke_matcher.js');
     await wasm.default();
     wasmInstance = wasm;
     console.log("Rust WebAssembly stroke recognizer module initialized 🦀");

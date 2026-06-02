@@ -247,12 +247,24 @@ export default function VocabManager({ vocabList, onImportVocab, onClearAll, onL
       setIsUploading(true);
       setErrorMsg(null);
 
+      const sanitize = (text) => {
+        if (!text) return '';
+        return String(text).replace(/<[^>]*>/g, '').trim();
+      };
+
       const updatedWords = [];
       let matchCount = 0;
 
       for (const item of parsed) {
-        const word = { ...item };
-        word.lesson = word.lesson?.trim() || bulkLesson.trim() || 'General';
+        const word = {
+          hiragana: sanitize(item.hiragana),
+          kanji: sanitize(item.kanji || ''),
+          romaji: sanitize(item.romaji || ''),
+          group: sanitize(item.group || ''),
+          english: sanitize(item.english),
+          lesson: sanitize(item.lesson || '') || bulkLesson.trim() || 'General',
+          mnemonic: sanitize(item.mnemonic || '')
+        };
 
         const matchedFile = bulkAudioFiles.find(file => matchAudioToWord(file, word));
 
@@ -263,7 +275,7 @@ export default function VocabManager({ vocabList, onImportVocab, onClearAll, onL
             matchCount++;
           }
         } else {
-          word.audio_url = word.audio_url || null;
+          word.audio_url = item.audio_url || null;
         }
 
         updatedWords.push(word);
@@ -285,8 +297,21 @@ export default function VocabManager({ vocabList, onImportVocab, onClearAll, onL
     setErrorMsg(null);
     setSuccessMsg(null);
 
-    if (!singleHiragana.trim() || !singleEnglish.trim()) {
-      setErrorMsg('Hiragana and English are required.');
+    const sanitize = (text) => {
+      if (!text) return '';
+      return String(text).replace(/<[^>]*>/g, '').trim();
+    };
+
+    const cleanHiragana = sanitize(singleHiragana);
+    const cleanEnglish = sanitize(singleEnglish);
+    const cleanKanji = sanitize(singleKanji);
+    const cleanRomaji = sanitize(singleRomaji);
+    const cleanGroup = sanitize(singleGroup);
+    const cleanLesson = sanitize(singleLesson) || 'General';
+    const cleanMnemonic = sanitize(singleMnemonic);
+
+    if (!cleanHiragana || !cleanEnglish) {
+      setErrorMsg('Hiragana and English are required and cannot contain HTML tags.');
       return;
     }
 
@@ -294,22 +319,22 @@ export default function VocabManager({ vocabList, onImportVocab, onClearAll, onL
 
     try {
       const vocalUrl = (audioBlob || singleAudioFile) 
-        ? await uploadAudioToSupabase(audioBlob || singleAudioFile, singleHiragana)
+        ? await uploadAudioToSupabase(audioBlob || singleAudioFile, cleanHiragana)
         : null;
 
       const newWord = {
-        hiragana: singleHiragana.trim(),
-        kanji: singleKanji.trim() || undefined,
-        romaji: singleRomaji.trim() || undefined,
-        group: singleGroup.trim() || undefined,
-        english: singleEnglish.trim(),
-        lesson: singleLesson.trim() || 'General',
+        hiragana: cleanHiragana,
+        kanji: cleanKanji || undefined,
+        romaji: cleanRomaji || undefined,
+        group: cleanGroup || undefined,
+        english: cleanEnglish,
+        lesson: cleanLesson,
         audio_url: vocalUrl || null,
-        mnemonic: singleMnemonic.trim() || undefined
+        mnemonic: cleanMnemonic || undefined
       };
 
       await onAddWord(newWord);
-      setSuccessMsg(`Successfully added "${singleHiragana}"!`);
+      setSuccessMsg(`Successfully added "${cleanHiragana}"!`);
 
       // Reset inputs
       setSingleHiragana('');

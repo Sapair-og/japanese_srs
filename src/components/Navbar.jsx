@@ -119,9 +119,13 @@ export default function Navbar({ activeTab, setActiveTab, hasCards, themeRegion,
   };
 
   const handleSave = () => {
+    const sanitize = (text) => text.replace(/<[^>]*>/g, '').trim();
+    const cleanName = sanitize(tempName) || 'Luna-chan';
+    const cleanTitle = sanitize(tempTitle) || 'Chibi Student';
+
     onUpdateProfile({
-      name: tempName.trim() || 'Luna-chan',
-      title: tempTitle.trim() || 'Chibi Student',
+      name: cleanName,
+      title: cleanTitle,
       avatarSeed: tempAvatar.seed,
       avatarStyle: tempAvatar.style
     });

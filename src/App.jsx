@@ -14,6 +14,7 @@ import StudyGuide from './components/StudyGuide';
 import { generateMnemonic } from './utils/mnemonicGenerator';
 import Auth from './components/Auth';
 import { initWasm } from './utils/strokeMatcher';
+import { SpeedInsights } from '@vercel/speed-insights/react';
 
 
 const parseDbTheme = (dbThemeString) => {
@@ -919,6 +920,7 @@ export default function App() {
           />
         )}
       </main>
+      <SpeedInsights />
     </div>
   );
 }

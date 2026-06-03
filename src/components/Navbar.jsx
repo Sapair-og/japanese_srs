@@ -46,9 +46,35 @@ const getAvatarUrl = (style, seed) => {
   return `https://api.dicebear.com/7.x/${style}/svg?seed=${seed}`;
 };
 
-export default function Navbar({ activeTab, setActiveTab, hasCards, themeRegion, themeMode, onChangeTheme, profile, onUpdateProfile, bgMusicEnabled, onToggleMusic, onSignOut, userEmail }) {
+const calculateLevelInfo = (totalCorrect) => {
+  const xp = (totalCorrect || 0) * 10;
+  let level = 1;
+  let xpForNextLevel = 100;
+  let accumulatedXp = 0;
+  
+  while (xp >= accumulatedXp + xpForNextLevel) {
+    accumulatedXp += xpForNextLevel;
+    level += 1;
+    xpForNextLevel = level * 100;
+  }
+  
+  const xpInCurrentLevel = xp - accumulatedXp;
+  const progressPercent = Math.min(100, Math.floor((xpInCurrentLevel / xpForNextLevel) * 100));
+  
+  return {
+    level,
+    xp,
+    xpInCurrentLevel,
+    xpForNextLevel,
+    progressPercent
+  };
+};
+
+export default function Navbar({ activeTab, setActiveTab, hasCards, themeRegion, themeMode, onChangeTheme, profile, onUpdateProfile, bgMusicEnabled, onToggleMusic, onSignOut, userEmail, stats }) {
   const [themeDropdownOpen, setThemeDropdownOpen] = useState(false);
   const [showAllThemes, setShowAllThemes] = useState(false);
+  
+  const { level, xp, xpInCurrentLevel, xpForNextLevel, progressPercent } = calculateLevelInfo(stats?.totalCorrect || 0);
 
   const getTop3Regions = () => {
     const defaultTop = ['liyue', 'mondstadt', 'inazuma'];
@@ -157,17 +183,22 @@ export default function Navbar({ activeTab, setActiveTab, hasCards, themeRegion,
         
         <div className="flex items-center gap-2">
           {/* Mobile Profile Trigger Button */}
-          <button
-            onClick={handleOpenModal}
-            className="w-8 h-8 rounded-full bg-claude-coral/10 flex items-center justify-center border border-claude-border overflow-hidden cursor-pointer active:scale-95 transition-transform"
-            title="Edit Profile"
-          >
-            <img 
-              src={getAvatarUrl(profile.avatarStyle, profile.avatarSeed)} 
-              className="w-7 h-7 scale-110 object-contain" 
-              alt="Avatar" 
-            />
-          </button>
+          <div className="relative select-none">
+            <button
+              onClick={handleOpenModal}
+              className="w-8 h-8 rounded-full bg-claude-coral/10 flex items-center justify-center border border-claude-border overflow-hidden cursor-pointer active:scale-95 transition-transform"
+              title="Edit Profile"
+            >
+              <img 
+                src={getAvatarUrl(profile.avatarStyle, profile.avatarSeed)} 
+                className="w-7 h-7 scale-110 object-contain" 
+                alt="Avatar" 
+              />
+            </button>
+            <div className="absolute -bottom-1 -right-1 w-3.5 h-3.5 rounded-full bg-amber-400 border border-claude-card flex items-center justify-center text-[7px] font-black text-slate-900 shadow-xs" title={`Level ${level}`}>
+              {level}
+            </div>
+          </div>
 
           {/* Background Music Toggle */}
           <button
@@ -407,26 +438,43 @@ export default function Navbar({ activeTab, setActiveTab, hasCards, themeRegion,
           {/* Clickable User profile mockup with cute anime chibi avatar sticker */}
           <div 
             onClick={handleOpenModal}
-            className="flex items-center gap-2.5 p-2 bg-claude-card/20 hover:bg-claude-card/65 rounded-xl border border-claude-border/50 hover:border-claude-coral/70 transition-all cursor-pointer group"
+            className="flex items-center gap-2.5 p-2 bg-claude-card/25 hover:bg-claude-card/75 rounded-xl border border-claude-border/50 hover:border-claude-coral/70 transition-all cursor-pointer group"
             title="Edit profile details"
           >
-            <div className="w-8 h-8 rounded-full bg-claude-coral/10 flex items-center justify-center border border-claude-border overflow-hidden relative select-none">
-              <img 
-                src={getAvatarUrl(profile.avatarStyle, profile.avatarSeed)} 
-                className="w-7 h-7 scale-115 object-contain group-hover:scale-125 transition-transform" 
-                alt="Chibi avatar student" 
-              />
-              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center text-[8px] text-white font-bold transition-opacity">
-                Edit
+            <div className="relative shrink-0 select-none">
+              <div className="w-8 h-8 rounded-full bg-claude-coral/10 flex items-center justify-center border border-claude-border overflow-hidden relative">
+                <img 
+                  src={getAvatarUrl(profile.avatarStyle, profile.avatarSeed)} 
+                  className="w-7 h-7 scale-115 object-contain group-hover:scale-125 transition-transform" 
+                  alt="Chibi avatar student" 
+                />
+                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center text-[8px] text-white font-bold transition-opacity">
+                  Edit
+                </div>
+              </div>
+              <div className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-amber-400 border-2 border-claude-card flex items-center justify-center text-[7px] font-black text-slate-900 shadow-xs" title={`Level ${level}`}>
+                {level}
               </div>
             </div>
             <div className="flex-1 min-w-0">
               <span className="text-[10px] font-bold text-claude-text-heading block truncate group-hover:text-claude-coral transition-colors">
                 {profile.name}
               </span>
-              <span className="text-[9px] text-claude-text-muted block truncate">
+              <span className="text-[9px] text-claude-text-muted block truncate -mt-0.5">
                 {profile.title}
               </span>
+              {/* XP Progress Bar */}
+              <div className="mt-1 space-y-0.5">
+                <div className="flex justify-between text-[7px] font-black uppercase text-claude-text-muted/80">
+                  <span>{xpInCurrentLevel}/{xpForNextLevel} XP</span>
+                </div>
+                <div className="w-full h-1 bg-claude-border rounded-full overflow-hidden">
+                  <div 
+                    className="h-full bg-gradient-to-r from-amber-400 to-claude-coral rounded-full transition-all duration-500"
+                    style={{ width: `${progressPercent}%` }}
+                  />
+                </div>
+              </div>
             </div>
             <span className="text-[10px] text-claude-text-muted opacity-0 group-hover:opacity-60 transition-opacity">
               ⚙️

@@ -4,6 +4,7 @@ import { toKana } from 'wanakana';
 
 export default function VocabManager({ vocabList, onImportVocab, onClearAll, onLoadDemo, onDeleteWord, onAddWord, isAdmin }) {
   const [jsonText, setJsonText] = useState('');
+  const [adminTab, setAdminTab] = useState('json'); // 'json' or 'single'
   const [errorMsg, setErrorMsg] = useState(null);
   const [successMsg, setSuccessMsg] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -395,245 +396,274 @@ export default function VocabManager({ vocabList, onImportVocab, onClearAll, onL
         {/* Left Column: Input Forms */}
         {isAdmin && (
           <div className="lg:col-span-5 space-y-6">
-          {/* JSON Ingestion Card */}
-          <div className="claude-panel border-claude-border rounded-3xl p-6 space-y-4 shadow-md">
-            <h2 className="text-lg font-bold text-claude-text-heading flex items-center gap-2 claude-serif">
-              <span>📥</span> JSON Data Ingestion
-            </h2>
-            <p className="text-xs text-claude-text-muted leading-relaxed">
-              Paste a JSON array of words. Required: <code>hiragana</code>, <code>english</code>. Optional: <code>kanji</code>, <code>romaji</code>, <code>group</code>.
-            </p>
-
-            <textarea
-              value={jsonText}
-              onChange={(e) => setJsonText(e.target.value)}
-              placeholder='[\n  {\n    "hiragana": "いぬ",\n    "kanji": "犬",\n    "romaji": "inu",\n    "group": "Noun",\n    "english": "dog"\n  }\n]'
-              className="w-full h-40 bg-claude-sidebar/40 border border-claude-border focus:border-claude-coral/70 rounded-xl p-3 text-xs font-mono text-claude-text focus:outline-none transition-all resize-none"
-            />
-
-            {/* Error or Success Messages */}
-            {errorMsg && (
-              <div className="text-xs text-red-600 bg-red-950/10 border border-red-900/10 rounded-lg p-2.5 flex items-start gap-2">
-                <span>⚠️</span>
-                <span>{errorMsg}</span>
-              </div>
-            )}
-            {successMsg && (
-              <div className="text-xs text-emerald-600 bg-emerald-950/10 border border-emerald-900/10 rounded-lg p-2.5 flex items-start gap-2 animate-bounce-subtle">
-                <span>✅</span>
-                <span>{successMsg}</span>
-              </div>
-            )}
-
-            {/* Bulk Lesson and Audio Match Selection */}
-            <div className="grid grid-cols-2 gap-3 py-1">
-              <div>
-                <label className="text-[10px] uppercase font-bold text-claude-text-muted tracking-wider block mb-1">Bulk Lesson Name</label>
-                <input
-                  type="text"
-                  value={bulkLesson}
-                  onChange={(e) => setBulkLesson(e.target.value)}
-                  placeholder="General"
-                  className="w-full px-3 py-2 bg-claude-sidebar/40 border border-claude-border rounded-xl text-xs focus:outline-none focus:border-claude-coral/70 text-claude-text"
-                />
-              </div>
-              <div>
-                <label className="text-[10px] uppercase font-bold text-claude-text-muted tracking-wider block mb-1">Select Vocals (Bulk)</label>
-                <input
-                  type="file"
-                  multiple
-                  accept="audio/*"
-                  onChange={(e) => setBulkAudioFiles(Array.from(e.target.files))}
-                  id="bulk-audio-files"
-                  className="hidden"
-                />
-                <label
-                  htmlFor="bulk-audio-files"
-                  className="w-full px-3 py-2 bg-claude-card hover:bg-claude-sidebar border border-claude-border text-claude-text-muted hover:text-claude-text-heading text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer h-[34px]"
+            <div className="claude-panel border-claude-border rounded-3xl p-5 md:p-6 space-y-5 shadow-md flex-1">
+              
+              {/* Tab Selector Header */}
+              <div className="flex bg-claude-sidebar/50 p-1 rounded-xl border border-claude-border select-none">
+                <button
+                  type="button"
+                  onClick={() => { setAdminTab('json'); setErrorMsg(null); setSuccessMsg(null); }}
+                  className={`flex-grow py-2 text-xs font-bold rounded-lg transition-all cursor-pointer text-center ${
+                    adminTab === 'json'
+                      ? 'bg-claude-card text-claude-coral border border-claude-border/80 shadow-xs'
+                      : 'text-claude-text-muted hover:text-claude-text'
+                  }`}
                 >
-                  📁 {bulkAudioFiles.length === 0 ? 'Select Files' : `${bulkAudioFiles.length} loaded`}
-                </label>
-              </div>
-            </div>
-
-            <button
-              disabled={isUploading}
-              onClick={handleJsonSubmit}
-              className={`w-full py-3 bg-claude-coral hover:bg-claude-coral/95 text-white font-bold rounded-xl shadow-md transition-all text-sm cursor-pointer ${
-                isUploading ? 'opacity-50 cursor-not-allowed animate-pulse' : ''
-              }`}
-            >
-              {isUploading ? 'Uploading and Importing... ⚡' : 'Parse and Import Array ⚡'}
-            </button>
-
-            {/* Sample block */}
-            <details className="text-xs text-claude-text-muted">
-              <summary className="cursor-pointer hover:text-claude-text-heading font-semibold py-1">View Sample JSON Format</summary>
-              <pre className="mt-2 p-3 bg-claude-sidebar/20 border border-claude-border rounded-lg overflow-x-auto text-[10px] text-claude-coral font-mono">
-                {sampleJson}
-              </pre>
-            </details>
-          </div>
-
-          {/* Quick Add Single Word Form */}
-          <div className="claude-panel border-claude-border rounded-3xl p-6 space-y-4 shadow-md">
-            <h2 className="text-lg font-bold text-claude-text-heading flex items-center gap-2 claude-serif">
-              <span>✏️</span> Add Individual Word
-            </h2>
-
-            <form onSubmit={handleSingleSubmit} className="space-y-3">
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="text-[10px] uppercase font-bold text-claude-text-muted tracking-wider">Hiragana *</label>
-                  <input
-                    type="text"
-                    required
-                    value={singleHiragana}
-                    onChange={(e) => setSingleHiragana(toKana(e.target.value, { IMEMode: true }))}
-                    placeholder="たべる"
-                    className="w-full px-3 py-2 bg-claude-sidebar/40 border border-claude-border rounded-xl text-sm focus:outline-none focus:border-claude-coral/70 text-claude-text"
-                  />
-                </div>
-                <div>
-                  <label className="text-[10px] uppercase font-bold text-claude-text-muted tracking-wider">Kanji (Optional)</label>
-                  <input
-                    type="text"
-                    value={singleKanji}
-                    onChange={(e) => setSingleKanji(e.target.value)}
-                    placeholder="食べる"
-                    className="w-full px-3 py-2 bg-claude-sidebar/40 border border-claude-border rounded-xl text-sm focus:outline-none focus:border-claude-coral/70 text-claude-text"
-                  />
-                </div>
+                  📥 Bulk Import JSON
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setAdminTab('single'); setErrorMsg(null); setSuccessMsg(null); }}
+                  className={`flex-grow py-2 text-xs font-bold rounded-lg transition-all cursor-pointer text-center ${
+                    adminTab === 'single'
+                      ? 'bg-claude-card text-claude-coral border border-claude-border/80 shadow-xs'
+                      : 'text-claude-text-muted hover:text-claude-text'
+                  }`}
+                >
+                  ✏️ Add Single Word
+                </button>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="text-[10px] uppercase font-bold text-claude-text-muted tracking-wider">Romaji (Optional)</label>
-                  <input
-                    type="text"
-                    value={singleRomaji}
-                    onChange={(e) => setSingleRomaji(e.target.value)}
-                    placeholder="taberu"
-                    className="w-full px-3 py-2 bg-claude-sidebar/40 border border-claude-border rounded-xl text-sm focus:outline-none focus:border-claude-coral/70 text-claude-text"
-                  />
+              {/* Error or Success Messages (Unified inside card) */}
+              {errorMsg && (
+                <div className="text-xs text-red-600 bg-red-950/10 border border-red-900/10 rounded-lg p-2.5 flex items-start gap-2">
+                  <span>⚠️</span>
+                  <span>{errorMsg}</span>
                 </div>
-                <div>
-                  <label className="text-[10px] uppercase font-bold text-claude-text-muted tracking-wider">Group (Optional)</label>
-                  <input
-                    type="text"
-                    value={singleGroup}
-                    onChange={(e) => setSingleGroup(e.target.value)}
-                    placeholder="Verb Group 2"
-                    className="w-full px-3 py-2 bg-claude-sidebar/40 border border-claude-border rounded-xl text-sm focus:outline-none focus:border-claude-coral/70 text-claude-text"
-                  />
+              )}
+              {successMsg && (
+                <div className="text-xs text-emerald-600 bg-emerald-950/10 border border-emerald-900/10 rounded-lg p-2.5 flex items-start gap-2 animate-bounce-subtle">
+                  <span>✅</span>
+                  <span>{successMsg}</span>
                 </div>
-              </div>
+              )}
 
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="text-[10px] uppercase font-bold text-claude-text-muted tracking-wider">English Definition *</label>
-                  <input
-                    type="text"
-                    required
-                    value={singleEnglish}
-                    onChange={(e) => setSingleEnglish(e.target.value)}
-                    placeholder="to eat"
-                    className="w-full px-3 py-2 bg-claude-sidebar/40 border border-claude-border rounded-xl text-sm focus:outline-none focus:border-claude-coral/70 text-claude-text"
-                  />
-                </div>
-                <div>
-                  <label className="text-[10px] uppercase font-bold text-claude-text-muted tracking-wider">Lesson Name</label>
-                  <input
-                    type="text"
-                    value={singleLesson}
-                    onChange={(e) => setSingleLesson(e.target.value)}
-                    placeholder="General"
-                    className="w-full px-3 py-2 bg-claude-sidebar/40 border border-claude-border rounded-xl text-sm focus:outline-none focus:border-claude-coral/70 text-claude-text"
-                  />
-                </div>
-              </div>
+              {/* Tab Content 1: JSON Bulk Import */}
+              {adminTab === 'json' && (
+                <div className="space-y-4 animate-fade-in">
+                  <div className="space-y-1">
+                    <h2 className="text-sm font-bold text-claude-text-heading flex items-center gap-1.5 claude-serif">
+                      JSON Data Ingestion
+                    </h2>
+                    <p className="text-[10px] text-claude-text-muted leading-relaxed">
+                      Paste a JSON array of words. Required: <code>hiragana</code>, <code>english</code>. Optional: <code>kanji</code>, <code>romaji</code>, <code>group</code>.
+                    </p>
+                  </div>
 
-              <div>
-                <label className="text-[10px] uppercase font-bold text-claude-text-muted tracking-wider">Mnemonic / Learning Trick (Optional)</label>
-                <input
-                  type="text"
-                  value={singleMnemonic}
-                  onChange={(e) => setSingleMnemonic(e.target.value)}
-                  placeholder="e.g. eat your food at the table! (Taberu)"
-                  className="w-full px-3 py-2 bg-claude-sidebar/40 border border-claude-border rounded-xl text-sm focus:outline-none focus:border-claude-coral/70 text-claude-text"
-                />
-              </div>
+                  <textarea
+                    value={jsonText}
+                    onChange={(e) => setJsonText(e.target.value)}
+                    placeholder='[\n  {\n    "hiragana": "いぬ",\n    "kanji": "犬",\n    "romaji": "inu",\n    "group": "Noun",\n    "english": "dog"\n  }\n]'
+                    className="w-full h-44 bg-claude-sidebar/40 border border-claude-border focus:border-claude-coral/70 rounded-xl p-3 text-xs font-mono text-claude-text focus:outline-none transition-all resize-none"
+                  />
 
-              {/* Vocal Audio Upload Section */}
-              <div className="p-3.5 bg-claude-sidebar/35 border border-claude-border/80 rounded-2xl space-y-3">
-                <label className="text-[10px] uppercase font-bold text-claude-text-muted tracking-wider block">Vocal Recording (Optional)</label>
-                
-                <div className="flex items-center gap-3">
-                  {!isRecording ? (
-                    <button
-                      type="button"
-                      onClick={startRecording}
-                      className="px-3 py-1.5 bg-claude-coral/10 hover:bg-claude-coral/20 border border-claude-coral/30 hover:border-claude-coral/50 text-claude-coral text-xs font-bold rounded-lg transition-all flex items-center gap-1.5 cursor-pointer"
-                    >
-                      🎙️ Record Mic
-                    </button>
-                  ) : (
-                    <button
-                      type="button"
-                      onClick={stopRecording}
-                      className="px-3 py-1.5 bg-red-500/10 hover:bg-red-500/20 border border-red-500/40 text-red-500 text-xs font-bold rounded-lg animate-pulse transition-all flex items-center gap-1.5 cursor-pointer"
-                    >
-                      ⏹️ Stop
-                    </button>
-                  )}
-                  
-                  <div className="flex-1">
+                  {/* Bulk Lesson and Audio Match Selection */}
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-[9px] uppercase font-extrabold text-claude-text-muted tracking-wider block mb-1">Bulk Lesson Name</label>
+                      <input
+                        type="text"
+                        value={bulkLesson}
+                        onChange={(e) => setBulkLesson(e.target.value)}
+                        placeholder="General"
+                        className="w-full px-3 py-2 bg-claude-sidebar/40 border border-claude-border rounded-xl text-xs focus:outline-none focus:border-claude-coral/70 text-claude-text"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[9px] uppercase font-extrabold text-claude-text-muted tracking-wider block mb-1">Select Vocals (Bulk)</label>
+                      <input
+                        type="file"
+                        multiple
+                        accept="audio/*"
+                        onChange={(e) => setBulkAudioFiles(Array.from(e.target.files))}
+                        id="bulk-audio-files"
+                        className="hidden"
+                      />
+                      <label
+                        htmlFor="bulk-audio-files"
+                        className="w-full px-3 py-2 bg-claude-card hover:bg-claude-sidebar border border-claude-border text-claude-text-muted hover:text-claude-text-heading text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer h-[34px]"
+                      >
+                        📁 {bulkAudioFiles.length === 0 ? 'Select Files' : `${bulkAudioFiles.length} Loaded`}
+                      </label>
+                    </div>
+                  </div>
+
+                  <button
+                    disabled={isUploading}
+                    onClick={handleJsonSubmit}
+                    className={`w-full py-3 bg-claude-coral hover:bg-claude-coral/95 text-white font-bold rounded-xl shadow-md transition-all text-xs cursor-pointer ${
+                      isUploading ? 'opacity-50 cursor-not-allowed animate-pulse' : ''
+                    }`}
+                  >
+                    {isUploading ? 'Uploading and Importing... ⚡' : 'Parse and Import Array ⚡'}
+                  </button>
+
+                  {/* Sample block */}
+                  <details className="text-xs text-claude-text-muted">
+                    <summary className="cursor-pointer hover:text-claude-text-heading font-semibold py-1">View Sample JSON Format</summary>
+                    <pre className="mt-2 p-3 bg-claude-sidebar/20 border border-claude-border rounded-lg overflow-x-auto text-[9px] text-claude-coral font-mono">
+                      {sampleJson}
+                    </pre>
+                  </details>
+                </div>
+              )}
+
+              {/* Tab Content 2: Add Single Word Form */}
+              {adminTab === 'single' && (
+                <form onSubmit={handleSingleSubmit} className="space-y-3.5 animate-fade-in">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-[9px] uppercase font-extrabold text-claude-text-muted tracking-wider">Hiragana *</label>
+                      <input
+                        type="text"
+                        required
+                        value={singleHiragana}
+                        onChange={(e) => setSingleHiragana(toKana(e.target.value, { IMEMode: true }))}
+                        placeholder="たべる"
+                        className="w-full px-3 py-2 bg-claude-sidebar/40 border border-claude-border rounded-xl text-xs focus:outline-none focus:border-claude-coral/70 text-claude-text"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[9px] uppercase font-extrabold text-claude-text-muted tracking-wider">Kanji (Optional)</label>
+                      <input
+                        type="text"
+                        value={singleKanji}
+                        onChange={(e) => setSingleKanji(e.target.value)}
+                        placeholder="食べる"
+                        className="w-full px-3 py-2 bg-claude-sidebar/40 border border-claude-border rounded-xl text-xs focus:outline-none focus:border-claude-coral/70 text-claude-text"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-[9px] uppercase font-extrabold text-claude-text-muted tracking-wider">Romaji (Optional)</label>
+                      <input
+                        type="text"
+                        value={singleRomaji}
+                        onChange={(e) => setSingleRomaji(e.target.value)}
+                        placeholder="taberu"
+                        className="w-full px-3 py-2 bg-claude-sidebar/40 border border-claude-border rounded-xl text-xs focus:outline-none focus:border-claude-coral/70 text-claude-text"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[9px] uppercase font-extrabold text-claude-text-muted tracking-wider">Group (Optional)</label>
+                      <input
+                        type="text"
+                        value={singleGroup}
+                        onChange={(e) => setSingleGroup(e.target.value)}
+                        placeholder="Verb Group 2"
+                        className="w-full px-3 py-2 bg-claude-sidebar/40 border border-claude-border rounded-xl text-xs focus:outline-none focus:border-claude-coral/70 text-claude-text"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-[9px] uppercase font-extrabold text-claude-text-muted tracking-wider">English Definition *</label>
+                      <input
+                        type="text"
+                        required
+                        value={singleEnglish}
+                        onChange={(e) => setSingleEnglish(e.target.value)}
+                        placeholder="to eat"
+                        className="w-full px-3 py-2 bg-claude-sidebar/40 border border-claude-border rounded-xl text-xs focus:outline-none focus:border-claude-coral/70 text-claude-text"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[9px] uppercase font-extrabold text-claude-text-muted tracking-wider">Lesson Name</label>
+                      <input
+                        type="text"
+                        value={singleLesson}
+                        onChange={(e) => setSingleLesson(e.target.value)}
+                        placeholder="General"
+                        className="w-full px-3 py-2 bg-claude-sidebar/40 border border-claude-border rounded-xl text-xs focus:outline-none focus:border-claude-coral/70 text-claude-text"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-[9px] uppercase font-extrabold text-claude-text-muted tracking-wider">Mnemonic / Learning Trick (Optional)</label>
                     <input
-                      type="file"
-                      accept="audio/*"
-                      onChange={handleFileChange}
-                      id="single-audio-file"
-                      className="hidden"
+                      type="text"
+                      value={singleMnemonic}
+                      onChange={(e) => setSingleMnemonic(e.target.value)}
+                      placeholder="e.g. eat your food at the table! (Taberu)"
+                      className="w-full px-3 py-2 bg-claude-sidebar/40 border border-claude-border rounded-xl text-xs focus:outline-none focus:border-claude-coral/70 text-claude-text"
                     />
-                    <label
-                      htmlFor="single-audio-file"
-                      className="px-3 py-1.5 bg-claude-card hover:bg-claude-sidebar border border-claude-border text-claude-text-muted hover:text-claude-text-heading text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer h-[32px]"
-                    >
-                      📁 Upload Vocal
-                    </label>
                   </div>
-                </div>
 
-                {audioUrl && (
-                  <div className="flex items-center justify-between bg-claude-card/50 border border-claude-border/50 rounded-xl p-2 select-none">
-                    <audio src={audioUrl} controls className="h-6 w-[200px] shrink-0 max-w-[200px]" />
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setAudioBlob(null);
-                        setSingleAudioFile(null);
-                        setAudioUrl(null);
-                      }}
-                      className="text-xs text-red-400 hover:text-red-500 p-1 hover:bg-red-950/25 rounded-md cursor-pointer"
-                      title="Clear Vocal"
-                    >
-                      ✕
-                    </button>
+                  {/* Vocal Audio Upload Section */}
+                  <div className="p-3 bg-claude-sidebar/35 border border-claude-border/80 rounded-2xl space-y-2">
+                    <label className="text-[9px] uppercase font-extrabold text-claude-text-muted tracking-wider block">Vocal Recording (Optional)</label>
+                    
+                    <div className="flex items-center gap-3">
+                      {!isRecording ? (
+                        <button
+                          type="button"
+                          onClick={startRecording}
+                          className="px-3 py-1.5 bg-claude-coral/10 hover:bg-claude-coral/20 border border-claude-coral/30 hover:border-claude-coral/50 text-claude-coral text-xs font-bold rounded-lg transition-all flex items-center gap-1.5 cursor-pointer"
+                        >
+                          🎙️ Record Mic
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={stopRecording}
+                          className="px-3 py-1.5 bg-red-500/10 hover:bg-red-500/20 border border-red-500/40 text-red-500 text-xs font-bold rounded-lg animate-pulse transition-all flex items-center gap-1.5 cursor-pointer"
+                        >
+                          ⏹️ Stop
+                        </button>
+                      )}
+                      
+                      <div className="flex-1">
+                        <input
+                          type="file"
+                          accept="audio/*"
+                          onChange={handleFileChange}
+                          id="single-audio-file"
+                          className="hidden"
+                        />
+                        <label
+                          htmlFor="single-audio-file"
+                          className="px-3 py-1.5 bg-claude-card hover:bg-claude-sidebar border border-claude-border text-claude-text-muted hover:text-claude-text-heading text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer h-[32px]"
+                        >
+                          📁 Upload Vocal
+                        </label>
+                      </div>
+                    </div>
+
+                    {audioUrl && (
+                      <div className="flex items-center justify-between bg-claude-card/50 border border-claude-border/50 rounded-xl p-1.5 select-none mt-1.5">
+                        <audio src={audioUrl} controls className="h-6 w-[180px] shrink-0 max-w-[180px]" />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setAudioBlob(null);
+                            setSingleAudioFile(null);
+                            setAudioUrl(null);
+                          }}
+                          className="text-xs text-red-400 hover:text-red-500 p-1 hover:bg-red-950/25 rounded-md cursor-pointer"
+                          title="Clear Vocal"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
 
-              <button
-                disabled={isUploading}
-                type="submit"
-                className={`w-full py-2.5 mt-2 bg-claude-sidebar hover:bg-claude-card text-claude-text hover:text-claude-text-heading border border-claude-border font-bold rounded-xl transition-colors text-sm cursor-pointer ${
-                  isUploading ? 'opacity-50 cursor-not-allowed animate-pulse' : ''
-                }`}
-              >
-                {isUploading ? 'Uploading Vocal... ⚡' : 'Add Card to Database'}
-              </button>
-            </form>
-          </div>
+                  <button
+                    disabled={isUploading}
+                    type="submit"
+                    className={`w-full py-2.5 mt-2 bg-claude-sidebar hover:bg-claude-card text-claude-text hover:text-claude-text-heading border border-claude-border font-bold rounded-xl transition-colors text-xs cursor-pointer ${
+                      isUploading ? 'opacity-50 cursor-not-allowed animate-pulse' : ''
+                    }`}
+                  >
+                    {isUploading ? 'Uploading Vocal... ⚡' : 'Add Card to Database'}
+                  </button>
+                </form>
+              )}
+            </div>
           </div>
         )}
 

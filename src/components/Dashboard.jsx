@@ -2,6 +2,30 @@
 import React, { useState, useEffect } from 'react';
 import Stats from './Stats';
 
+const calculateLevelInfo = (totalCorrect) => {
+  const xp = (totalCorrect || 0) * 10;
+  let level = 1;
+  let xpForNextLevel = 100;
+  let accumulatedXp = 0;
+  
+  while (xp >= accumulatedXp + xpForNextLevel) {
+    accumulatedXp += xpForNextLevel;
+    level += 1;
+    xpForNextLevel = level * 100;
+  }
+  
+  const xpInCurrentLevel = xp - accumulatedXp;
+  const progressPercent = Math.min(100, Math.floor((xpInCurrentLevel / xpForNextLevel) * 100));
+  
+  return {
+    level,
+    xp,
+    xpInCurrentLevel,
+    xpForNextLevel,
+    progressPercent
+  };
+};
+
 export default function Dashboard({ 
   stats, 
   vocabList, 
@@ -22,6 +46,8 @@ export default function Dashboard({
 }) {
   const [showSettings, setShowSettings] = useState(false);
   const hasCards = vocabList && vocabList.length > 0;
+  
+  const { level, xp, xpInCurrentLevel, xpForNextLevel, progressPercent } = calculateLevelInfo(stats?.totalCorrect || 0);
 
   const [sessionHistory, setSessionHistory] = useState(() => {
     try {
@@ -97,12 +123,34 @@ export default function Dashboard({
         </div>
         
         {/* Banner Decorative Chibi Sticker */}
-        <div className="w-20 h-20 md:w-24 md:h-24 bg-claude-coral/5 border border-claude-border/60 rounded-2xl flex items-center justify-center overflow-hidden shrink-0 shadow-inner z-10">
+        <div className="hidden sm:flex w-20 h-20 md:w-24 md:h-24 bg-claude-coral/5 border border-claude-border/60 rounded-2xl items-center justify-center overflow-hidden shrink-0 shadow-inner z-10">
           <img 
             src="https://api.dicebear.com/7.x/adventurer/svg?seed=Lucky" 
             className="w-16 h-16 md:w-20 md:h-20 object-cover scale-110" 
             alt="Welcome chibi mascot"
           />
+        </div>
+
+        {/* Gamified Level Widget */}
+        <div className="z-10 bg-claude-card/70 backdrop-blur-xs border border-claude-border/80 p-4 rounded-2xl flex items-center gap-3.5 min-w-[230px] w-full sm:w-auto shadow-xs shrink-0">
+          <div className="w-11 h-11 rounded-xl bg-amber-400/15 border border-amber-400/30 flex items-center justify-center text-xl shadow-inner shrink-0 select-none">
+            🏆
+          </div>
+          <div className="flex-1 space-y-1 min-w-0">
+            <div className="flex justify-between items-baseline gap-2">
+              <span className="text-[9px] font-black text-amber-500 uppercase tracking-widest truncate">Level {level}</span>
+              <span className="text-[9px] font-bold text-claude-text-muted shrink-0">{xpInCurrentLevel}/{xpForNextLevel} XP</span>
+            </div>
+            <div className="w-full h-2 bg-claude-sidebar rounded-full overflow-hidden border border-claude-border/40">
+              <div 
+                className="h-full bg-gradient-to-r from-amber-400 to-claude-coral rounded-full transition-all duration-500" 
+                style={{ width: `${progressPercent}%` }}
+              />
+            </div>
+            <span className="text-[8px] text-claude-text-muted/80 block select-none">
+              {xpForNextLevel - xpInCurrentLevel} XP to level up!
+            </span>
+          </div>
         </div>
 
         <div className="flex flex-col sm:flex-row gap-2 z-10 w-full md:w-auto">

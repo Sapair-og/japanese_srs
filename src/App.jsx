@@ -14,6 +14,29 @@ import StudyGuide from './components/StudyGuide';
 import { generateMnemonic } from './utils/mnemonicGenerator';
 import Auth from './components/Auth';
 import { initWasm } from './utils/strokeMatcher';
+export function calculateLevelInfo(totalCorrect) {
+  const xp = (totalCorrect || 0) * 10;
+  let level = 1;
+  let xpForNextLevel = 100;
+  let accumulatedXp = 0;
+  
+  while (xp >= accumulatedXp + xpForNextLevel) {
+    accumulatedXp += xpForNextLevel;
+    level += 1;
+    xpForNextLevel = level * 100;
+  }
+  
+  const xpInCurrentLevel = xp - accumulatedXp;
+  const progressPercent = Math.min(100, Math.floor((xpInCurrentLevel / xpForNextLevel) * 100));
+  
+  return {
+    level,
+    xp,
+    xpInCurrentLevel,
+    xpForNextLevel,
+    progressPercent
+  };
+}
 
 
 const parseDbTheme = (dbThemeString) => {
@@ -840,6 +863,7 @@ export default function App() {
         onToggleMusic={() => setBgMusicEnabled(prev => !prev)}
         onSignOut={handleSignOut}
         userEmail={session?.user?.email}
+        stats={stats}
       />
 
       {/* Main Content Area */}

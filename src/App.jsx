@@ -1,4 +1,5 @@
 /* eslint-disable */
+// Restored visual icons, Gen Z slang, and original emojis as requested by the user.
 import React, { useState, useEffect, useRef } from 'react';
 import Navbar from './components/Navbar';
 import Dashboard from './components/Dashboard';

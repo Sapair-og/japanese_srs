@@ -169,6 +169,9 @@ export default function GrammarDojo({ onGainXp, vocabList }) {
   // Shoji sliding door transition state
   const [shojiActive, setShojiActive] = useState(false);
 
+  // Concept Modal State
+  const [showConceptModal, setShowConceptModal] = useState(false);
+
   // Sync displayMode for Easy difficulty
   useEffect(() => {
     if (difficulty === 'easy') {
@@ -277,6 +280,7 @@ export default function GrammarDojo({ onGainXp, vocabList }) {
       setShowTip(false);
       setTotalXpEarned(0);
       setHardRevealEnglish(false);
+      setShowConceptModal(false);
       setGameState('playing');
     });
   };
@@ -357,6 +361,7 @@ export default function GrammarDojo({ onGainXp, vocabList }) {
       setIsCorrect(false);
       setAssembledSlots([]);
       setHardRevealEnglish(false);
+      setShowConceptModal(false);
 
       if (currentLevel < sessionLessons.length - 1) {
         const nextLevel = currentLevel + 1;
@@ -372,15 +377,6 @@ export default function GrammarDojo({ onGainXp, vocabList }) {
     triggerStateChange(() => {
       setGameState('setup');
     });
-  };
-
-  const getOuterBorderClass = () => {
-    if (gameState !== 'playing' || !checked) {
-      return 'border-[#bca175] dark:border-[#524430]';
-    }
-    return isCorrect 
-      ? 'border-emerald-600 dark:border-emerald-500 shadow-[inset_0_0_30px_rgba(16,185,129,0.25)] shadow-emerald-500/20' 
-      : 'border-red-600 dark:border-red-500 shadow-[inset_0_0_30px_rgba(239,68,68,0.25)] shadow-red-500/20';
   };
 
   // 1. SETUP GAME SCREEN RENDER HELPER (Spread over Dojo Arena space)
@@ -529,89 +525,70 @@ export default function GrammarDojo({ onGainXp, vocabList }) {
     );
   };
 
-  // 3. ACTIVE QUIZ PLAYING BOARD SCREEN RENDER HELPER (Spread over Dojo Arena space)
+  // 3. ACTIVE QUIZ PLAYING BOARD SCREEN RENDER HELPER (Duolingo Style Clean UI)
   const renderPlayingScreen = () => {
     return (
-      <div className={`w-full max-w-2xl flex flex-col gap-5 animate-fade-in relative z-10 select-none text-[#191919] dark:text-[#f2f0ea] ${shake ? 'animate-shake' : ''}`}>
-        {/* Active Header Progress */}
-        <div className="bg-[#ebdcb9]/50 dark:bg-[#1e1e1c]/80 border-2 border-[#bca175]/50 p-4 rounded-2xl flex items-center justify-between shadow-md text-[#191919] dark:text-[#f2f0ea] backdrop-blur-xs">
-          <div className="space-y-1">
-            <span className="text-[8px] font-black uppercase tracking-widest text-claude-coral block">
-              Sentence Dojo / {deckLevel} Challenge
-            </span>
-            <h2 className="text-xs font-black flex items-center gap-2">
-              <span>Stage {currentLevel + 1} of {sessionLessons.length}</span>
-              <span className="w-1.5 h-1.5 rounded-full bg-[#bca175]/70" />
-              <span className="text-[#6b6a65] dark:text-[#92918b] capitalize text-[10px]">({difficulty} mode)</span>
-            </h2>
-          </div>
-
-          {/* Display modes (except Easy, which locks into Guides) */}
-          {difficulty !== 'easy' && (
-            <div className="flex items-center gap-1 bg-[#eae4d8]/40 dark:bg-claude-sidebar/40 border border-[#bca175]/35 p-1 rounded-xl shadow-inner">
-              {['kanji', 'kana', 'romaji'].map(mode => (
-                <button
-                  key={mode}
-                  onClick={() => setDisplayMode(mode)}
-                  className={`px-3 py-1.5 text-[9px] font-black uppercase rounded-lg transition-all cursor-pointer ${
-                    displayMode === mode
-                      ? 'bg-claude-coral text-white shadow-md'
-                      : 'text-[#6b6a65] dark:text-[#92918b] hover:text-[#191919] dark:hover:text-[#f2f0ea]'
-                  }`}
-                >
-                  {mode === 'kanji' ? '漢字' : mode === 'kana' ? 'かな' : 'Roma'}
-                </button>
-              ))}
-            </div>
-          )}
-
-          {/* Home exit button */}
+      <div className={`w-full max-w-3xl flex flex-col gap-6 animate-fade-in relative z-10 select-none text-[#191919] dark:text-[#f2f0ea] ${shake ? 'animate-shake' : ''}`}>
+        
+        {/* Sleek Duolingo Style Progress Header */}
+        <div className="w-full flex items-center justify-between gap-4 py-2 z-10">
           <button
             onClick={handleExit}
-            className="p-2 px-3 bg-[#eae4d8]/65 dark:bg-claude-sidebar border border-[#bca175]/45 rounded-lg hover:border-red-500/50 hover:text-red-500 cursor-pointer text-[11px] font-bold transition-colors"
-            title="Exit Session"
+            className="text-xs font-black text-claude-coral hover:text-red-500 cursor-pointer flex items-center gap-1 transition-colors"
           >
             🚪 Exit
           </button>
-        </div>
-
-        {/* Concept description box */}
-        <div className="bg-[#ebdcb9]/30 dark:bg-[#1e1e1c]/70 border border-[#bca175]/45 rounded-2xl p-4 space-y-1 backdrop-blur-xs">
-          <div className="flex items-baseline justify-between flex-wrap gap-2">
-            <span className="text-[9px] font-black uppercase text-amber-700 dark:text-amber-500 tracking-wider">Concept / 文法解説</span>
-            <span className="text-[9px] font-extrabold text-[#6b6a65] dark:text-[#92918b] italic">{activeLesson.title}</span>
-          </div>
-          <p className="text-xs leading-relaxed text-[#6b6a65] dark:text-[#92918b] font-medium">
-            {activeLesson.concept}
-          </p>
-        </div>
-
-        {/* English Prompt (Hidden in Hard difficulty, unless revealed) */}
-        <div className="text-center space-y-1.5 py-3 min-h-[64px] flex flex-col items-center justify-center bg-[#ebdcb9]/15 dark:bg-[#1a1a18]/60 rounded-2xl border border-dashed border-[#bca175]/35 backdrop-blur-xs">
-          <span className="text-[8px] font-black uppercase text-[#6b6a65] dark:text-[#92918b] tracking-widest block">English Translate Prompt</span>
           
-          {difficulty === 'hard' && !hardRevealEnglish ? (
-            <div className="space-y-2">
-              <div className="text-[10px] font-black text-amber-700 dark:text-amber-500 bg-amber-500/5 px-3 py-1.5 rounded-lg border border-amber-500/20 max-w-sm leading-normal">
-                🕵️ Prompt Hidden! Build using the definitions of the available words.
-              </div>
-              <button
-                onClick={() => setHardRevealEnglish(true)}
-                className="text-[9px] font-black text-claude-coral bg-claude-coral/5 hover:bg-claude-coral/10 border border-claude-coral/20 px-2.5 py-1 rounded-lg transition-colors cursor-pointer animate-pulse-subtle"
-              >
-                Reveal English Prompt (-5 XP penalty)
-              </button>
-            </div>
-          ) : (
-            <h3 className="text-base md:text-lg font-extrabold text-[#191919] dark:text-[#f2f0ea] italic max-w-md px-4">
-              "{activeLesson.english}"
-            </h3>
-          )}
+          {/* Progress bar */}
+          <div className="flex-1 bg-[#ebdcb9]/40 dark:bg-[#2d2d2a] h-3.5 rounded-full overflow-hidden border border-[#bca175]/30">
+            <div 
+              className="bg-gradient-to-r from-emerald-500 to-teal-400 h-full rounded-full transition-all duration-500 ease-out" 
+              style={{ width: `${(currentLevel / sessionLessons.length) * 100}%` }}
+            />
+          </div>
+
+          <span className="text-[10px] font-black text-claude-coral uppercase tracking-wider select-none">
+            {currentLevel + 1} / {sessionLessons.length}
+          </span>
         </div>
 
-        {/* Assembled Sentence Slots Zone (Tatami styled background grid) */}
+        {/* English Prompt & Concept Toggle */}
+        <div className="w-full text-center py-4 flex flex-col items-center justify-center gap-1.5 z-10">
+          <span className="text-[9px] font-black uppercase text-[#7c6c57] dark:text-[#92918b] tracking-widest">Translate this sentence</span>
+          
+          <div className="flex items-center justify-center gap-3 w-full max-w-xl">
+            {difficulty === 'hard' && !hardRevealEnglish ? (
+              <div className="space-y-2">
+                <div className="text-[10px] font-black text-amber-700 dark:text-amber-500 bg-amber-500/5 px-3 py-1.5 rounded-lg border border-amber-500/20 max-w-sm leading-normal">
+                  🕵️ Prompt Hidden! Build using the definitions of the available words.
+                </div>
+                <button
+                  onClick={() => setHardRevealEnglish(true)}
+                  className="text-[9px] font-black text-claude-coral bg-claude-coral/5 hover:bg-claude-coral/10 border border-claude-coral/20 px-2.5 py-1 rounded-lg transition-colors cursor-pointer"
+                >
+                  Reveal English Prompt (-5 XP penalty)
+                </button>
+              </div>
+            ) : (
+              <h3 className="text-xl md:text-2xl font-black text-[#191919] dark:text-[#f2f0ea] italic leading-tight">
+                "{activeLesson.english}"
+              </h3>
+            )}
+            
+            {/* Concept overlay toggle */}
+            <button
+              onClick={() => setShowConceptModal(true)}
+              className="p-1.5 rounded-full hover:bg-[#bca175]/15 dark:hover:bg-claude-sidebar/60 text-claude-coral cursor-pointer transition-colors"
+              title="Show Grammar Concept"
+            >
+              📖
+            </button>
+          </div>
+        </div>
+
+        {/* Assembled Sentence Slots Zone (Tatami straw grid background) */}
         <div 
-          className="min-h-20 border-2 border-dashed border-[#bca175]/60 dark:border-[#524430]/90 rounded-2xl p-4 flex flex-wrap gap-2.5 items-center justify-center bg-[#eae4d8]/40 dark:bg-[#151514]/75 shadow-inner"
+          className="w-full min-h-24 border-2 border-dashed border-[#bca175]/60 dark:border-[#524430]/90 rounded-2xl p-4 flex flex-wrap gap-3 items-center justify-center bg-[#eae4d8]/40 dark:bg-[#1a1a18]/70 shadow-inner z-10"
           style={{
             backgroundImage: `radial-gradient(circle, transparent 20%, rgba(188, 161, 117, 0.12) 20%, rgba(188, 161, 117, 0.12) 80%, transparent 80%, transparent), radial-gradient(circle, transparent 20%, rgba(188, 161, 117, 0.12) 20%, rgba(188, 161, 117, 0.12) 80%, transparent 80%, transparent)`,
             backgroundSize: '8px 8px',
@@ -638,20 +615,34 @@ export default function GrammarDojo({ onGainXp, vocabList }) {
               );
             })
           ) : (
-            <span className="text-xs font-bold text-[#6b6a65] dark:text-[#92918b]/80 italic select-none">
+            <span className="text-xs font-bold text-[#7c6c57] dark:text-[#92918b]/80 italic select-none">
               Tap word cards from pool below to assemble...
             </span>
           )}
         </div>
 
         {/* Shuffled Word Cards Pool */}
-        <div className="space-y-3">
+        <div className="w-full flex flex-col gap-3 py-2 z-10">
           <div className="flex justify-between items-baseline px-1 flex-wrap gap-2">
-            <span className="text-[8px] font-black uppercase text-[#6b6a65] dark:text-[#92918b]/85 tracking-widest block">Available Words Pool</span>
-            {difficulty === 'hard' && (
-              <span className="text-[7px] font-black uppercase text-claude-coral/80 bg-claude-coral/5 px-2 py-0.5 rounded border border-claude-coral/10">
-                Word definition tooltips active on cards
-              </span>
+            <span className="text-[8px] font-black uppercase text-[#7c6c57] dark:text-[#92918b]/85 tracking-widest block">Available Words Pool</span>
+            
+            {/* Display modes (except Easy, which locks into Guides) */}
+            {difficulty !== 'easy' && (
+              <div className="flex items-center gap-1 bg-[#eae4d8]/40 dark:bg-claude-sidebar/40 border border-[#bca175]/35 p-1 rounded-xl shadow-inner">
+                {['kanji', 'kana', 'romaji'].map(mode => (
+                  <button
+                    key={mode}
+                    onClick={() => setDisplayMode(mode)}
+                    className={`px-3 py-1 text-[8px] font-black uppercase rounded-lg transition-all cursor-pointer ${
+                      displayMode === mode
+                        ? 'bg-claude-coral text-white shadow-xs'
+                        : 'text-claude-text-muted hover:text-claude-text'
+                    }`}
+                  >
+                    {mode === 'kanji' ? '漢字' : mode === 'kana' ? 'かな' : 'Roma'}
+                  </button>
+                ))}
+              </div>
             )}
           </div>
           
@@ -687,51 +678,15 @@ export default function GrammarDojo({ onGainXp, vocabList }) {
           </div>
         </div>
 
-        {/* Correct Grammar Formula Banner display */}
-        {checked && isCorrect && activeLesson.pattern && (
-          <div className="bg-amber-500/5 border border-amber-500/25 p-3 rounded-2xl text-center animate-fade-in backdrop-blur-xs">
-            <span className="text-[8px] font-black uppercase text-amber-600 dark:text-amber-500 tracking-wider block">Grammar Pattern Formula</span>
-            <span className="font-extrabold text-xs text-amber-600 dark:text-amber-500">
-              {activeLesson.pattern}
-            </span>
-          </div>
-        )}
-
-        {/* Feedback Messages Panel */}
-        {checked && (
-          <div className={`p-4 rounded-2xl border flex items-start gap-3 animate-fade-in backdrop-blur-xs ${
-            isCorrect 
-              ? 'bg-emerald-600/5 border-emerald-600/35 text-emerald-600 dark:text-emerald-500' 
-              : 'bg-red-600/5 border-red-600/35 text-red-600 dark:text-red-500'
-          }`}>
-            <span className="text-lg">{isCorrect ? '🔥' : '⚠️'}</span>
-            <div className="flex-1 space-y-1">
-              <span className="text-[9px] font-black uppercase tracking-wider block">
-                {isCorrect ? 'Correct Assembly!' : 'Study Help / 文法解説'}
-              </span>
-              <p className="text-xs font-bold leading-normal">
-                {isCorrect 
-                  ? `Sheesh, you cooked that sequence perfectly! +${difficulty === 'easy' ? '10' : difficulty === 'medium' ? '20' : '30'} XP awarded.` 
-                  : `Incorrect sequence order. Remember: ${activeLesson.tip}`}
-              </p>
-            </div>
-          </div>
-        )}
-
-        {/* Control Action Buttons */}
-        <div className="flex gap-3 pt-1">
-          {/* Tip Button */}
-          {!checked && (
+        {/* Standard bottom action buttons when unchecked */}
+        {!checked && (
+          <div className="w-full flex gap-3 pt-4 z-10">
             <button
               onClick={() => setShowTip(!showTip)}
               className="px-4 py-3 bg-[#eae4d8]/45 hover:bg-[#eae4d8]/85 dark:bg-claude-sidebar border border-[#bca175]/45 text-[#6b6a65] dark:text-[#92918b] hover:text-[#191919] dark:hover:text-[#f2f0ea] font-extrabold text-xs rounded-xl cursor-pointer transition-colors shadow-sm"
             >
               {showTip ? 'Hide Hint 👁️' : 'Show Hint 💡'}
             </button>
-          )}
-
-          {/* Check / Next Button */}
-          {!checked ? (
             <button
               onClick={handleCheck}
               disabled={assembledSlots.length === 0}
@@ -741,22 +696,60 @@ export default function GrammarDojo({ onGainXp, vocabList }) {
             >
               Check Sentence 🔍
             </button>
-          ) : (
+          </div>
+        )}
+
+        {/* Bottom check drawer overlay (Duolingo Style slide-up drawer) */}
+        {checked && (
+          <div className={`absolute bottom-0 inset-x-0 p-6 z-30 flex flex-col md:flex-row md:items-center justify-between gap-4 border-t-2 overflow-hidden shadow-2xl rounded-b-2xl animate-[slide-up_0.25s_ease-out_forwards] ${
+            isCorrect 
+              ? 'bg-[#e8f7ed] dark:bg-[#112a18] border-emerald-500/35 text-emerald-800 dark:text-emerald-300' 
+              : 'bg-[#fdf0f1] dark:bg-[#341718] border-red-500/35 text-red-800 dark:text-red-300'
+          }`}>
+            <div className="flex-1 space-y-1">
+              <div className="flex items-center gap-2">
+                <span className="text-xl">{isCorrect ? '🎉' : '⚠️'}</span>
+                <h4 className="font-black text-sm uppercase tracking-wide">
+                  {isCorrect ? 'Correct Assembly!' : 'Incorrect / Check Hint'}
+                </h4>
+              </div>
+              
+              {isCorrect ? (
+                <div className="space-y-1 pl-7">
+                  <p className="text-xs font-extrabold leading-normal opacity-90">
+                    Sheesh, you cooked that sequence perfectly! +{difficulty === 'easy' ? '10' : difficulty === 'medium' ? '20' : '30'} XP awarded.
+                  </p>
+                  {activeLesson.pattern && (
+                    <div className="text-[10px] font-black uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
+                      Formula: {activeLesson.pattern}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="pl-7">
+                  <p className="text-xs font-extrabold leading-normal opacity-90">
+                    Remember: {activeLesson.tip}
+                  </p>
+                </div>
+              )}
+            </div>
+
             <button
               onClick={handleNext}
-              className="flex-1 py-3.5 bg-claude-coral hover:bg-claude-coral/90 text-white font-black text-xs uppercase tracking-widest rounded-xl shadow-lg border border-[#e06847]/30 cursor-pointer transition-all active:scale-[0.97] hover:-translate-y-0.5 flex items-center justify-center gap-1.5"
+              className="py-3.5 px-8 bg-claude-coral hover:bg-claude-coral/90 text-white font-black text-xs uppercase tracking-widest rounded-xl shadow-lg border border-[#e06847]/30 cursor-pointer transition-all active:scale-[0.97] hover:-translate-y-0.5 flex items-center justify-center gap-1.5 self-stretch md:self-auto"
             >
               {currentLevel < sessionLessons.length - 1 ? 'Advance Level ➡️' : 'Complete Quest 🏆'}
             </button>
-          )}
-        </div>
+          </div>
+        )}
 
         {/* Hint tip panel display */}
-        {showTip && (
+        {showTip && !checked && (
           <div className="bg-amber-500/5 border border-amber-500/25 text-amber-600 dark:text-amber-500 p-3.5 rounded-xl text-[11px] font-bold leading-normal animate-fade-in backdrop-blur-xs">
             💡 <strong>Hint:</strong> {activeLesson.tip}
           </div>
         )}
+
       </div>
     );
   };
@@ -771,28 +764,36 @@ export default function GrammarDojo({ onGainXp, vocabList }) {
   ];
 
   return (
-    <div className={`w-full min-h-[580px] flex items-center justify-center relative p-4 sm:p-6 md:p-8 overflow-hidden rounded-3xl bg-[#f2ede4] dark:bg-[#151514] border-4 ${getOuterBorderClass()} shadow-2xl transition-all duration-300 w-full`}>
+    <div className="w-full min-h-[620px] flex-1 flex items-center justify-center relative p-4 sm:p-6 md:p-8 overflow-hidden rounded-2xl bg-[#faf8f2] dark:bg-[#0a0b0d] transition-all duration-300 w-full">
       {/* Traditional wood lattice framing lines overlay */}
-      <div className="absolute inset-0 border-[12px] border-amber-950/20 dark:border-amber-500/5 pointer-events-none z-20" />
+      <div className="absolute inset-0 border-[10px] border-amber-950/5 dark:border-amber-500/[0.02] pointer-events-none z-20" />
       
-      {/* Dojo background watercolor silhouette art (beautiful eave & pine tree landscape) */}
-      <div className="absolute inset-0 pointer-events-none opacity-25 dark:opacity-15 z-0 flex items-end justify-center overflow-hidden">
-        <svg viewBox="0 0 800 400" className="w-full max-h-[340px] translate-y-12 fill-amber-950 dark:fill-slate-100 transition-all duration-300">
-          <circle cx="200" cy="180" r="70" className="opacity-15 dark:opacity-30 fill-[#cc5a37]" />
-          {/* Pagoda Silhouette */}
-          <path d="M 350,400 L 350,320 L 310,320 L 330,300 L 470,300 L 490,320 L 450,320 L 450,400 Z" />
-          <path d="M 370,300 L 370,250 L 330,250 L 350,230 L 450,230 L 470,250 L 430,250 L 430,300 Z" />
-          <path d="M 385,230 L 385,180 L 350,180 L 370,160 L 430,160 L 450,180 L 415,180 L 415,230 Z" />
-          <path d="M 395,160 L 395,130 L 405,130 L 405,160 Z" />
+      {/* Dojo background watercolor silhouette landscape (Mount Fuji, hills, tree branches - Hidden on mobile) */}
+      <div className="absolute inset-0 pointer-events-none opacity-25 dark:opacity-15 z-0 hidden sm:flex items-end justify-center overflow-hidden">
+        <svg viewBox="0 0 1000 500" preserveAspectRatio="xMidYMax slice" className="absolute inset-0 w-full h-full pointer-events-none z-0 fill-amber-950 dark:fill-slate-100 transition-all duration-300">
+          {/* Rising Sun (off-center) */}
+          <circle cx="780" cy="190" r="95" className="opacity-15 dark:opacity-20 fill-[#cc5a37]" />
           
-          <path d="M 330,300 Q 310,310 290,305 Q 310,295 330,300 Z" />
-          <path d="M 470,300 Q 490,310 510,305 Q 490,295 470,300 Z" />
-          <path d="M 350,230 Q 330,240 310,235 Q 330,225 350,230 Z" />
-          <path d="M 450,230 Q 470,240 490,235 Q 470,225 450,230 Z" />
-          {/* Tree branches silhouette */}
-          <path d="M 0,380 Q 150,350 250,280 Q 320,230 360,190" strokeWidth="6" stroke="currentColor" fill="none" />
-          <path d="M 200,315 Q 160,250 120,230" strokeWidth="4" stroke="currentColor" fill="none" />
-          <path d="M 230,295 Q 260,240 300,220" strokeWidth="3" stroke="currentColor" fill="none" />
+          {/* Far Mountains (Mount Fuji silhouette on the left) */}
+          <path d="M 0,500 L 120,390 L 260,250 L 300,250 L 440,390 L 550,500 Z" className="fill-amber-950/10 dark:fill-slate-100/5" />
+          <path d="M 252,258 L 260,250 L 300,250 L 308,258 Q 280,270 252,258 Z" className="fill-white dark:fill-slate-800 opacity-80" /> {/* Fuji snow cap */}
+          
+          {/* Rolling Hills across the whole bottom width */}
+          <path d="M 0,500 Q 150,420 380,450 T 750,420 T 1000,460 L 1000,500 L 0,500 Z" className="fill-amber-950/15 dark:fill-slate-100/5" />
+          <path d="M 0,500 Q 250,440 580,470 T 1000,450 L 1000,500 L 0,500 Z" className="fill-amber-950/10 dark:fill-slate-100/10" />
+
+          {/* Cherry Blossom Branch hanging from top right corner */}
+          <path d="M 1000,0 Q 820,40 760,140" strokeWidth="4" stroke="currentColor" fill="none" className="stroke-amber-950/20 dark:stroke-slate-100/15" />
+          <path d="M 910,0 Q 840,70 890,110" strokeWidth="2.5" stroke="currentColor" fill="none" className="stroke-amber-950/20 dark:stroke-slate-100/15" />
+          <circle cx="760" cy="140" r="3" className="fill-pink-300" />
+          <circle cx="770" cy="130" r="2.5" className="fill-pink-300" />
+          <circle cx="890" cy="110" r="3" className="fill-pink-300" />
+          <circle cx="900" cy="100" r="2" className="fill-pink-300" />
+          
+          {/* Hanging Pagoda roof silhouette in the bottom right */}
+          <path d="M 780,500 L 780,440 L 750,440 L 765,420 L 875,420 L 890,440 L 860,440 L 860,500 Z" className="fill-amber-950/15 dark:fill-slate-100/10" />
+          <path d="M 750,440 Q 735,448 720,445 Q 735,435 750,440 Z" className="fill-amber-950/15 dark:fill-slate-100/10" />
+          <path d="M 890,440 Q 905,448 920,445 Q 905,435 890,440 Z" className="fill-amber-950/15 dark:fill-slate-100/10" />
         </svg>
       </div>
 
@@ -827,7 +828,11 @@ export default function GrammarDojo({ onGainXp, vocabList }) {
           0% { transform: translateY(-10px) rotate(0deg); opacity: 0; }
           10% { opacity: 0.7; }
           90% { opacity: 0.7; }
-          100% { transform: translateY(580px) rotate(420deg); opacity: 0; }
+          100% { transform: translateY(620px) rotate(420deg); opacity: 0; }
+        }
+        @keyframes slide-up {
+          0% { transform: translateY(100%); }
+          100% { transform: translateY(0); }
         }
       `}} />
 
@@ -857,6 +862,23 @@ export default function GrammarDojo({ onGainXp, vocabList }) {
             <div className="w-3.5 h-20 bg-amber-950 dark:bg-black rounded-r-md border border-[#bca175]/60 shadow-md flex items-center justify-center">
               <div className="w-1 h-10 bg-amber-800 rounded-full" />
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Grammar Concept Modal (Floating Washi-Paper Sheet overlay) */}
+      {showConceptModal && (
+        <div className="absolute inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 z-40 animate-fade-in rounded-2xl">
+          <div className="bg-[#fcfaf2] dark:bg-[#1a1a19] border-4 border-[#bca175] dark:border-[#524430] p-6 rounded-2xl max-w-sm text-center relative shadow-2xl animate-[slide-up_0.2s_ease-out_forwards] text-[#191919] dark:text-[#f2f0ea]">
+            <span className="text-[9px] font-black text-claude-coral uppercase tracking-widest block mb-1">文法解説 / Concept</span>
+            <h4 className="font-black text-sm text-[#191919] dark:text-[#f2f0ea] mb-3">{activeLesson.title}</h4>
+            <p className="text-xs text-[#6b6a65] dark:text-[#92918b] leading-relaxed mb-5 font-medium">{activeLesson.concept}</p>
+            <button 
+              onClick={() => setShowConceptModal(false)}
+              className="w-full py-2.5 bg-claude-coral text-white font-black text-xs rounded-xl hover:bg-claude-coral/95 transition-all shadow-md cursor-pointer uppercase tracking-wider"
+            >
+              I Got It! 📖
+            </button>
           </div>
         </div>
       )}

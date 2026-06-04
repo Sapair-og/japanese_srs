@@ -712,13 +712,21 @@ export default function GrammarDojo({ onGainXp, vocabList }) {
               </div>
               
               {isCorrect ? (
-                <div className="space-y-1 pl-7">
+                <div className="space-y-1.5 pl-7">
                   <p className="text-xs font-extrabold leading-normal opacity-90">
                     Sheesh, you cooked that sequence perfectly! +{difficulty === 'easy' ? '10' : difficulty === 'medium' ? '20' : '30'} XP awarded.
                   </p>
                   {activeLesson.pattern && (
-                    <div className="text-[10px] font-black uppercase tracking-wider text-emerald-600 dark:text-emerald-400 font-mono">
-                      Formula: {activeLesson.pattern}
+                    <div className="text-[11px] font-black text-emerald-700 dark:text-emerald-300 font-mono flex flex-col gap-0.5">
+                      <div>
+                        <span className="text-emerald-600/70 dark:text-emerald-400/60 uppercase text-[9px] tracking-wider font-sans mr-1">Formula:</span>
+                        {activeLesson.pattern}
+                      </div>
+                      {activeLesson.meaning && (
+                        <div className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 font-sans normal-case mt-0.5">
+                          💡 This rule means {activeLesson.meaning}
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>

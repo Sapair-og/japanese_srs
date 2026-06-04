@@ -7,7 +7,8 @@ export const n5Lessons = [
     sequenceTemplate: ['私', 'は', '学生', 'です'],
     defaultReplacements: {},
     tip: 'Subject (私) + Topic Marker (は) + Description (学生) + Copula (です - is/am).',
-    pattern: '【名詞】 + は + 【名詞】 + です'
+    pattern: 'Noun + wa (particle) + Noun + desu',
+    meaning: 'to declare that something is another thing (A is B).'
   },
   {
     id: 2,
@@ -20,7 +21,8 @@ export const n5Lessons = [
     },
     category: 'drink',
     tip: 'Subject (私 は) + Object + Object Marker (を) + Verb (飲みます - drink).',
-    pattern: '【名詞】 + を + 【動詞】'
+    pattern: 'Noun + o (particle) + Verb',
+    meaning: 'to perform an action on a direct object.'
   },
   {
     id: 3,
@@ -33,7 +35,8 @@ export const n5Lessons = [
     },
     category: 'place',
     tip: 'Subject (私 は) + Destination + Direction Marker (に) + Motion Verb (行きます - go).',
-    pattern: '【名詞 (場所)】 + に + 【移動の動詞】'
+    pattern: 'Noun (Place) + ni (particle) + Motion Verb',
+    meaning: 'to state the destination or direction of movement.'
   },
   {
     id: 4,
@@ -46,7 +49,8 @@ export const n5Lessons = [
     },
     category: 'food',
     tip: 'Location (ここに - here) + Inanimate Noun + Subject Marker (が) + Existence Verb (あります).',
-    pattern: '【名詞 (無生物)】 + が + あります'
+    pattern: 'Noun (Inanimate) + ga (particle) + arimasu',
+    meaning: 'to say that a non-living thing exists or is present.'
   },
   {
     id: 5,
@@ -56,7 +60,8 @@ export const n5Lessons = [
     sequenceTemplate: ['ここに', '友達', 'が', 'います'],
     defaultReplacements: {},
     tip: 'Location (ここに - here) + Animate Noun (友達) + Subject Marker (が) + Existence Verb (います).',
-    pattern: '【名詞 (生物)】 + が + います'
+    pattern: 'Noun (Animate) + ga (particle) + imasu',
+    meaning: 'to say that a living thing (person or animal) exists or is present.'
   },
   {
     id: 6,
@@ -69,7 +74,8 @@ export const n5Lessons = [
     },
     category: 'drink',
     tip: 'Subject (私 は) + Object + Object Marker (を) + Verb Te-form (飲んで) + auxiliary (います).',
-    pattern: '【動詞て形】 + います (Action in progress)'
+    pattern: 'Verb (Te-form) + imasu',
+    meaning: 'to state that an action is currently in progress (am/is/are doing).'
   },
   {
     id: 7,
@@ -82,7 +88,8 @@ export const n5Lessons = [
     },
     category: 'food',
     tip: 'Together (一緒 に) + Object + Object Marker (を) + Polite Negative invitation (食べませんか).',
-    pattern: '【動詞ます形 stem】 + ませんか'
+    pattern: 'Verb (Masu-stem) + masenka',
+    meaning: 'to make a polite invitation to do something together ("won\'t you?").'
   },
   {
     id: 8,
@@ -95,7 +102,8 @@ export const n5Lessons = [
     },
     category: 'food',
     tip: 'Object + Object Marker (を) + Verb Te-form (食べて) + Request helper (ください).',
-    pattern: '【動詞て形】 + ください'
+    pattern: 'Verb (Te-form) + kudasai',
+    meaning: 'to make a polite request or ask someone to do something.'
   },
   {
     id: 9,
@@ -108,7 +116,8 @@ export const n5Lessons = [
     },
     category: 'drink',
     tip: 'Object + Object Marker (を) + Verb Te-form (飲んで) + Prohibition particles (はいけません).',
-    pattern: '【動詞て形】 + はいけません (Prohibition)'
+    pattern: 'Verb (Te-form) + wa (particle) + ikemasen',
+    meaning: 'to express a strong prohibition or say that someone must not do something.'
   },
   {
     id: 10,
@@ -121,7 +130,8 @@ export const n5Lessons = [
     },
     category: 'drink',
     tip: 'Subject (が) + Adjective (好きです) + Reason particle (から) + Verb (飲みます).',
-    pattern: '【文 (原因)】 + から、 + 【文 (結果)】'
+    pattern: 'Clause (Reason) + kara (particle) + Clause (Result)',
+    meaning: 'to explain the reason or cause of an action ("because/since").'
   },
   {
     id: 11,
@@ -131,7 +141,8 @@ export const n5Lessons = [
     sequenceTemplate: ['日本語', 'は', '難しい', 'ですが', '面白い', 'です'],
     defaultReplacements: {},
     tip: 'Topic (日本語 は) + Adj 1 (難しい) + Contrast copula (ですが) + Adj 2 (面白い) + Copula (です).',
-    pattern: '【文 1】 + ですが、 + 【文 2】'
+    pattern: 'Clause 1 + desu ga (particle) + Clause 2',
+    meaning: 'to connect two sentences or thoughts in contrast ("but/however").'
   },
   {
     id: 12,
@@ -144,7 +155,8 @@ export const n5Lessons = [
     },
     category: 'food',
     tip: 'Subject + Also (も) + Object + Object Marker (を) + Verb (食べます).',
-    pattern: '【名詞】 + も + 【動詞】'
+    pattern: 'Noun + mo (particle) + Verb',
+    meaning: 'to indicate that something or someone also performs an action ("also/too").'
   }
 ];
 
@@ -160,7 +172,8 @@ export const n4Lessons = [
     },
     category: 'place',
     tip: 'Subject + Destination + Direction Marker (に) + Verb Plain (行く) + Intention (つもりです).',
-    pattern: '【動詞辞書形 / ない形】 + つもりです (Intention)'
+    pattern: 'Verb (Dictionary/Nai-form) + tsumori desu',
+    meaning: 'to state a firm future plan or intention to do (or not do) something.'
   },
   {
     id: 2,
@@ -173,7 +186,8 @@ export const n4Lessons = [
     },
     category: 'food',
     tip: 'Subject + Object + Object Marker (を) + Verb stem + desire (食べたいです).',
-    pattern: '【動詞ます形 stem】 + たいです (Desire)'
+    pattern: 'Verb (Masu-stem) + tai desu',
+    meaning: 'to express a personal desire or wish to perform an action ("want to").'
   },
   {
     id: 3,
@@ -186,7 +200,8 @@ export const n4Lessons = [
     },
     category: 'food',
     tip: 'Subject + Object + Object Marker (を) + Verb Past (食べた) + Experience phrase (ことがあります).',
-    pattern: '【動詞た形】 + ことがあります (Past Experience)'
+    pattern: 'Verb (Ta-form) + koto ga (particle) + arimasu',
+    meaning: 'to state that you have had a past experience of doing something ("have done before").'
   },
   {
     id: 4,
@@ -199,7 +214,8 @@ export const n4Lessons = [
     },
     category: 'drink',
     tip: 'Object + Object Marker (を) + Verb Te-form (飲んで) + Permission helper (もいいです).',
-    pattern: '【動詞て形】 + もいいです (Permission)'
+    pattern: 'Verb (Te-form) + mo (particle) + ii desu',
+    meaning: 'to request or grant permission to do an action ("may do/it is okay to").'
   },
   {
     id: 5,
@@ -212,7 +228,8 @@ export const n4Lessons = [
     },
     category: 'place',
     tip: 'Subject + Destination + Direction Marker (に) + Verb Nai-form stem (行か) + Obligation suffix (なければなりません).',
-    pattern: '【動詞ない形 stem (ーい)】 + ければなりません (Obligation)'
+    pattern: 'Verb (Nai-stem without -i) + kereba narimasen',
+    meaning: 'to express a strong obligation, necessity, or duty ("must do/have to").'
   },
   {
     id: 6,
@@ -225,7 +242,8 @@ export const n4Lessons = [
     },
     category: 'food',
     tip: 'Subject + Object + Object Marker (を) + Verb stem (食べ) + Excess helper (すぎました).',
-    pattern: '【動詞ます形 stem / 形容詞 stem】 + すぎます (Excessive Action)'
+    pattern: 'Verb (Masu-stem) / Adjective (Stem) + sugimasu',
+    meaning: 'to indicate that an action or state is excessive or done to an extreme ("too much").'
   },
   {
     id: 7,
@@ -238,7 +256,8 @@ export const n4Lessons = [
     },
     category: 'food',
     tip: 'Subject + Object + Object Marker (を) + Verb Dictionary (食べる) + Ability phrase (ことができます).',
-    pattern: '【動詞辞書形】 + ことができます (Ability)'
+    pattern: 'Verb (Dictionary-form) + koto ga (particle) + dekimasu',
+    meaning: 'to express the physical capability or possibility of doing something ("can do").'
   },
   {
     id: 8,
@@ -250,8 +269,9 @@ export const n4Lessons = [
       '{DRINK}': { japanese: '水', english: 'water' }
     },
     category: 'drink',
-    tip: 'Subject + Object + Object Marker (を) + Verb stem (飲み) + Concurrent (ながら) + Main Verb (勉強します).',
-    pattern: '【動詞ます形 stem】 + ながら + 【動詞 2 (主動作)】'
+    tip: 'Subject + Object + Object Marker (to) + Verb stem (飲み) + Concurrent (ながら) + Main Verb (勉強します).',
+    pattern: 'Verb 1 (Masu-stem) + nagara (particle) + Verb 2',
+    meaning: 'to perform two actions at the same time by the same person ("while doing A, I do B").'
   },
   {
     id: 9,
@@ -261,7 +281,8 @@ export const n4Lessons = [
     sequenceTemplate: ['旅行', 'の', '前に', 'ホテル', 'を', '予約して', 'おきます'],
     defaultReplacements: {},
     tip: 'Noun + Possessive (の) + Before (前に) + Object + Object Marker (を) + Verb Te-form (予約して) + Preparatory (おきます).',
-    pattern: '【動詞て形】 + おきます (Preparation)'
+    pattern: 'Verb (Te-form) + okimasu',
+    meaning: 'to perform an action in advance in preparation for future use or benefit ("do in advance").'
   },
   {
     id: 10,
@@ -274,7 +295,8 @@ export const n4Lessons = [
     },
     category: 'drink',
     tip: 'Subject + Object + Object Marker (を) + Verb Te-form (飲んで) + Completed/Regret (しまいました).',
-    pattern: '【動詞て形】 + しまいます (Regret / Complete)'
+    pattern: 'Verb (Te-form) + shimaimasu',
+    meaning: 'to express that an action was completed fully, or that it happened accidentally with regret.'
   },
   {
     id: 11,
@@ -287,7 +309,8 @@ export const n4Lessons = [
     },
     category: 'place',
     tip: 'Time (明日) + Subject + Destination + Direction Marker (に) + Verb Plain (行く) + Probability (かもしれません).',
-    pattern: '【動詞・形容詞普通形 / 名詞】 + かもしれません (Possibility)'
+    pattern: 'Verb/Adjective (Plain-form) / Noun + kamoshiremasen',
+    meaning: 'to express a guess or conjecture with a lower degree of certainty ("might/possibly").'
   },
   {
     id: 12,
@@ -300,7 +323,8 @@ export const n4Lessons = [
     },
     category: 'place',
     tip: 'Subject + Topic (は) + Time (今日) + Destination + Direction Marker (に) + Verb Plain (行く) + Expectation (はずです).',
-    pattern: '【動詞・形容詞普通形】 + はずです (Strong Expectation)'
+    pattern: 'Verb/Adjective (Plain-form) + hazu desu',
+    meaning: 'to express a strong expectation or logical belief based on facts ("should be/expected to").'
   },
   {
     id: 13,
@@ -310,7 +334,8 @@ export const n4Lessons = [
     sequenceTemplate: ['薬', 'を', '飲んだ', 'のに', '風邪', 'が', '治りません'],
     defaultReplacements: {},
     tip: 'Medicine + Object (を) + Verb Past Plain (飲んだ) + Contrastive (のに) + Cold noun + Subject (が) + Negative Verb (治りません).',
-    pattern: '【動詞普通形】 + のに、 + 【予想外の出来事】'
+    pattern: 'Verb (Plain-form) + noni (particle) + Unexpected Clause',
+    meaning: 'to express contrast with frustration, regret, or surprise ("despite the fact that/even though").'
   },
   {
     id: 14,
@@ -323,7 +348,8 @@ export const n4Lessons = [
     },
     category: 'place',
     tip: 'Rain + Subject (が) + Past conditional (降ったら) + Destination + Direction (に) + Negative motion verb (行きません).',
-    pattern: '【動詞た形 + ら】 (Past Conditional)'
+    pattern: 'Verb (Ta-form) + ra',
+    meaning: 'to express a general conditional condition or chronological sequence ("if/when").'
   },
   {
     id: 15,
@@ -336,7 +362,8 @@ export const n4Lessons = [
     },
     category: 'food',
     tip: 'Adjective Provisional (安ければ) + Demonstrative (あの) + Object + Object Marker (を) + Verb (買います).',
-    pattern: '【動詞ば形 / 形容詞ければ】 (Provisional Conditional)'
+    pattern: 'Verb (Ba-form) / Adjective (Kereba-form)',
+    meaning: 'to state a hypothetical condition where the result directly depends on the condition ("if").'
   },
   {
     id: 16,
@@ -345,8 +372,9 @@ export const n4Lessons = [
     englishTemplate: 'When spring comes, cherry blossoms bloom.',
     sequenceTemplate: ['春', 'に', 'なると', '桜', 'が', '咲きます'],
     defaultReplacements: {},
-    tip: 'Spring + Direction (に) + Verb Dictionary + conditional (なると) + Cherry blossoms + Subject (が) + Verb (咲きます).',
-    pattern: '【動詞辞書形 + と】 (Natural Consequence)'
+    tip: 'Spring + Direction (in) + Verb Dictionary + conditional (なると) + Cherry blossoms + Subject (が) + Verb (咲きます).',
+    pattern: 'Verb (Dictionary-form) + to (particle)',
+    meaning: 'to express a natural, automatic, or inevitable consequence ("if/when X happens, Y always happens next").'
   },
   {
     id: 17,
@@ -359,7 +387,8 @@ export const n4Lessons = [
     },
     category: 'place',
     tip: 'Destination + Direction (に) + Verb Plain (行く) + Contextual conditional (なら) + Train + Subject (が) + Adjective (便利) + Copula (です).',
-    pattern: '【名詞 / 動詞普通形】 + なら (Contextual Topic)'
+    pattern: 'Noun / Verb (Plain-form) + nara (particle)',
+    meaning: 'to state a condition or advice based on the context of the conversation ("if it is the case that").'
   },
   {
     id: 18,
@@ -369,6 +398,7 @@ export const n4Lessons = [
     sequenceTemplate: ['先生', 'が', '私', 'に', '日本語', 'を', '教えて', 'くれました'],
     defaultReplacements: {},
     tip: 'Teacher + Subject (が) + Me + Direction (に) + Language + Object (を) + Verb Te-form (教えて) + Favor helper (くれました).',
-    pattern: '【動詞て形】 + くれます (Favor done for me)'
+    pattern: 'Verb (Te-form) + kuremasu',
+    meaning: 'to express that someone else did a favor or kindness for the speaker ("does ... for me").'
   }
 ];

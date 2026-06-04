@@ -420,18 +420,18 @@ export default function GrammarDojo({ onGainXp, vocabList }) {
     
     if (wClass === 'noun') {
       // Blue tint
-      return `${base} bg-blue-50 dark:bg-[#1a2c42] border-[#4ba3f7]/50 text-blue-700 dark:text-blue-300 shadow-[0_4px_0_0_#2b5797] hover:bg-blue-100/50 hover:dark:bg-[#203752]`;
+      return `${base} bg-blue-50/90 dark:bg-[#1a2c42]/90 border-[#4ba3f7]/50 text-blue-700 dark:text-blue-300 shadow-[0_4px_0_0_#2b5797] hover:bg-blue-100/50 hover:dark:bg-[#203752]`;
     }
     if (wClass === 'verb') {
       // Green tint
-      return `${base} bg-emerald-50 dark:bg-[#153a26] border-[#4ade80]/50 text-emerald-700 dark:text-emerald-300 shadow-[0_4px_0_0_#0f766e] hover:bg-emerald-100/50 hover:dark:bg-[#1b4830]`;
+      return `${base} bg-emerald-50/90 dark:bg-[#153a26]/90 border-[#4ade80]/50 text-emerald-700 dark:text-emerald-300 shadow-[0_4px_0_0_#0f766e] hover:bg-emerald-100/50 hover:dark:bg-[#1b4830]`;
     }
     if (wClass === 'particle') {
       // Crimson / Rose tint
-      return `${base} bg-rose-50 dark:bg-[#3f191b] border-[#fda4af]/50 text-rose-700 dark:text-rose-300 shadow-[0_4px_0_0_#be123c] hover:bg-rose-100/50 hover:dark:bg-[#4d2023]`;
+      return `${base} bg-rose-50/90 dark:bg-[#3f191b]/90 border-[#fda4af]/50 text-rose-700 dark:text-rose-300 shadow-[0_4px_0_0_#be123c] hover:bg-rose-100/50 hover:dark:bg-[#4d2023]`;
     }
     // Helper / Copulas / Adjectives (Amber/Gold tint)
-    return `${base} bg-amber-50 dark:bg-[#3d2715] border-[#fde047]/50 text-amber-800 dark:text-amber-300 shadow-[0_4px_0_0_#b45309] hover:bg-amber-100/50 hover:dark:bg-[#4c311a]`;
+    return `${base} bg-amber-50/90 dark:bg-[#3d2715]/90 border-[#fde047]/50 text-amber-800 dark:text-amber-300 shadow-[0_4px_0_0_#b45309] hover:bg-amber-100/50 hover:dark:bg-[#4c311a]`;
   };
 
   const handleCardClick = (card, source) => {
@@ -528,18 +528,18 @@ export default function GrammarDojo({ onGainXp, vocabList }) {
   // 1. SETUP GAME SCREEN RENDER HELPER (Quest Scroll Selection)
   const renderSetupScreen = () => {
     return (
-      <div className="w-full max-w-4xl flex flex-col items-center gap-8 animate-fade-in z-10 text-[#191919] dark:text-[#f2f0ea] px-4 md:px-8">
+      <div className="w-full max-w-4xl flex flex-col items-center gap-8 animate-fade-in z-10 text-[var(--dojo-text)] px-4 md:px-8">
         
         {/* Title and Mascot layout */}
-        <div className="flex flex-col md:flex-row items-center gap-6 justify-center text-center md:text-left max-w-2xl">
+        <div className="flex flex-col md:flex-row items-center gap-6 justify-center text-center md:text-left max-w-2xl w-full">
           <MascotSensei mood={mascotMood} />
-          <div className="relative bg-white dark:bg-[#1a1a19]/90 border-2 border-[#bca175] dark:border-[#524430] p-4.5 rounded-2xl shadow-md max-w-md">
+          <div className="relative bg-white/75 dark:bg-[#1a1a19]/80 backdrop-blur-md border-2 border-[#bca175]/35 dark:border-[#524430]/45 p-4.5 rounded-2xl shadow-lg max-w-md w-full">
             <span className="text-[10px] font-black uppercase text-claude-coral tracking-widest block mb-0.5">文章道場 / Dojo Master</span>
-            <p className="text-xs font-semibold leading-relaxed text-[#5c5b56] dark:text-[#92918b]">
+            <p className="text-xs font-semibold leading-relaxed text-[var(--dojo-text-muted)]">
               "{mascotSpeech}"
             </p>
             {/* Speech bubble pointer */}
-            <div className="absolute top-1/2 -left-2 -translate-y-1/2 w-4 h-4 bg-white dark:bg-[#1a1a19] border-l-2 border-b-2 border-[#bca175] dark:border-[#524430] rotate-45 hidden md:block" />
+            <div className="absolute top-1/2 -left-2 -translate-y-1/2 w-4 h-4 bg-white/75 dark:bg-[#1a1a19]/80 border-l-2 border-b-2 border-[#bca175]/35 dark:border-[#524430]/45 rotate-45 hidden md:block" />
           </div>
         </div>
 
@@ -556,7 +556,7 @@ export default function GrammarDojo({ onGainXp, vocabList }) {
               className={`p-6 rounded-3xl border-2 text-left cursor-pointer transition-all duration-300 flex flex-col gap-2 relative overflow-hidden group ${
                 deckLevel === 'N5'
                   ? 'bg-gradient-to-br from-[#c8b6ff]/35 to-[#bca175]/25 border-claude-coral shadow-lg scale-[1.02] -translate-y-1'
-                  : 'bg-[#eae4d8]/40 dark:bg-[#1a1a19]/50 border-[#bca175]/35 text-[#7c6c57] dark:text-[#92918b]'
+                  : 'bg-white/40 dark:bg-[#1a1a19]/40 backdrop-blur-md border-[#bca175]/35 dark:border-[#524430]/45 text-[#7c6c57] dark:text-[#92918b]'
               }`}
             >
               <div className="flex justify-between items-center w-full">
@@ -576,7 +576,7 @@ export default function GrammarDojo({ onGainXp, vocabList }) {
               className={`p-6 rounded-3xl border-2 text-left cursor-pointer transition-all duration-300 flex flex-col gap-2 relative overflow-hidden group ${
                 deckLevel === 'N4'
                   ? 'bg-gradient-to-br from-[#a5ffd6]/35 to-[#bca175]/25 border-claude-coral shadow-lg scale-[1.02] -translate-y-1'
-                  : 'bg-[#eae4d8]/40 dark:bg-[#1a1a19]/50 border-[#bca175]/35 text-[#7c6c57] dark:text-[#92918b]'
+                  : 'bg-white/40 dark:bg-[#1a1a19]/40 backdrop-blur-md border-[#bca175]/35 dark:border-[#524430]/45 text-[#7c6c57] dark:text-[#92918b]'
               }`}
             >
               <div className="flex justify-between items-center w-full">
@@ -607,7 +607,7 @@ export default function GrammarDojo({ onGainXp, vocabList }) {
                   className={`py-3 rounded-2xl border-2 font-extrabold text-xs cursor-pointer active:translate-y-[2px] transition-all ${
                     sessionSize === size
                       ? 'bg-claude-coral text-white border-transparent shadow-[0_3px_0_0_#9f4124]'
-                      : 'bg-[#eae4d8]/30 dark:bg-[#1a1a19]/30 border-[#bca175]/30 text-[#7c6c57] dark:text-[#92918b] shadow-[0_3px_0_0_#bca175]/20 hover:text-claude-text'
+                      : 'bg-white/40 dark:bg-[#1a1a19]/40 backdrop-blur-md border-[#bca175]/30 dark:border-[#524430]/35 text-[#7c6c57] dark:text-[#92918b] shadow-[0_3px_0_0_#bca175]/10 hover:text-claude-text'
                   }`}
                 >
                   {size} Qs
@@ -627,7 +627,7 @@ export default function GrammarDojo({ onGainXp, vocabList }) {
                 className={`py-3 rounded-2xl border-2 font-extrabold text-[10px] uppercase tracking-wider cursor-pointer active:translate-y-[2px] transition-all ${
                   difficulty === 'easy'
                     ? 'bg-emerald-600 border-transparent text-white shadow-[0_3px_0_0_#065f46]'
-                    : 'bg-[#eae4d8]/30 dark:bg-[#1a1a19]/30 border-[#bca175]/30 text-[#7c6c57] dark:text-[#92918b] shadow-[0_3px_0_0_#bca175]/20 hover:text-emerald-500'
+                    : 'bg-white/40 dark:bg-[#1a1a19]/40 backdrop-blur-md border-[#bca175]/30 dark:border-[#524430]/35 text-[#7c6c57] dark:text-[#92918b] shadow-[0_3px_0_0_#bca175]/10 hover:text-emerald-500'
                 }`}
               >
                 🟢 Easy
@@ -637,7 +637,7 @@ export default function GrammarDojo({ onGainXp, vocabList }) {
                 className={`py-3 rounded-2xl border-2 font-extrabold text-[10px] uppercase tracking-wider cursor-pointer active:translate-y-[2px] transition-all ${
                   difficulty === 'medium'
                     ? 'bg-amber-500 border-transparent text-[#191919] shadow-[0_3px_0_0_#92400e]'
-                    : 'bg-[#eae4d8]/30 dark:bg-[#1a1a19]/30 border-[#bca175]/30 text-[#7c6c57] dark:text-[#92918b] shadow-[0_3px_0_0_#bca175]/20 hover:text-amber-500'
+                    : 'bg-white/40 dark:bg-[#1a1a19]/40 backdrop-blur-md border-[#bca175]/30 dark:border-[#524430]/35 text-[#7c6c57] dark:text-[#92918b] shadow-[0_3px_0_0_#bca175]/10 hover:text-amber-500'
                 }`}
               >
                 🟡 Medium
@@ -647,7 +647,7 @@ export default function GrammarDojo({ onGainXp, vocabList }) {
                 className={`py-3 rounded-2xl border-2 font-extrabold text-[10px] uppercase tracking-wider cursor-pointer active:translate-y-[2px] transition-all ${
                   difficulty === 'hard'
                     ? 'bg-red-600 border-transparent text-white shadow-[0_3px_0_0_#991b1b]'
-                    : 'bg-[#eae4d8]/30 dark:bg-[#1a1a19]/30 border-[#bca175]/30 text-[#7c6c57] dark:text-[#92918b] shadow-[0_3px_0_0_#bca175]/20 hover:text-red-500'
+                    : 'bg-white/40 dark:bg-[#1a1a19]/40 backdrop-blur-md border-[#bca175]/30 dark:border-[#524430]/35 text-[#7c6c57] dark:text-[#92918b] shadow-[0_3px_0_0_#bca175]/10 hover:text-red-500'
                 }`}
               >
                 🔴 Hard
@@ -660,7 +660,7 @@ export default function GrammarDojo({ onGainXp, vocabList }) {
         <div className="flex flex-col sm:flex-row gap-3.5 w-full max-w-2xl mt-4">
           <button
             onClick={() => setGameState('study')}
-            className="flex-1 py-4.5 bg-[#eae4d8]/60 dark:bg-claude-sidebar/60 hover:bg-[#eae4d8]/80 hover:dark:bg-claude-card border-2 border-[#bca175]/45 text-claude-text font-black text-sm uppercase tracking-widest rounded-2xl cursor-pointer active:translate-y-[2px] transition-all text-center"
+            className="flex-1 py-4.5 bg-white/40 dark:bg-[#1a1a19]/45 hover:bg-white/60 hover:dark:bg-claude-card border-2 border-[#bca175]/45 text-claude-text font-black text-sm uppercase tracking-widest rounded-2xl cursor-pointer active:translate-y-[2px] transition-all text-center backdrop-blur-md shadow-xs"
           >
             Study Scroll Rules 📜
           </button>
@@ -681,17 +681,17 @@ export default function GrammarDojo({ onGainXp, vocabList }) {
     const rawDeck = deckLevel === 'N5' ? n5Lessons : n4Lessons;
     
     return (
-      <div className="w-full max-w-4xl flex flex-col gap-6 animate-fade-in z-10 text-[#191919] dark:text-[#f2f0ea] px-4 md:px-8">
+      <div className="w-full max-w-4xl flex flex-col gap-6 animate-fade-in z-10 text-[var(--dojo-text)] px-4 md:px-8">
         
         {/* Header navigation */}
         <div className="w-full flex items-center justify-between border-b border-[#bca175]/25 pb-4">
           <div className="flex items-center gap-3">
             <span className="text-2xl">📜</span>
             <div>
-              <h2 className="text-xl font-black text-claude-coral uppercase tracking-wide">
+              <h2 className="text-xl font-black text-claude-coral uppercase tracking-wide font-sans">
                 {deckLevel} Scroll Codex
               </h2>
-              <p className="text-[10px] text-[#7c6c57] dark:text-[#92918b] font-bold">
+              <p className="text-[10px] text-[var(--dojo-text-muted)] font-bold">
                 Reviewing all {rawDeck.length} grammar principles for JLPT {deckLevel}
               </p>
             </div>
@@ -699,18 +699,18 @@ export default function GrammarDojo({ onGainXp, vocabList }) {
           
           <button
             onClick={handleExit}
-            className="px-5 py-2.5 bg-[#eae4d8]/60 dark:bg-claude-sidebar/60 hover:bg-[#eae4d8]/80 hover:dark:bg-claude-card border-2 border-[#bca175]/45 text-claude-text font-black text-xs rounded-xl cursor-pointer active:translate-y-[2px] transition-all"
+            className="px-5 py-2.5 bg-white/40 dark:bg-claude-sidebar/40 hover:bg-white/60 hover:dark:bg-claude-card border-2 border-[#bca175]/45 text-claude-text font-black text-xs rounded-xl cursor-pointer active:translate-y-[2px] transition-all backdrop-blur-md"
           >
             ⛩️ Exit Study
           </button>
         </div>
 
         {/* Mascot Advice */}
-        <div className="bg-white dark:bg-[#1a1a19]/90 border-2 border-[#bca175] dark:border-[#524430] p-4.5 rounded-2xl shadow-sm flex items-center gap-4.5 max-w-2xl mx-auto w-full">
+        <div className="bg-white/80 dark:bg-[#1a1a19]/80 backdrop-blur-md border-2 border-[#bca175]/40 dark:border-[#524430]/60 p-4.5 rounded-2xl shadow-md flex items-center gap-4.5 max-w-2xl mx-auto w-full">
           <MascotSensei mood="neutral" />
           <div>
             <span className="text-[9px] font-black uppercase text-claude-coral tracking-widest block mb-0.5">Dojo Sensei / Advice</span>
-            <p className="text-xs font-semibold leading-relaxed text-[#5c5b56] dark:text-[#92918b]">
+            <p className="text-xs font-semibold leading-relaxed text-[var(--dojo-text-muted)]">
               "A true warrior studies the principles before entering the arena. Examine each grammar scroll, its formula, and the example sentence to prepare your mind!"
             </p>
           </div>
@@ -725,7 +725,7 @@ export default function GrammarDojo({ onGainXp, vocabList }) {
             return (
               <div 
                 key={lesson.id} 
-                className="bg-[#eae4d8]/20 dark:bg-[#161618]/50 border-2 border-[#bca175]/25 hover:border-[#bca175]/60 p-5 rounded-3xl transition-all duration-300 flex flex-col justify-between hover:scale-[1.01] hover:shadow-md"
+                className="bg-white/40 dark:bg-[#161618]/45 backdrop-blur-md border-2 border-[#bca175]/20 dark:border-[#524430]/30 p-5 rounded-3xl transition-all duration-300 flex flex-col justify-between hover:scale-[1.01] hover:shadow-md"
               >
                 <div className="space-y-2">
                   <div className="flex justify-between items-center">
@@ -737,7 +737,7 @@ export default function GrammarDojo({ onGainXp, vocabList }) {
                     </span>
                   </div>
                   
-                  <h4 className="text-base font-extrabold text-[#191919] dark:text-[#faf8f2]">
+                  <h4 className="text-base font-extrabold text-[var(--dojo-text)]">
                     {lesson.title}
                   </h4>
                   
@@ -745,18 +745,18 @@ export default function GrammarDojo({ onGainXp, vocabList }) {
                     Formula: {lesson.pattern}
                   </div>
                   
-                  <p className="text-xs font-semibold leading-relaxed text-[#6b6a65] dark:text-[#92918b]">
+                  <p className="text-xs font-semibold leading-relaxed text-[var(--dojo-text-muted)]">
                     {lesson.concept}
                   </p>
                 </div>
 
                 <div className="mt-4 pt-3 border-t border-[#bca175]/15 space-y-1">
-                  <span className="text-[8px] font-black text-[#7c6c57] dark:text-[#92918b] uppercase tracking-widest block pl-0.5">Example Sentence:</span>
-                  <div className="bg-[#fcfaf4]/80 dark:bg-[#0c0c0e]/80 p-2.5 rounded-xl border border-[#bca175]/15 space-y-0.5">
-                    <div className="text-xs font-black text-[#191919] dark:text-[#f2f0ea]">
+                  <span className="text-[8px] font-black text-[var(--dojo-text-muted)] uppercase tracking-widest block pl-0.5">Example Sentence:</span>
+                  <div className="bg-white/60 dark:bg-[#0c0c0e]/60 p-2.5 rounded-xl border border-[#bca175]/15 space-y-0.5">
+                    <div className="text-xs font-black text-[var(--dojo-text)]">
                       {japaneseExample}
                     </div>
-                    <div className="text-[9px] text-[#6b6a65] dark:text-[#92918b] font-medium leading-relaxed italic">
+                    <div className="text-[9px] text-[var(--dojo-text-muted)] font-medium leading-relaxed italic">
                       "{sampleReplacement.english}"
                     </div>
                   </div>
@@ -772,7 +772,7 @@ export default function GrammarDojo({ onGainXp, vocabList }) {
   // 2. FINISHED STATE SCREEN
   const renderFinishedScreen = () => {
     return (
-      <div className="w-full max-w-xl text-center space-y-6 animate-fade-in z-10 text-[#191919] dark:text-[#f2f0ea] px-4">
+      <div className="w-full max-w-xl text-center space-y-6 animate-fade-in z-10 text-[var(--dojo-text)] px-4">
         <div className="text-6xl animate-bounce">🏆</div>
         <h2 className="text-3xl font-black tracking-wide text-claude-coral font-sans">Dojo Quest Completed!</h2>
         
@@ -781,18 +781,18 @@ export default function GrammarDojo({ onGainXp, vocabList }) {
           <MascotSensei mood="happy" />
         </div>
 
-        <p className="text-xs text-[#6b6a65] dark:text-[#92918b] max-w-sm mx-auto leading-relaxed font-semibold">
+        <p className="text-xs text-[var(--dojo-text-muted)] max-w-sm mx-auto leading-relaxed font-semibold">
           "{mascotSpeech}"
         </p>
 
-        <div className="bg-[#ebdcb9]/40 dark:bg-[#1a1a18]/70 border-2 border-[#bca175]/45 rounded-3xl p-5 text-base font-black text-claude-coral max-w-xs mx-auto shadow-inner">
+        <div className="bg-white/40 dark:bg-[#1a1a18]/45 border-2 border-[#bca175]/45 rounded-3xl p-5 text-base font-black text-claude-coral max-w-xs mx-auto shadow-inner backdrop-blur-md">
           🔥 Quest Score: +{totalXpEarned} XP!
         </div>
 
         <div className="flex gap-4 justify-center pt-2">
           <button
             onClick={startDojoSession}
-            className="px-6 py-3.5 bg-[#eae4d8]/60 dark:bg-claude-sidebar/60 hover:bg-[#eae4d8]/80 hover:dark:bg-claude-card border-2 border-[#bca175]/45 text-claude-text font-extrabold text-xs rounded-2xl cursor-pointer active:translate-y-[2px] transition-all shadow-sm"
+            className="px-6 py-3.5 bg-white/40 dark:bg-claude-sidebar/40 hover:bg-white/60 hover:dark:bg-claude-card border-2 border-[#bca175]/45 text-claude-text font-extrabold text-xs rounded-2xl cursor-pointer active:translate-y-[2px] transition-all shadow-sm backdrop-blur-md"
           >
             Re-run Quest
           </button>
@@ -810,7 +810,7 @@ export default function GrammarDojo({ onGainXp, vocabList }) {
   // 3. DEFEAT / FAILED SCREEN
   const renderFailedScreen = () => {
     return (
-      <div className="w-full max-w-xl text-center space-y-6 animate-fade-in z-10 text-[#191919] dark:text-[#f2f0ea] px-4">
+      <div className="w-full max-w-xl text-center space-y-6 animate-fade-in z-10 text-[var(--dojo-text)] px-4">
         <div className="text-6xl animate-pulse">💀</div>
         <h2 className="text-3xl font-black tracking-wide text-red-600 dark:text-red-500 font-sans">Dojo Defeat!</h2>
         
@@ -819,7 +819,7 @@ export default function GrammarDojo({ onGainXp, vocabList }) {
           <MascotSensei mood="sad" />
         </div>
 
-        <p className="text-xs text-[#6b6a65] dark:text-[#92918b] max-w-sm mx-auto leading-relaxed font-semibold">
+        <p className="text-xs text-[var(--dojo-text-muted)] max-w-sm mx-auto leading-relaxed font-semibold">
           "{mascotSpeech}"
         </p>
 
@@ -836,7 +836,7 @@ export default function GrammarDojo({ onGainXp, vocabList }) {
           </button>
           <button
             onClick={handleExit}
-            className="px-6 py-3.5 bg-[#eae4d8]/60 dark:bg-claude-sidebar/60 hover:bg-[#eae4d8]/80 hover:dark:bg-claude-card border-2 border-[#bca175]/45 text-claude-text font-extrabold text-xs rounded-2xl cursor-pointer active:translate-y-[2px] transition-all"
+            className="px-6 py-3.5 bg-white/40 dark:bg-claude-sidebar/40 hover:bg-white/60 hover:dark:bg-claude-card border-2 border-[#bca175]/45 text-claude-text font-extrabold text-xs rounded-2xl cursor-pointer active:translate-y-[2px] transition-all backdrop-blur-md"
           >
             Leave Dojo
           </button>
@@ -848,7 +848,7 @@ export default function GrammarDojo({ onGainXp, vocabList }) {
   // 4. ACTIVE GAMEPLAY ARENA SCREEN
   const renderPlayingScreen = () => {
     return (
-      <div className={`w-full max-w-4xl flex flex-col gap-6 animate-fade-in relative z-10 select-none text-[#191919] dark:text-[#f2f0ea] px-4 md:px-8 ${shake ? 'animate-shake' : ''}`}>
+      <div className={`w-full max-w-4xl flex flex-col gap-6 animate-fade-in relative z-10 select-none text-[var(--dojo-text)] px-4 md:px-8 ${shake ? 'animate-shake' : ''}`}>
         
         {/* Arena status header (Lives, Combo streak, progress bar) */}
         <div className="w-full flex items-center justify-between gap-4 py-2 z-10 border-b border-[#bca175]/25 pb-4">
@@ -898,8 +898,8 @@ export default function GrammarDojo({ onGainXp, vocabList }) {
         <div className="w-full flex flex-col md:flex-row items-center gap-4 justify-center py-2 z-10">
           <MascotSensei mood={mascotMood} />
           
-          <div className="relative bg-white dark:bg-[#1a1a19]/90 border-2 border-[#bca175] dark:border-[#524430] p-4.5 rounded-2xl shadow-md max-w-xl w-full">
-            <span className="text-[9px] font-black uppercase text-[#7c6c57] dark:text-[#92918b]/90 tracking-widest block mb-0.5">Dojo Topic / Sentence Translate</span>
+          <div className="relative bg-white/75 dark:bg-[#1a1a19]/85 backdrop-blur-md border-2 border-[#bca175]/40 dark:border-[#524430]/60 p-4.5 rounded-2xl shadow-lg max-w-xl w-full">
+            <span className="text-[9px] font-black uppercase text-claude-coral tracking-widest block mb-0.5">Dojo Topic / Sentence Translate</span>
             
             {difficulty === 'hard' && !hardRevealEnglish ? (
               <div className="space-y-2 py-1">
@@ -914,21 +914,21 @@ export default function GrammarDojo({ onGainXp, vocabList }) {
                 </button>
               </div>
             ) : (
-              <h3 className="text-lg md:text-xl font-extrabold text-[#191919] dark:text-[#f2f0ea] italic leading-tight">
+              <h3 className="text-lg md:text-xl font-extrabold text-[var(--dojo-text)] italic leading-tight">
                 "{activeLesson.english}"
               </h3>
             )}
             
             {/* Speech bubble pointer */}
-            <div className="absolute top-1/2 -left-2 -translate-y-1/2 w-4 h-4 bg-white dark:bg-[#1a1a19] border-l-2 border-b-2 border-[#bca175] dark:border-[#524430] rotate-45 hidden md:block" />
+            <div className="absolute top-1/2 -left-2 -translate-y-1/2 w-4 h-4 bg-white/75 dark:bg-[#1a1a19]/85 border-l-2 border-b-2 border-[#bca175]/40 dark:border-[#524430]/60 rotate-45 hidden md:block" />
           </div>
         </div>
 
         {/* Assembled sentence Tatami Grid arena */}
         <div 
-          className="w-full min-h-28 border-2 border-dashed border-[#bca175]/60 dark:border-[#524430]/90 rounded-3xl p-5 flex flex-wrap gap-3.5 items-center justify-center bg-[#eae4d8]/40 dark:bg-[#1a1a18]/70 shadow-inner z-10 animate-fade-in"
+          className="w-full min-h-28 border-2 border-dashed border-[#bca175]/40 dark:border-[#524430]/60 rounded-3xl p-5 flex flex-wrap gap-3.5 items-center justify-center bg-white/35 dark:bg-[#1a1a18]/45 backdrop-blur-md shadow-inner z-10 animate-fade-in"
           style={{
-            backgroundImage: `radial-gradient(circle, transparent 20%, rgba(188, 161, 117, 0.12) 20%, rgba(188, 161, 117, 0.12) 80%, transparent 80%, transparent), radial-gradient(circle, transparent 20%, rgba(188, 161, 117, 0.12) 20%, rgba(188, 161, 117, 0.12) 80%, transparent 80%, transparent)`,
+            backgroundImage: `radial-gradient(circle, transparent 20%, rgba(188, 161, 117, 0.1) 20%, rgba(188, 161, 117, 0.1) 80%, transparent 80%, transparent), radial-gradient(circle, transparent 20%, rgba(188, 161, 117, 0.1) 20%, rgba(188, 161, 117, 0.1) 80%, transparent 80%, transparent)`,
             backgroundSize: '10px 10px',
             backgroundPosition: '0 0, 5px 5px'
           }}
@@ -952,7 +952,7 @@ export default function GrammarDojo({ onGainXp, vocabList }) {
               );
             })
           ) : (
-            <span className="text-xs font-extrabold text-[#7c6c57] dark:text-[#92918b]/80 italic select-none">
+            <span className="text-xs font-extrabold text-[var(--dojo-text-muted)] italic select-none">
               ⚔️ Select cards from pool below to assemble sequence...
             </span>
           )}
@@ -961,11 +961,11 @@ export default function GrammarDojo({ onGainXp, vocabList }) {
         {/* Shuffled Word Pool with Spelling selectors */}
         <div className="w-full flex flex-col gap-3 py-2 z-10">
           <div className="flex justify-between items-baseline px-1 flex-wrap gap-2">
-            <span className="text-[9px] font-black uppercase text-[#7c6c57] dark:text-[#92918b]/85 tracking-widest block">Available Cards</span>
+            <span className="text-[9px] font-black uppercase text-[var(--dojo-text-muted)] tracking-widest block">Available Cards</span>
             
             {/* Display modes (except Easy, which locks into Guides) */}
             {difficulty !== 'easy' && (
-              <div className="flex items-center gap-1 bg-[#eae4d8]/40 dark:bg-claude-sidebar/40 border border-[#bca175]/35 p-1 rounded-xl shadow-inner">
+              <div className="flex items-center gap-1 bg-white/40 dark:bg-claude-sidebar/40 border border-[#bca175]/35 p-1 rounded-xl shadow-inner backdrop-blur-md">
                 {['kanji', 'kana', 'romaji'].map(mode => (
                   <button
                     key={mode}
@@ -1019,7 +1019,7 @@ export default function GrammarDojo({ onGainXp, vocabList }) {
           <div className="w-full flex gap-3 pt-4 z-10">
             <button
               onClick={() => setShowTip(!showTip)}
-              className="px-5 py-3.5 bg-[#eae4d8]/45 hover:bg-[#eae4d8]/85 dark:bg-claude-sidebar border border-[#bca175]/45 text-[#6b6a65] dark:text-[#92918b] hover:text-[#191919] dark:hover:text-[#f2f0ea] font-extrabold text-xs rounded-xl cursor-pointer active:translate-y-[2px] transition-colors"
+              className="px-5 py-3.5 bg-white/40 dark:bg-claude-sidebar border border-[#bca175]/45 text-[var(--dojo-text-muted)] hover:text-[var(--dojo-text)] font-extrabold text-xs rounded-xl cursor-pointer active:translate-y-[2px] transition-colors backdrop-blur-md"
             >
               {showTip ? 'Hide Hint 👁️' : 'Show Hint 💡'}
             </button>
@@ -1137,7 +1137,10 @@ export default function GrammarDojo({ onGainXp, vocabList }) {
   ];
 
   return (
-    <div className="w-full min-h-screen flex items-center justify-center relative p-4 sm:p-6 md:p-8 overflow-hidden bg-[#faf8f2] dark:bg-[#0a0b0d] transition-all duration-300 font-sans">
+    <div 
+      className="w-full min-h-screen flex items-center justify-center relative p-4 sm:p-6 md:p-8 overflow-hidden transition-all duration-300 font-sans"
+      style={{ backgroundColor: 'var(--dojo-bg)' }}
+    >
       
       {/* Traditional wood lattice framing overlay */}
       <div className="absolute inset-0 border-[12px] border-amber-950/5 dark:border-amber-500/[0.02] pointer-events-none z-20" />
@@ -1147,31 +1150,31 @@ export default function GrammarDojo({ onGainXp, vocabList }) {
         <svg viewBox="0 0 1000 500" preserveAspectRatio="xMidYMax slice" className="absolute inset-0 w-full h-full pointer-events-none z-0 transition-all duration-300">
           <defs>
             <radialGradient id="sunGlow" cx="50%" cy="50%" r="50%">
-              <stop offset="0%" stopColor="#e16847" stopOpacity="0.4" />
-              <stop offset="60%" stopColor="#e16847" stopOpacity="0.12" />
-              <stop offset="100%" stopColor="#e16847" stopOpacity="0" />
+              <stop offset="0%" stopColor="var(--dojo-sun-glow)" stopOpacity="0.45" />
+              <stop offset="60%" stopColor="var(--dojo-sun-glow)" stopOpacity="0.1" />
+              <stop offset="100%" stopColor="var(--dojo-sun-glow)" stopOpacity="0" />
             </radialGradient>
             <linearGradient id="fujiGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stopColor="#221e2d" stopOpacity="0.9" />
-              <stop offset="100%" stopColor="#0a080f" stopOpacity="0.95" />
+              <stop offset="0%" stopColor="var(--dojo-fuji-start)" stopOpacity="0.85" />
+              <stop offset="100%" stopColor="var(--dojo-fuji-end)" stopOpacity="0.95" />
             </linearGradient>
             <linearGradient id="hillGrad1" x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stopColor="#15131f" stopOpacity="0.9" />
-              <stop offset="100%" stopColor="#08070b" stopOpacity="1" />
+              <stop offset="0%" stopColor="var(--dojo-hill-1-start)" stopOpacity="0.9" />
+              <stop offset="100%" stopColor="var(--dojo-hill-1-end)" stopOpacity="1" />
             </linearGradient>
             <linearGradient id="hillGrad2" x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stopColor="#251f33" stopOpacity="0.7" />
-              <stop offset="100%" stopColor="#100b1a" stopOpacity="0.95" />
+              <stop offset="0%" stopColor="var(--dojo-hill-2-start)" stopOpacity="0.75" />
+              <stop offset="100%" stopColor="var(--dojo-hill-2-end)" stopOpacity="0.9" />
             </linearGradient>
           </defs>
 
           {/* Glowing Sun */}
           <circle cx="800" cy="180" r="170" fill="url(#sunGlow)" />
-          <circle cx="800" cy="180" r="75" className="fill-[#e16847]/35 dark:fill-[#e16847]/60" />
+          <circle cx="800" cy="180" r="75" style={{ fill: 'var(--dojo-sun-center)', opacity: 'var(--dojo-sun-opacity)' }} className="transition-all duration-300" />
           
           {/* Mount Fuji */}
           <path d="M 0,500 L 120,380 L 260,220 L 320,220 L 460,380 L 580,500 Z" fill="url(#fujiGrad)" />
-          <path d="M 252,229 L 260,220 L 320,220 L 328,229 Q 290,244 252,229 Z" fill="#f7f3e9" className="opacity-90 dark:opacity-30" />
+          <path d="M 252,229 L 260,220 L 320,220 L 328,229 Q 290,244 252,229 Z" style={{ fill: 'var(--dojo-snow)' }} className="opacity-95" />
           
           {/* Background hills */}
           <path d="M 0,500 Q 150,400 380,430 T 750,400 T 1000,440 L 1000,500 L 0,500 Z" fill="url(#hillGrad2)" />
@@ -1179,8 +1182,8 @@ export default function GrammarDojo({ onGainXp, vocabList }) {
           <path d="M 0,500 Q 250,420 580,450 T 1000,430 L 1000,500 L 0,500 Z" fill="url(#hillGrad1)" />
 
           {/* Cherry Blossom Branch */}
-          <path d="M 1000,0 Q 820,30 740,150" strokeWidth="5" stroke="currentColor" fill="none" className="stroke-[#4a3014] dark:stroke-[#ebdcb9]/20" />
-          <path d="M 910,0 Q 830,80 870,120" strokeWidth="3" stroke="currentColor" fill="none" className="stroke-[#4a3014] dark:stroke-[#ebdcb9]/20" />
+          <path d="M 1000,0 Q 820,30 740,150" strokeWidth="5" fill="none" style={{ stroke: 'var(--dojo-branch)' }} />
+          <path d="M 910,0 Q 830,80 870,120" strokeWidth="3" fill="none" style={{ stroke: 'var(--dojo-branch)' }} />
           
           <circle cx="740" cy="150" r="5" className="fill-pink-400 dark:fill-pink-500 opacity-90 animate-pulse" />
           <circle cx="748" cy="142" r="3.5" className="fill-pink-300 dark:fill-pink-400 opacity-90" />
@@ -1190,20 +1193,23 @@ export default function GrammarDojo({ onGainXp, vocabList }) {
           <circle cx="878" cy="125" r="3" className="fill-pink-400 dark:fill-pink-500 opacity-90" />
           
           {/* Pagoda Silhouette */}
-          <path d="M 760,500 L 760,420 L 730,420 L 745,400 L 855,400 L 870,420 L 840,420 L 840,500 Z" fill="#15131f" className="opacity-95" />
-          <path d="M 730,420 Q 715,428 700,425 Q 715,415 730,420 Z" fill="#e16847" className="opacity-75" />
-          <path d="M 870,420 Q 885,428 900,425 Q 885,415 870,420 Z" fill="#e16847" className="opacity-75" />
+          <path d="M 760,500 L 760,420 L 730,420 L 745,400 L 855,400 L 870,420 L 840,420 L 840,500 Z" style={{ fill: 'var(--dojo-pagoda)' }} className="opacity-95" />
+          <path d="M 730,420 Q 715,428 700,425 Q 715,415 730,420 Z" style={{ fill: 'var(--dojo-sun-center)' }} className="opacity-60" />
+          <path d="M 870,420 Q 885,428 900,425 Q 885,415 870,420 Z" style={{ fill: 'var(--dojo-sun-center)' }} className="opacity-60" />
           
           {/* Pagoda tier 2 */}
-          <path d="M 770,400 L 770,350 L 745,350 L 755,335 L 825,335 L 835,350 L 810,350 L 810,400 Z" fill="#1d1926" className="opacity-95" />
-          <path d="M 745,350 Q 735,356 725,354 Q 735,346 745,350 Z" fill="#e16847" className="opacity-75" />
-          <path d="M 835,350 Q 845,356 855,354 Q 845,346 835,350 Z" fill="#e16847" className="opacity-75" />
+          <path d="M 770,400 L 770,350 L 745,350 L 755,335 L 825,335 L 835,350 L 810,350 L 810,400 Z" style={{ fill: 'var(--dojo-pagoda)' }} className="opacity-95" />
+          <path d="M 745,350 Q 735,356 725,354 Q 735,346 745,350 Z" style={{ fill: 'var(--dojo-sun-center)' }} className="opacity-60" />
+          <path d="M 835,350 Q 845,356 855,354 Q 845,346 835,350 Z" style={{ fill: 'var(--dojo-sun-center)' }} className="opacity-60" />
 
           {/* Pagoda Spire */}
-          <line x1="790" y1="335" x2="790" y2="290" stroke="#bca175" strokeWidth="3.5" />
-          <circle cx="790" cy="285" r="4.5" fill="#e16847" />
+          <line x1="790" y1="335" x2="790" y2="290" style={{ stroke: 'var(--dojo-branch)' }} strokeWidth="3.5" />
+          <circle cx="790" cy="285" r="4.5" style={{ fill: 'var(--dojo-sun-center)' }} />
         </svg>
       </div>
+
+      {/* Backdrop Fog Overlay for Readability (Fades silhouette and adds slight blur) */}
+      <div className="absolute inset-0 bg-[#faf8f2]/70 dark:bg-[#0a0b0d]/80 backdrop-blur-[1.5px] pointer-events-none z-1 transition-all duration-300" />
 
       {/* Floating Sakura petals */}
       {sakuraPetals.map(petal => (
@@ -1224,6 +1230,50 @@ export default function GrammarDojo({ onGainXp, vocabList }) {
       <style dangerouslySetInnerHTML={{__html: `
         @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap');
         
+        :root {
+          --dojo-bg: #faf8f2;
+          --dojo-sun-glow: #e16847;
+          --dojo-sun-opacity: 0.18;
+          --dojo-sun-center: #e16847;
+          
+          --dojo-fuji-start: #eadecc;
+          --dojo-fuji-end: #cfc2ac;
+          
+          --dojo-hill-1-start: #eae2cc;
+          --dojo-hill-1-end: #d8cca6;
+          
+          --dojo-hill-2-start: #f2ebd9;
+          --dojo-hill-2-end: #e5dac1;
+          
+          --dojo-pagoda: #bfae94;
+          --dojo-branch: #7c6c57;
+          --dojo-snow: #ffffff;
+          --dojo-text: #191919;
+          --dojo-text-muted: #5c5b56;
+        }
+
+        .dark {
+          --dojo-bg: #0a0b0d;
+          --dojo-sun-glow: #e16847;
+          --dojo-sun-opacity: 0.35;
+          --dojo-sun-center: #e16847;
+          
+          --dojo-fuji-start: #221e2d;
+          --dojo-fuji-end: #0a080f;
+          
+          --dojo-hill-1-start: #15131f;
+          --dojo-hill-1-end: #08070b;
+          
+          --dojo-hill-2-start: #251f33;
+          --dojo-hill-2-end: #100b1a;
+          
+          --dojo-pagoda: #15131f;
+          --dojo-branch: #4a3014;
+          --dojo-snow: #1a1820;
+          --dojo-text: #f2f0ea;
+          --dojo-text-muted: #92918b;
+        }
+
         .font-sans {
           font-family: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         }

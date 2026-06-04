@@ -78,27 +78,14 @@ export default function Auth() {
           });
         }
       }
+      requestDraw();
     };
 
-    initGrid();
-    window.addEventListener('resize', initGrid);
+    let drawPending = false;
 
-    const mouse = { x: -1000, y: -1000 };
-
-    const handleMouseMove = (e) => {
-      mouse.x = e.clientX;
-      mouse.y = e.clientY;
-    };
-
-    const handleMouseLeave = () => {
-      mouse.x = -1000;
-      mouse.y = -1000;
-    };
-
-    window.addEventListener('mousemove', handleMouseMove);
-    document.addEventListener('mouseleave', handleMouseLeave);
-
-    const animate = () => {
+    const draw = () => {
+      drawPending = false;
+      if (!ctx) return;
       ctx.clearRect(0, 0, width, height);
 
       const isDark = document.documentElement.classList.contains('dark');
@@ -141,17 +128,46 @@ export default function Auth() {
         ctx.fillText(item.char, 0, 0);
         ctx.restore();
       }
-
-      animationId = requestAnimationFrame(animate);
     };
 
-    animate();
+    const requestDraw = () => {
+      if (!drawPending) {
+        drawPending = true;
+        requestAnimationFrame(draw);
+      }
+    };
+
+    initGrid();
+    window.addEventListener('resize', initGrid);
+
+    const mouse = { x: -1000, y: -1000 };
+
+    const handleMouseMove = (e) => {
+      mouse.x = e.clientX;
+      mouse.y = e.clientY;
+      requestDraw();
+    };
+
+    const handleMouseLeave = () => {
+      mouse.x = -1000;
+      mouse.y = -1000;
+      requestDraw();
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseleave', handleMouseLeave);
+
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    const handleMediaQueryChange = () => {
+      requestDraw();
+    };
+    mediaQuery.addEventListener('change', handleMediaQueryChange);
 
     return () => {
-      cancelAnimationFrame(animationId);
       window.removeEventListener('resize', initGrid);
       window.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseleave', handleMouseLeave);
+      mediaQuery.removeEventListener('change', handleMediaQueryChange);
     };
   }, []);
 

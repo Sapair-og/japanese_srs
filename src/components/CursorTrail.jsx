@@ -18,6 +18,7 @@ export default function CursorTrail() {
   const lastTrailPos = useRef({ x: 0, y: 0 });
   const isMoving = useRef(false);
   const moveTimeout = useRef(null);
+  const lastActiveTime = useRef(Date.now());
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -38,6 +39,8 @@ export default function CursorTrail() {
       mousePos.current = { x, y };
 
       isMoving.current = true;
+      lastActiveTime.current = Date.now();
+
       if (moveTimeout.current) clearTimeout(moveTimeout.current);
       moveTimeout.current = setTimeout(() => {
         isMoving.current = false;
@@ -91,17 +94,28 @@ export default function CursorTrail() {
       if (particlesRef.current.length > 55) {
         particlesRef.current.shift();
       }
+
+      startLoop();
     };
 
     // Radiating intervals
     const interval = setInterval(() => {
-      if (!isMoving.current) {
+      // Only radiate sparks if mouse is stationary AND was active within the last 3 seconds
+      if (!isMoving.current && (Date.now() - lastActiveTime.current < 3000)) {
         spawnParticle(mousePos.current.x, mousePos.current.y, 'radiate');
       }
     }, 200);
 
     let animId;
+    let isLoopRunning = false;
+
     const render = () => {
+      if (particlesRef.current.length === 0) {
+        isLoopRunning = false;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        return; // Suspend the render loop to save CPU
+      }
+
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
       const isDark = document.documentElement.classList.contains('dark');
@@ -146,7 +160,15 @@ export default function CursorTrail() {
       animId = requestAnimationFrame(render);
     };
 
-    animId = requestAnimationFrame(render);
+    const startLoop = () => {
+      if (!isLoopRunning) {
+        isLoopRunning = true;
+        animId = requestAnimationFrame(render);
+      }
+    };
+
+    // Trigger initial render in case particles are spawned immediately
+    startLoop();
 
     return () => {
       cancelAnimationFrame(animId);

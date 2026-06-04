@@ -379,14 +379,14 @@ export default function GrammarDojo({ onGainXp, vocabList }) {
     });
   };
 
-  // 1. SETUP GAME SCREEN RENDER HELPER (Spread over Dojo Arena space)
+  // 1. SETUP GAME SCREEN RENDER HELPER (Full bleed space layout)
   const renderSetupScreen = () => {
     return (
       <div className="w-full max-w-xl flex flex-col gap-6 animate-fade-in z-10 text-[#191919] dark:text-[#f2f0ea]">
         <div className="space-y-1.5 text-center">
           <span className="text-[10px] font-black uppercase text-claude-coral tracking-widest block">文章道場</span>
           <h2 className="text-3xl font-black claude-serif tracking-wide text-claude-coral">JLPT Grammar Dojo</h2>
-          <p className="text-xs text-claude-text-muted dark:text-claude-text-muted/95 leading-relaxed max-w-sm mx-auto font-medium">
+          <p className="text-xs text-claude-text-muted dark:text-[#92918b] leading-relaxed max-w-sm mx-auto font-medium">
             Test and revise your Japanese grammar rules for the JLPT N5 and N4 exams with custom layouts.
           </p>
         </div>
@@ -405,7 +405,7 @@ export default function GrammarDojo({ onGainXp, vocabList }) {
                 className={`py-3.5 rounded-2xl border font-black text-xs uppercase tracking-widest cursor-pointer transition-all duration-300 ${
                   deckLevel === 'N5'
                     ? 'bg-claude-coral text-white border-transparent shadow-lg scale-[1.02] -translate-y-0.5'
-                    : 'bg-[#eae4d8]/40 dark:bg-claude-sidebar/40 border-[#bca175]/35 text-claude-text-muted hover:text-claude-text'
+                    : 'bg-[#eae4d8]/40 dark:bg-[#1a1a19]/50 border-[#bca175]/35 text-[#7c6c57] dark:text-[#92918b] hover:text-claude-text'
                 }`}
               >
                 🍙 JLPT N5 (Basic)
@@ -415,7 +415,7 @@ export default function GrammarDojo({ onGainXp, vocabList }) {
                 className={`py-3.5 rounded-2xl border font-black text-xs uppercase tracking-widest cursor-pointer transition-all duration-300 ${
                   deckLevel === 'N4'
                     ? 'bg-claude-coral text-white border-transparent shadow-lg scale-[1.02] -translate-y-0.5'
-                    : 'bg-[#eae4d8]/40 dark:bg-claude-sidebar/40 border-[#bca175]/35 text-claude-text-muted hover:text-claude-text'
+                    : 'bg-[#eae4d8]/40 dark:bg-[#1a1a19]/50 border-[#bca175]/35 text-[#7c6c57] dark:text-[#92918b] hover:text-claude-text'
                 }`}
               >
                 🌊 JLPT N4 (Exam Core)
@@ -436,7 +436,7 @@ export default function GrammarDojo({ onGainXp, vocabList }) {
                   className={`py-2.5 rounded-xl border font-extrabold text-[11px] cursor-pointer transition-all ${
                     sessionSize === size
                       ? 'bg-claude-coral text-white border-transparent shadow -translate-y-0.5'
-                      : 'bg-[#eae4d8]/30 dark:bg-claude-sidebar/30 border-[#bca175]/30 text-claude-text-muted hover:text-claude-text'
+                      : 'bg-[#eae4d8]/30 dark:bg-[#1a1a19]/30 border-[#bca175]/30 text-[#7c6c57] dark:text-[#92918b] hover:text-claude-text'
                   }`}
                 >
                   {size} Qs
@@ -456,7 +456,7 @@ export default function GrammarDojo({ onGainXp, vocabList }) {
                 className={`py-2.5 rounded-xl border font-extrabold text-[10px] uppercase tracking-wider cursor-pointer transition-all ${
                   difficulty === 'easy'
                     ? 'bg-emerald-600 border-transparent text-white shadow -translate-y-0.5'
-                    : 'bg-[#eae4d8]/30 dark:bg-claude-sidebar/30 border-[#bca175]/30 text-claude-text-muted hover:text-[#22c55e]'
+                    : 'bg-[#eae4d8]/30 dark:bg-[#1a1a19]/30 border-[#bca175]/30 text-[#7c6c57] dark:text-[#92918b] hover:text-[#22c55e]'
                 }`}
               >
                 🟢 Easy (Guides)
@@ -466,7 +466,7 @@ export default function GrammarDojo({ onGainXp, vocabList }) {
                 className={`py-2.5 rounded-xl border font-extrabold text-[10px] uppercase tracking-wider cursor-pointer transition-all ${
                   difficulty === 'medium'
                     ? 'bg-amber-500 border-transparent text-[#191919] shadow -translate-y-0.5'
-                    : 'bg-[#eae4d8]/30 dark:bg-claude-sidebar/30 border-[#bca175]/30 text-claude-text-muted hover:text-[#eab308]'
+                    : 'bg-[#eae4d8]/30 dark:bg-[#1a1a19]/30 border-[#bca175]/30 text-[#7c6c57] dark:text-[#92918b] hover:text-[#eab308]'
                 }`}
               >
                 🟡 Medium
@@ -476,7 +476,7 @@ export default function GrammarDojo({ onGainXp, vocabList }) {
                 className={`py-2.5 rounded-xl border font-extrabold text-[10px] uppercase tracking-wider cursor-pointer transition-all ${
                   difficulty === 'hard'
                     ? 'bg-red-600 border-transparent text-white shadow -translate-y-0.5'
-                    : 'bg-[#eae4d8]/30 dark:bg-claude-sidebar/30 border-[#bca175]/30 text-claude-text-muted hover:text-[#ef4444]'
+                    : 'bg-[#eae4d8]/30 dark:bg-[#1a1a19]/30 border-[#bca175]/30 text-[#7c6c57] dark:text-[#92918b] hover:text-[#ef4444]'
                 }`}
               >
                 🔴 Hard (Blind)
@@ -501,7 +501,7 @@ export default function GrammarDojo({ onGainXp, vocabList }) {
       <div className="w-full max-w-xl text-center space-y-6 animate-fade-in z-10 text-[#191919] dark:text-[#f2f0ea]">
         <div className="text-6xl animate-bounce">🏆</div>
         <h2 className="text-3xl font-black claude-serif tracking-wide text-claude-coral">Dojo Quest Completed!</h2>
-        <p className="text-xs text-claude-text-muted dark:text-claude-text-muted/95 max-w-sm mx-auto leading-relaxed font-medium">
+        <p className="text-xs text-[#6b6a65] dark:text-[#92918b] max-w-sm mx-auto leading-relaxed font-medium">
           Amazing study session! You successfully finished the customized **{deckLevel}** grammar deck and completed your training.
         </p>
         <div className="bg-[#ebdcb9]/40 dark:bg-[#1a1a18]/70 border-2 border-[#bca175]/45 rounded-2xl p-5 text-base font-black text-claude-coral max-w-xs mx-auto shadow-inner">
@@ -578,17 +578,17 @@ export default function GrammarDojo({ onGainXp, vocabList }) {
             {/* Concept overlay toggle */}
             <button
               onClick={() => setShowConceptModal(true)}
-              className="p-1.5 rounded-full hover:bg-[#bca175]/15 dark:hover:bg-claude-sidebar/60 text-claude-coral cursor-pointer transition-colors"
+              className="p-1.5 rounded-full hover:bg-[#bca175]/15 dark:hover:bg-claude-sidebar/60 text-claude-coral cursor-pointer transition-colors text-xs"
               title="Show Grammar Concept"
             >
-              📖
+              📖 Info
             </button>
           </div>
         </div>
 
         {/* Assembled Sentence Slots Zone (Tatami straw grid background) */}
         <div 
-          className="w-full min-h-24 border-2 border-dashed border-[#bca175]/60 dark:border-[#524430]/90 rounded-2xl p-4 flex flex-wrap gap-3 items-center justify-center bg-[#eae4d8]/40 dark:bg-[#1a1a18]/70 shadow-inner z-10"
+          className="w-full min-h-24 border-2 border-dashed border-[#bca175]/60 dark:border-[#524430]/90 rounded-2xl p-4 flex flex-wrap gap-3 items-center justify-center bg-[#eae4d8]/40 dark:bg-[#1a1a18]/70 shadow-inner z-10 animate-fade-in"
           style={{
             backgroundImage: `radial-gradient(circle, transparent 20%, rgba(188, 161, 117, 0.12) 20%, rgba(188, 161, 117, 0.12) 80%, transparent 80%, transparent), radial-gradient(circle, transparent 20%, rgba(188, 161, 117, 0.12) 20%, rgba(188, 161, 117, 0.12) 80%, transparent 80%, transparent)`,
             backgroundSize: '8px 8px',
@@ -604,9 +604,8 @@ export default function GrammarDojo({ onGainXp, vocabList }) {
                   onClick={() => handleCardClick(card, 'assembled')}
                   className="px-4 py-2.5 bg-[#fbf9f4] dark:bg-[#2b2a26] border-2 border-claude-coral text-claude-coral font-extrabold text-sm rounded-xl cursor-pointer hover:bg-white active:scale-95 transition-all shadow-sm flex flex-col items-center hover:-translate-y-0.5"
                 >
-                  {/* Easy mode displays Romaji hint inside slot button */}
                   {difficulty === 'easy' && meta && (
-                    <span className="text-[7px] font-extrabold text-amber-600 dark:text-amber-500/80 tracking-wide uppercase -mb-0.5 select-none">
+                    <span className="text-[7px] font-extrabold text-amber-600 dark:text-amber-500/80 tracking-wide uppercase -mb-0.5 select-none font-mono">
                       {meta.romaji}
                     </span>
                   )}
@@ -636,7 +635,7 @@ export default function GrammarDojo({ onGainXp, vocabList }) {
                     className={`px-3 py-1 text-[8px] font-black uppercase rounded-lg transition-all cursor-pointer ${
                       displayMode === mode
                         ? 'bg-claude-coral text-white shadow-xs'
-                        : 'text-claude-text-muted hover:text-claude-text'
+                        : 'text-[#6b6a65] dark:text-[#92918b] hover:text-[#191919] dark:hover:text-[#f2f0ea]'
                     }`}
                   >
                     {mode === 'kanji' ? '漢字' : mode === 'kana' ? 'かな' : 'Roma'}
@@ -658,16 +657,14 @@ export default function GrammarDojo({ onGainXp, vocabList }) {
                   className="px-4 py-2.5 bg-[#f3ede0] hover:bg-[#fbf9f4] dark:bg-[#1e1e1c] hover:dark:bg-[#2b2a26] border border-[#bca175]/45 hover:border-[#bca175] text-[#191919] dark:text-[#f2f0ea] font-extrabold text-sm rounded-xl cursor-pointer transition-all active:scale-95 hover:scale-[1.03] shadow-xs flex flex-col items-center relative group hover:-translate-y-0.5"
                   title={difficulty === 'hard' ? `Definition: ${dictMean}` : undefined}
                 >
-                  {/* Tooltip for Hard mode detailing word dictionary meanings */}
                   {difficulty === 'hard' && (
                     <div className="absolute bottom-full mb-1.5 hidden group-hover:block bg-[#1e1e1c] border border-claude-border text-claude-text-muted text-[8px] font-extrabold px-2 py-1 rounded shadow-lg whitespace-nowrap z-50">
                       {dictMean}
                     </div>
                   )}
 
-                  {/* Easy mode displays Romaji hint inside cards */}
                   {difficulty === 'easy' && meta && (
-                    <span className="text-[7px] font-extrabold text-amber-600 dark:text-amber-500/80 tracking-wide uppercase -mb-0.5 select-none">
+                    <span className="text-[7px] font-extrabold text-amber-600 dark:text-amber-500/80 tracking-wide uppercase -mb-0.5 select-none font-mono">
                       {meta.romaji}
                     </span>
                   )}
@@ -720,7 +717,7 @@ export default function GrammarDojo({ onGainXp, vocabList }) {
                     Sheesh, you cooked that sequence perfectly! +{difficulty === 'easy' ? '10' : difficulty === 'medium' ? '20' : '30'} XP awarded.
                   </p>
                   {activeLesson.pattern && (
-                    <div className="text-[10px] font-black uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
+                    <div className="text-[10px] font-black uppercase tracking-wider text-emerald-600 dark:text-emerald-400 font-mono">
                       Formula: {activeLesson.pattern}
                     </div>
                   )}
@@ -764,36 +761,36 @@ export default function GrammarDojo({ onGainXp, vocabList }) {
   ];
 
   return (
-    <div className="w-full min-h-[620px] flex-1 flex items-center justify-center relative p-4 sm:p-6 md:p-8 overflow-hidden rounded-2xl bg-[#faf8f2] dark:bg-[#0a0b0d] transition-all duration-300 w-full">
+    <div className="w-full min-h-screen flex items-center justify-center relative p-4 sm:p-6 md:p-8 overflow-hidden bg-[#faf8f2] dark:bg-[#0a0b0d] transition-all duration-300">
       {/* Traditional wood lattice framing lines overlay */}
       <div className="absolute inset-0 border-[10px] border-amber-950/5 dark:border-amber-500/[0.02] pointer-events-none z-20" />
       
       {/* Dojo background watercolor silhouette landscape (Mount Fuji, hills, tree branches - Hidden on mobile) */}
-      <div className="absolute inset-0 pointer-events-none opacity-25 dark:opacity-15 z-0 hidden sm:flex items-end justify-center overflow-hidden">
+      <div className="absolute inset-0 pointer-events-none z-0 hidden sm:flex items-end justify-center overflow-hidden">
         <svg viewBox="0 0 1000 500" preserveAspectRatio="xMidYMax slice" className="absolute inset-0 w-full h-full pointer-events-none z-0 fill-amber-950 dark:fill-slate-100 transition-all duration-300">
-          {/* Rising Sun (off-center) */}
-          <circle cx="780" cy="190" r="95" className="opacity-15 dark:opacity-20 fill-[#cc5a37]" />
+          {/* Rising Sun */}
+          <circle cx="780" cy="190" r="95" className="opacity-30 dark:opacity-40 fill-[#cc5a37]" />
           
           {/* Far Mountains (Mount Fuji silhouette on the left) */}
-          <path d="M 0,500 L 120,390 L 260,250 L 300,250 L 440,390 L 550,500 Z" className="fill-amber-950/10 dark:fill-slate-100/5" />
-          <path d="M 252,258 L 260,250 L 300,250 L 308,258 Q 280,270 252,258 Z" className="fill-white dark:fill-slate-800 opacity-80" /> {/* Fuji snow cap */}
+          <path d="M 0,500 L 120,390 L 260,250 L 300,250 L 440,390 L 550,500 Z" className="fill-[#d7cfc4] dark:fill-[#20222a] opacity-50 dark:opacity-85" />
+          <path d="M 252,258 L 260,250 L 300,250 L 308,258 Q 280,270 252,258 Z" className="fill-white dark:fill-slate-800 opacity-90" /> {/* Fuji snow cap */}
           
           {/* Rolling Hills across the whole bottom width */}
-          <path d="M 0,500 Q 150,420 380,450 T 750,420 T 1000,460 L 1000,500 L 0,500 Z" className="fill-amber-950/15 dark:fill-slate-100/5" />
-          <path d="M 0,500 Q 250,440 580,470 T 1000,450 L 1000,500 L 0,500 Z" className="fill-amber-950/10 dark:fill-slate-100/10" />
+          <path d="M 0,500 Q 150,420 380,450 T 750,420 T 1000,460 L 1000,500 L 0,500 Z" className="fill-[#eae0d0] dark:fill-[#12141a] opacity-60 dark:opacity-85" />
+          <path d="M 0,500 Q 250,440 580,470 T 1000,450 L 1000,500 L 0,500 Z" className="fill-[#ebdcb9] dark:fill-[#0a0b0f] opacity-50 dark:opacity-90" />
 
           {/* Cherry Blossom Branch hanging from top right corner */}
-          <path d="M 1000,0 Q 820,40 760,140" strokeWidth="4" stroke="currentColor" fill="none" className="stroke-amber-950/20 dark:stroke-slate-100/15" />
-          <path d="M 910,0 Q 840,70 890,110" strokeWidth="2.5" stroke="currentColor" fill="none" className="stroke-amber-950/20 dark:stroke-slate-100/15" />
-          <circle cx="760" cy="140" r="3" className="fill-pink-300" />
-          <circle cx="770" cy="130" r="2.5" className="fill-pink-300" />
-          <circle cx="890" cy="110" r="3" className="fill-pink-300" />
-          <circle cx="900" cy="100" r="2" className="fill-pink-300" />
+          <path d="M 1000,0 Q 820,40 760,140" strokeWidth="4" stroke="currentColor" fill="none" className="stroke-[#854d0e] dark:stroke-[#ebdcb9]/40" />
+          <path d="M 910,0 Q 840,70 890,110" strokeWidth="2.5" stroke="currentColor" fill="none" className="stroke-[#854d0e] dark:stroke-[#ebdcb9]/40" />
+          <circle cx="760" cy="140" r="3" className="fill-pink-300 dark:fill-pink-400 opacity-80" />
+          <circle cx="770" cy="130" r="2.5" className="fill-pink-300 dark:fill-pink-400 opacity-80" />
+          <circle cx="890" cy="110" r="3" className="fill-pink-300 dark:fill-pink-400 opacity-80" />
+          <circle cx="900" cy="100" r="2" className="fill-pink-300 dark:fill-pink-400 opacity-80" />
           
           {/* Hanging Pagoda roof silhouette in the bottom right */}
-          <path d="M 780,500 L 780,440 L 750,440 L 765,420 L 875,420 L 890,440 L 860,440 L 860,500 Z" className="fill-amber-950/15 dark:fill-slate-100/10" />
-          <path d="M 750,440 Q 735,448 720,445 Q 735,435 750,440 Z" className="fill-amber-950/15 dark:fill-slate-100/10" />
-          <path d="M 890,440 Q 905,448 920,445 Q 905,435 890,440 Z" className="fill-amber-950/15 dark:fill-slate-100/10" />
+          <path d="M 780,500 L 780,440 L 750,440 L 765,420 L 875,420 L 890,440 L 860,440 L 860,500 Z" className="fill-[#bca175] dark:fill-[#181a22] opacity-45 dark:opacity-75" />
+          <path d="M 750,440 Q 735,448 720,445 Q 735,435 750,440 Z" className="fill-[#bca175] dark:fill-[#181a22] opacity-45 dark:opacity-75" />
+          <path d="M 890,440 Q 905,448 920,445 Q 905,435 890,440 Z" className="fill-[#bca175] dark:fill-[#181a22] opacity-45 dark:opacity-75" />
         </svg>
       </div>
 
@@ -828,7 +825,7 @@ export default function GrammarDojo({ onGainXp, vocabList }) {
           0% { transform: translateY(-10px) rotate(0deg); opacity: 0; }
           10% { opacity: 0.7; }
           90% { opacity: 0.7; }
-          100% { transform: translateY(620px) rotate(420deg); opacity: 0; }
+          100% { transform: translateY(650px) rotate(420deg); opacity: 0; }
         }
         @keyframes slide-up {
           0% { transform: translateY(100%); }
@@ -838,7 +835,7 @@ export default function GrammarDojo({ onGainXp, vocabList }) {
 
       {/* Shoji Sliding Doors Transition Overlay */}
       {shojiActive && (
-        <div className="absolute inset-0 z-50 flex pointer-events-auto overflow-hidden rounded-2xl">
+        <div className="absolute inset-0 z-50 flex pointer-events-auto overflow-hidden">
           {/* Left Shoji Panel */}
           <div className="w-1/2 h-full bg-[#f6f3eb] dark:bg-[#1f1e1c] border-r-[6px] border-amber-900/60 dark:border-amber-950 relative animate-[shoji-left_0.9s_ease-in-out_forwards] flex items-center justify-end pr-6">
             {/* Wooden lattice grid */}
@@ -868,9 +865,9 @@ export default function GrammarDojo({ onGainXp, vocabList }) {
 
       {/* Grammar Concept Modal (Floating Washi-Paper Sheet overlay) */}
       {showConceptModal && (
-        <div className="absolute inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 z-40 animate-fade-in rounded-2xl">
+        <div className="absolute inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 z-40 animate-fade-in">
           <div className="bg-[#fcfaf2] dark:bg-[#1a1a19] border-4 border-[#bca175] dark:border-[#524430] p-6 rounded-2xl max-w-sm text-center relative shadow-2xl animate-[slide-up_0.2s_ease-out_forwards] text-[#191919] dark:text-[#f2f0ea]">
-            <span className="text-[9px] font-black text-claude-coral uppercase tracking-widest block mb-1">文法解説 / Concept</span>
+            <span className="text-[9px] font-black text-claude-coral uppercase tracking-widest block mb-1 font-mono">文法解説 / Concept</span>
             <h4 className="font-black text-sm text-[#191919] dark:text-[#f2f0ea] mb-3">{activeLesson.title}</h4>
             <p className="text-xs text-[#6b6a65] dark:text-[#92918b] leading-relaxed mb-5 font-medium">{activeLesson.concept}</p>
             <button 

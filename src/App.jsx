@@ -919,7 +919,11 @@ export default function App() {
       />
 
       {/* Main Content Area */}
-      <main className="flex-1 flex flex-col overflow-y-auto px-3 sm:px-4 md:px-8 py-5 pb-24 md:pb-6 justify-center items-center w-full">
+      <main className={`flex-1 flex flex-col overflow-y-auto w-full transition-all duration-300 ${
+        activeTab === 'grammar' 
+          ? 'h-full justify-start items-stretch' 
+          : 'px-3 sm:px-4 md:px-8 py-5 pb-24 md:pb-6 justify-center items-center'
+      }`}>
         {activeTab === 'dashboard' && (
           <Dashboard
             stats={stats}

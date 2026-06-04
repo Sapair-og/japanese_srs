@@ -39,6 +39,21 @@ const lessons = [
   }
 ];
 
+const wordMetadata = {
+  '私': { kana: 'わたし', romaji: 'watashi' },
+  'は': { kana: 'は', romaji: 'wa' },
+  'を': { kana: 'を', romaji: 'o' },
+  'に': { kana: 'に', romaji: 'ni' },
+  '学生': { kana: 'がくせい', romaji: 'gakusei' },
+  'です': { kana: 'です', romaji: 'desu' },
+  '水': { kana: 'みず', romaji: 'mizu' },
+  '飲みます': { kana: 'のみます', romaji: 'nomimasu' },
+  '学校': { kana: 'がっこう', romaji: 'gakkou' },
+  '行きます': { kana: 'いきます', romaji: 'ikimasu' },
+  '寿司': { kana: 'すし', romaji: 'sushi' },
+  '食べたい': { kana: 'たべたい', romaji: 'tabetai' }
+};
+
 export default function GrammarDojo({ onGainXp }) {
   const [currentLevel, setCurrentLevel] = useState(0);
   const [shuffledCards, setShuffledCards] = useState(lessons[0].shuffled);
@@ -48,8 +63,17 @@ export default function GrammarDojo({ onGainXp }) {
   const [showTip, setShowTip] = useState(false);
   const [shake, setShake] = useState(false);
   const [finished, setFinished] = useState(false);
+  const [displayMode, setDisplayMode] = useState('kanji'); // 'kanji', 'kana', 'romaji'
 
   const activeLesson = lessons[currentLevel];
+
+  const getCardDisplay = (word) => {
+    const meta = wordMetadata[word];
+    if (!meta) return word;
+    if (displayMode === 'kana') return meta.kana;
+    if (displayMode === 'romaji') return meta.romaji;
+    return word;
+  };
 
   const handleCardClick = (card, source) => {
     if (checked) return; // disable during feedback
@@ -152,6 +176,43 @@ export default function GrammarDojo({ onGainXp }) {
           </h2>
         </div>
 
+        {/* Display Mode Toggle Toolbar */}
+        <div className="flex items-center gap-1 bg-claude-sidebar/40 border border-claude-border/60 p-1 rounded-xl shadow-inner select-none">
+          <button
+            onClick={() => setDisplayMode('kanji')}
+            className={`px-3 py-1.5 text-[9px] font-black uppercase rounded-lg transition-all cursor-pointer ${
+              displayMode === 'kanji'
+                ? 'bg-claude-coral text-white shadow-md'
+                : 'text-claude-text-muted hover:text-[#f2f0ea]'
+            }`}
+            title="Show Kanji card spelling"
+          >
+            漢字
+          </button>
+          <button
+            onClick={() => setDisplayMode('kana')}
+            className={`px-3 py-1.5 text-[9px] font-black uppercase rounded-lg transition-all cursor-pointer ${
+              displayMode === 'kana'
+                ? 'bg-claude-coral text-white shadow-md'
+                : 'text-claude-text-muted hover:text-[#f2f0ea]'
+            }`}
+            title="Show Kana (Hiragana) card spelling"
+          >
+            かな
+          </button>
+          <button
+            onClick={() => setDisplayMode('romaji')}
+            className={`px-3 py-1.5 text-[9px] font-black uppercase rounded-lg transition-all cursor-pointer ${
+              displayMode === 'romaji'
+                ? 'bg-claude-coral text-white shadow-md'
+                : 'text-claude-text-muted hover:text-[#f2f0ea]'
+            }`}
+            title="Show Romaji English spelling helpers"
+          >
+            Romaji
+          </button>
+        </div>
+
         {/* Progress Dots */}
         <div className="flex gap-1.5">
           {lessons.map((_, idx) => (
@@ -200,7 +261,7 @@ export default function GrammarDojo({ onGainXp }) {
                 onClick={() => handleCardClick(card, 'assembled')}
                 className="px-4 py-2.5 bg-claude-card border-2 border-claude-coral text-claude-coral font-extrabold text-sm rounded-xl cursor-pointer hover:bg-claude-coral/5 active:scale-95 transition-all shadow-sm"
               >
-                {card}
+                {getCardDisplay(card)}
               </button>
             ))
           ) : (
@@ -220,7 +281,7 @@ export default function GrammarDojo({ onGainXp }) {
                 onClick={() => handleCardClick(card, 'shuffled')}
                 className="px-4 py-2.5 bg-claude-sidebar border border-claude-border hover:border-claude-coral/50 text-[#f2f0ea] font-extrabold text-sm rounded-xl cursor-pointer transition-all active:scale-95 hover:scale-[1.03] shadow-xs"
               >
-                {card}
+                {getCardDisplay(card)}
               </button>
             ))}
           </div>

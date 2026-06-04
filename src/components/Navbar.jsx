@@ -70,6 +70,66 @@ const calculateLevelInfo = (totalCorrect) => {
   };
 };
 
+const DashboardIcon = ({ accent, className = "w-5 h-5" }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className={className}>
+    <rect x="3" y="3" width="7" height="9" rx="1.5" fill={accent} fillOpacity={0.18} stroke={accent} strokeWidth={1.5} />
+    <rect x="14" y="3" width="7" height="5" rx="1.5" stroke="currentColor" />
+    <rect x="3" y="16" width="7" height="5" rx="1.5" stroke="currentColor" />
+    <rect x="14" y="12" width="7" height="9" rx="1.5" fill={accent} fillOpacity={0.18} stroke={accent} strokeWidth={1.5} />
+  </svg>
+);
+
+const QuizIcon = ({ accent, className = "w-5 h-5" }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className={className}>
+    <rect x="3" y="4" width="18" height="16" rx="2.5" stroke="currentColor" />
+    <line x1="7" y1="9" x2="17" y2="9" stroke={accent} strokeWidth={2.5} strokeLinecap="round" />
+    <line x1="7" y1="14" x2="13" y2="14" stroke="currentColor" strokeWidth={2} strokeLinecap="round" />
+    <path d="M16 13l1.5 2h-3z" fill={accent} stroke={accent} strokeWidth={1} />
+  </svg>
+);
+
+const StudyIcon = ({ accent, className = "w-5 h-5" }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className={className}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />
+    <path d="M12 6v8l2.5-1.5L17 14V6" fill={accent} fillOpacity={0.25} stroke={accent} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
+
+const KanaIcon = ({ accent, className = "w-5 h-5" }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className={className}>
+    <rect x="4" y="4" width="16" height="16" rx="2" stroke="currentColor" />
+    <line x1="12" y1="4" x2="12" y2="20" stroke={accent} strokeWidth={1} strokeDasharray="3 3" />
+    <line x1="4" y1="12" x2="20" y2="12" stroke={accent} strokeWidth={1} strokeDasharray="3 3" />
+    <path d="M8 8c4-1 6 2 8 6" stroke={accent} strokeWidth={2.5} strokeLinecap="round" />
+  </svg>
+);
+
+const VocabIcon = ({ accent, className = "w-5 h-5" }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className={className}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+    <path d="M14 3v4a1 1 0 001 1h4" stroke="currentColor" />
+    <rect x="7" y="7" width="3" height="3" rx="0.5" fill={accent} fillOpacity={0.3} stroke={accent} strokeWidth={1.2} />
+  </svg>
+);
+
+const getNavIcon = (id, accent, isActive) => {
+  const className = `w-5 h-5 transition-all duration-300 shrink-0 ${isActive ? 'scale-110' : 'group-hover:scale-105'}`;
+  switch (id) {
+    case 'dashboard':
+      return <DashboardIcon accent={accent} className={className} />;
+    case 'quiz':
+      return <QuizIcon accent={accent} className={className} />;
+    case 'study':
+      return <StudyIcon accent={accent} className={className} />;
+    case 'kana':
+      return <KanaIcon accent={accent} className={className} />;
+    case 'vocab':
+      return <VocabIcon accent={accent} className={className} />;
+    default:
+      return null;
+  }
+};
+
 export default function Navbar({ activeTab, setActiveTab, hasCards, themeRegion, themeMode, onChangeTheme, profile, onUpdateProfile, bgMusicEnabled, onToggleMusic, onSignOut, userEmail, stats }) {
   const [themeDropdownOpen, setThemeDropdownOpen] = useState(false);
   const [showAllThemes, setShowAllThemes] = useState(false);
@@ -159,11 +219,11 @@ export default function Navbar({ activeTab, setActiveTab, hasCards, themeRegion,
   };
 
   const navItems = [
-    { id: 'dashboard', name: 'Dashboard', icon: '🏛️' },
-    { id: 'quiz', name: 'Study Arena', icon: '✒️', disabled: !hasCards },
-    { id: 'study', name: 'Study Guide', icon: '📖' },
-    { id: 'kana', name: 'Kana Board', icon: '💮' },
-    { id: 'vocab', name: 'Library Manager', icon: '📜' },
+    { id: 'dashboard', name: 'Dashboard' },
+    { id: 'quiz', name: 'Study Arena', disabled: !hasCards },
+    { id: 'study', name: 'Study Guide' },
+    { id: 'kana', name: 'Kana Board' },
+    { id: 'vocab', name: 'Library Manager' },
   ];
 
   return (
@@ -331,7 +391,7 @@ export default function Navbar({ activeTab, setActiveTab, hasCards, themeRegion,
                       : 'text-claude-text-muted hover:text-claude-text-heading border-transparent hover:bg-claude-card/50'
                 }`}
               >
-                <span className="text-base">{item.icon}</span>
+                <span>{getNavIcon(item.id, currentRegion.accent, activeTab === item.id)}</span>
                 <span>{item.name}</span>
                 {item.id === 'quiz' && hasCards && (
                   <span className="ml-auto w-1.5 h-1.5 rounded-full bg-claude-coral animate-ping"></span>
@@ -507,7 +567,7 @@ export default function Navbar({ activeTab, setActiveTab, hasCards, themeRegion,
                   : 'text-claude-text-muted hover:text-claude-text'
             }`}
           >
-            <span className="text-xl">{item.icon}</span>
+            <span>{getNavIcon(item.id, currentRegion.accent, activeTab === item.id)}</span>
             <span>{item.name}</span>
           </button>
         ))}

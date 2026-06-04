@@ -991,6 +991,7 @@ export default function App() {
         {activeTab === 'grammar' && (
           <GrammarDojo
             onGainXp={handleGainXp}
+            vocabList={vocabList}
           />
         )}
 

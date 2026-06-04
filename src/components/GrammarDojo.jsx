@@ -225,7 +225,7 @@ export default function GrammarDojo({ onGainXp, vocabList }) {
   const [displayMode, setDisplayMode] = useState('kanji'); // 'kanji', 'kana', 'romaji'
 
   // Playing session state variables
-  const [gameState, setGameState] = useState('setup'); // 'setup', 'playing', 'finished', 'failed'
+  const [gameState, setGameState] = useState('setup'); // 'setup', 'study', 'playing', 'finished', 'failed'
   const [sessionLessons, setSessionLessons] = useState([]);
   const [currentLevel, setCurrentLevel] = useState(0);
   const [shuffledCards, setShuffledCards] = useState([]);
@@ -600,7 +600,7 @@ export default function GrammarDojo({ onGainXp, vocabList }) {
               ⚡ Challenge Length
             </label>
             <div className="grid grid-cols-4 gap-2">
-              {[3, 5, 10, 15].map(size => (
+              {[5, 10, 30, 60].map(size => (
                 <button
                   key={size}
                   onClick={() => setSessionSize(size)}
@@ -656,12 +656,115 @@ export default function GrammarDojo({ onGainXp, vocabList }) {
           </div>
         </div>
 
-        <button
-          onClick={startDojoSession}
-          className="w-full max-w-2xl py-4.5 bg-claude-coral hover:bg-claude-coral/95 text-white font-black text-sm uppercase tracking-widest rounded-2xl shadow-[0_5px_0_0_#9f4124] hover:shadow-[0_4px_0_0_#9f4124] active:translate-y-[4px] active:shadow-none border border-[#e06847]/30 cursor-pointer transition-all text-center mt-4"
-        >
-          Enter Sentence Dojo ⚔️
-        </button>
+        {/* Dynamic primary buttons - Study mode side-by-side with practice dojo */}
+        <div className="flex flex-col sm:flex-row gap-3.5 w-full max-w-2xl mt-4">
+          <button
+            onClick={() => setGameState('study')}
+            className="flex-1 py-4.5 bg-[#eae4d8]/60 dark:bg-claude-sidebar/60 hover:bg-[#eae4d8]/80 hover:dark:bg-claude-card border-2 border-[#bca175]/45 text-claude-text font-black text-sm uppercase tracking-widest rounded-2xl cursor-pointer active:translate-y-[2px] transition-all text-center"
+          >
+            Study Scroll Rules 📜
+          </button>
+          
+          <button
+            onClick={startDojoSession}
+            className="flex-1 py-4.5 bg-claude-coral hover:bg-claude-coral/95 text-white font-black text-sm uppercase tracking-widest rounded-2xl shadow-[0_5px_0_0_#9f4124] hover:shadow-[0_4px_0_0_#9f4124] active:translate-y-[4px] active:shadow-none border border-[#e06847]/30 cursor-pointer transition-all text-center"
+          >
+            Enter Sentence Dojo ⚔️
+          </button>
+        </div>
+      </div>
+    );
+  };
+
+  // 5. INTERACTIVE STUDY RULES SCREEN (Browsing scrolls)
+  const renderStudyScreen = () => {
+    const rawDeck = deckLevel === 'N5' ? n5Lessons : n4Lessons;
+    
+    return (
+      <div className="w-full max-w-4xl flex flex-col gap-6 animate-fade-in z-10 text-[#191919] dark:text-[#f2f0ea] px-4 md:px-8">
+        
+        {/* Header navigation */}
+        <div className="w-full flex items-center justify-between border-b border-[#bca175]/25 pb-4">
+          <div className="flex items-center gap-3">
+            <span className="text-2xl">📜</span>
+            <div>
+              <h2 className="text-xl font-black text-claude-coral uppercase tracking-wide">
+                {deckLevel} Scroll Codex
+              </h2>
+              <p className="text-[10px] text-[#7c6c57] dark:text-[#92918b] font-bold">
+                Reviewing all {rawDeck.length} grammar principles for JLPT {deckLevel}
+              </p>
+            </div>
+          </div>
+          
+          <button
+            onClick={handleExit}
+            className="px-5 py-2.5 bg-[#eae4d8]/60 dark:bg-claude-sidebar/60 hover:bg-[#eae4d8]/80 hover:dark:bg-claude-card border-2 border-[#bca175]/45 text-claude-text font-black text-xs rounded-xl cursor-pointer active:translate-y-[2px] transition-all"
+          >
+            ⛩️ Exit Study
+          </button>
+        </div>
+
+        {/* Mascot Advice */}
+        <div className="bg-white dark:bg-[#1a1a19]/90 border-2 border-[#bca175] dark:border-[#524430] p-4.5 rounded-2xl shadow-sm flex items-center gap-4.5 max-w-2xl mx-auto w-full">
+          <MascotSensei mood="neutral" />
+          <div>
+            <span className="text-[9px] font-black uppercase text-claude-coral tracking-widest block mb-0.5">Dojo Sensei / Advice</span>
+            <p className="text-xs font-semibold leading-relaxed text-[#5c5b56] dark:text-[#92918b]">
+              "A true warrior studies the principles before entering the arena. Examine each grammar scroll, its formula, and the example sentence to prepare your mind!"
+            </p>
+          </div>
+        </div>
+
+        {/* Scrollable list of rules */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
+          {rawDeck.map((lesson, idx) => {
+            const sampleReplacement = loadLesson(lesson, vocabList);
+            const japaneseExample = sampleReplacement.correctSequence.join('');
+            
+            return (
+              <div 
+                key={lesson.id} 
+                className="bg-[#eae4d8]/20 dark:bg-[#161618]/50 border-2 border-[#bca175]/25 hover:border-[#bca175]/60 p-5 rounded-3xl transition-all duration-300 flex flex-col justify-between hover:scale-[1.01] hover:shadow-md"
+              >
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center">
+                    <span className="text-[9px] font-black text-claude-coral uppercase tracking-widest">
+                      Principle {idx + 1}
+                    </span>
+                    <span className="px-2 py-0.5 bg-claude-coral/10 text-claude-coral border border-claude-coral/20 rounded-lg text-[9px] font-black font-mono">
+                      {deckLevel}
+                    </span>
+                  </div>
+                  
+                  <h4 className="text-base font-extrabold text-[#191919] dark:text-[#faf8f2]">
+                    {lesson.title}
+                  </h4>
+                  
+                  <div className="text-[10px] font-bold text-amber-700 dark:text-amber-500 bg-amber-500/5 px-2.5 py-1.5 rounded-lg border border-amber-500/10 font-mono">
+                    Formula: {lesson.pattern}
+                  </div>
+                  
+                  <p className="text-xs font-semibold leading-relaxed text-[#6b6a65] dark:text-[#92918b]">
+                    {lesson.concept}
+                  </p>
+                </div>
+
+                <div className="mt-4 pt-3 border-t border-[#bca175]/15 space-y-1">
+                  <span className="text-[8px] font-black text-[#7c6c57] dark:text-[#92918b] uppercase tracking-widest block pl-0.5">Example Sentence:</span>
+                  <div className="bg-[#fcfaf4]/80 dark:bg-[#0c0c0e]/80 p-2.5 rounded-xl border border-[#bca175]/15 space-y-0.5">
+                    <div className="text-xs font-black text-[#191919] dark:text-[#f2f0ea]">
+                      {japaneseExample}
+                    </div>
+                    <div className="text-[9px] text-[#6b6a65] dark:text-[#92918b] font-medium leading-relaxed italic">
+                      "{sampleReplacement.english}"
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
       </div>
     );
   };
@@ -796,7 +899,7 @@ export default function GrammarDojo({ onGainXp, vocabList }) {
           <MascotSensei mood={mascotMood} />
           
           <div className="relative bg-white dark:bg-[#1a1a19]/90 border-2 border-[#bca175] dark:border-[#524430] p-4.5 rounded-2xl shadow-md max-w-xl w-full">
-            <span className="text-[9px] font-black uppercase text-[#7c6c57] dark:text-[#92918b]/90 tracking-widest block mb-0.5">Dojo Master / Quest Target</span>
+            <span className="text-[9px] font-black uppercase text-[#7c6c57] dark:text-[#92918b]/90 tracking-widest block mb-0.5">Dojo Topic / Sentence Translate</span>
             
             {difficulty === 'hard' && !hardRevealEnglish ? (
               <div className="space-y-2 py-1">
@@ -1125,6 +1228,20 @@ export default function GrammarDojo({ onGainXp, vocabList }) {
           font-family: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         }
 
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 5px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: rgba(188, 161, 117, 0.3);
+          border-radius: 9px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: rgba(188, 161, 117, 0.6);
+        }
+
         @keyframes shoji-left {
           0% { transform: translateX(-100%); }
           40%, 60% { transform: translateX(0); }
@@ -1186,6 +1303,7 @@ export default function GrammarDojo({ onGainXp, vocabList }) {
       {/* Screen Router Content */}
       <div className="w-full flex justify-center items-center z-10 py-4">
         {gameState === 'setup' && renderSetupScreen()}
+        {gameState === 'study' && renderStudyScreen()}
         {gameState === 'playing' && renderPlayingScreen()}
         {gameState === 'finished' && renderFinishedScreen()}
         {gameState === 'failed' && renderFailedScreen()}

@@ -165,6 +165,9 @@ export default function GrammarDojo({ onGainXp, vocabList }) {
   const [shake, setShake] = useState(false);
   const [totalXpEarned, setTotalXpEarned] = useState(0);
   const [hardRevealEnglish, setHardRevealEnglish] = useState(false);
+  
+  // Shoji sliding door transition state
+  const [shojiActive, setShojiActive] = useState(false);
 
   // Sync displayMode for Easy difficulty
   useEffect(() => {
@@ -247,25 +250,35 @@ export default function GrammarDojo({ onGainXp, vocabList }) {
     }
   };
 
+  // Shoji state transition wrapper
+  const triggerStateChange = (changeCallback) => {
+    setShojiActive(true);
+    setTimeout(() => {
+      changeCallback();
+    }, 450);
+    setTimeout(() => {
+      setShojiActive(false);
+    }, 900);
+  };
+
   const startDojoSession = () => {
-    const rawDeck = deckLevel === 'N5' ? n5Lessons : n4Lessons;
-    // Shuffle the lessons list to generate random challenges
-    const shuffledLessons = [...rawDeck].sort(() => 0.5 - Math.random());
-    const selected = shuffledLessons.slice(0, Math.min(sessionSize, shuffledLessons.length));
-    
-    // Parse vocabulary overrides
-    const parsed = selected.map(lesson => loadLesson(lesson, vocabList));
-    
-    setSessionLessons(parsed);
-    setCurrentLevel(0);
-    setShuffledCards(parsed[0].shuffled);
-    setAssembledSlots([]);
-    setChecked(false);
-    setIsCorrect(false);
-    setShowTip(false);
-    setTotalXpEarned(0);
-    setHardRevealEnglish(false);
-    setGameState('playing');
+    triggerStateChange(() => {
+      const rawDeck = deckLevel === 'N5' ? n5Lessons : n4Lessons;
+      const shuffledLessons = [...rawDeck].sort(() => 0.5 - Math.random());
+      const selected = shuffledLessons.slice(0, Math.min(sessionSize, shuffledLessons.length));
+      const parsed = selected.map(lesson => loadLesson(lesson, vocabList));
+      
+      setSessionLessons(parsed);
+      setCurrentLevel(0);
+      setShuffledCards(parsed[0].shuffled);
+      setAssembledSlots([]);
+      setChecked(false);
+      setIsCorrect(false);
+      setShowTip(false);
+      setTotalXpEarned(0);
+      setHardRevealEnglish(false);
+      setGameState('playing');
+    });
   };
 
   const activeLesson = sessionLessons[currentLevel];
@@ -326,10 +339,9 @@ export default function GrammarDojo({ onGainXp, vocabList }) {
 
     if (isMatched) {
       playCorrectSound();
-      // Award scaling XP (based on difficulty)
       let xp = 1;
-      if (difficulty === 'medium') xp = 2; // +20 XP
-      if (difficulty === 'hard') xp = 3;   // +30 XP
+      if (difficulty === 'medium') xp = 2;
+      if (difficulty === 'hard') xp = 3;
       setTotalXpEarned(prev => prev + xp * 10);
       onGainXp(xp);
     } else {
@@ -340,44 +352,48 @@ export default function GrammarDojo({ onGainXp, vocabList }) {
   };
 
   const handleNext = () => {
-    setChecked(false);
-    setIsCorrect(false);
-    setAssembledSlots([]);
-    setHardRevealEnglish(false);
+    triggerStateChange(() => {
+      setChecked(false);
+      setIsCorrect(false);
+      setAssembledSlots([]);
+      setHardRevealEnglish(false);
 
-    if (currentLevel < sessionLessons.length - 1) {
-      const nextLevel = currentLevel + 1;
-      setCurrentLevel(nextLevel);
-      setShuffledCards(sessionLessons[nextLevel].shuffled);
-    } else {
-      setGameState('finished');
-    }
+      if (currentLevel < sessionLessons.length - 1) {
+        const nextLevel = currentLevel + 1;
+        setCurrentLevel(nextLevel);
+        setShuffledCards(sessionLessons[nextLevel].shuffled);
+      } else {
+        setGameState('finished');
+      }
+    });
   };
 
   const handleExit = () => {
-    setGameState('setup');
+    triggerStateChange(() => {
+      setGameState('setup');
+    });
   };
 
-  // 1. SETUP GAME SCREEN
-  if (gameState === 'setup') {
+  // 1. SETUP GAME SCREEN RENDER HELPER
+  const renderSetupScreen = () => {
     return (
-      <div className="w-full max-w-xl claude-panel p-6 sm:p-8 rounded-3xl relative overflow-hidden text-[#f2f0ea] bg-claude-card flex flex-col gap-6 animate-fade-in">
-        <div className="absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r from-amber-400 via-claude-coral to-amber-400" />
+      <div className="w-full max-w-xl backdrop-blur-md bg-claude-card/90 dark:bg-claude-card/85 p-6 sm:p-8 rounded-3xl relative overflow-hidden text-[#191919] dark:text-[#f2f0ea] flex flex-col gap-6 animate-fade-in border border-[#bca175]/35 shadow-xl">
+        <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-amber-500 via-claude-coral to-amber-500" />
         
         <div className="space-y-1.5 text-center">
           <span className="text-[10px] font-black uppercase text-claude-coral tracking-widest block">文章道場</span>
           <h2 className="text-2xl font-black claude-serif">JLPT Grammar Dojo</h2>
-          <p className="text-xs text-claude-text-muted leading-relaxed max-w-sm mx-auto">
+          <p className="text-xs text-claude-text-muted dark:text-claude-text-muted/90 leading-relaxed max-w-sm mx-auto">
             Test and revise your Japanese grammar rules for the JLPT N5 and N4 exams with custom layouts.
           </p>
         </div>
 
-        <hr className="border-claude-border/50" />
+        <hr className="border-[#bca175]/25" />
 
         <div className="space-y-5">
           {/* Deck selector */}
           <div className="space-y-2">
-            <label className="text-[9px] font-black uppercase tracking-wider text-claude-text-muted block pl-1">
+            <label className="text-[9px] font-black uppercase tracking-wider text-claude-text-muted dark:text-claude-text-muted/80 block pl-1">
               Select Grammar Level Deck
             </label>
             <div className="grid grid-cols-2 gap-3">
@@ -385,8 +401,8 @@ export default function GrammarDojo({ onGainXp, vocabList }) {
                 onClick={() => setDeckLevel('N5')}
                 className={`py-3.5 rounded-2xl border font-black text-xs uppercase tracking-widest cursor-pointer transition-all duration-300 ${
                   deckLevel === 'N5'
-                    ? 'bg-claude-coral text-white border-transparent shadow-lg scale-[1.02]'
-                    : 'bg-claude-sidebar/40 border-claude-border text-claude-text-muted hover:text-[#f2f0ea]'
+                    ? 'bg-claude-coral text-white border-transparent shadow-lg scale-[1.02] -translate-y-0.5'
+                    : 'bg-[#eae4d8]/40 dark:bg-claude-sidebar/40 border-[#bca175]/35 text-claude-text-muted hover:text-claude-text'
                 }`}
               >
                 🍙 JLPT N5 (Basic)
@@ -395,8 +411,8 @@ export default function GrammarDojo({ onGainXp, vocabList }) {
                 onClick={() => setDeckLevel('N4')}
                 className={`py-3.5 rounded-2xl border font-black text-xs uppercase tracking-widest cursor-pointer transition-all duration-300 ${
                   deckLevel === 'N4'
-                    ? 'bg-claude-coral text-white border-transparent shadow-lg scale-[1.02]'
-                    : 'bg-claude-sidebar/40 border-claude-border text-claude-text-muted hover:text-[#f2f0ea]'
+                    ? 'bg-claude-coral text-white border-transparent shadow-lg scale-[1.02] -translate-y-0.5'
+                    : 'bg-[#eae4d8]/40 dark:bg-claude-sidebar/40 border-[#bca175]/35 text-claude-text-muted hover:text-claude-text'
                 }`}
               >
                 🌊 JLPT N4 (Exam Core)
@@ -406,7 +422,7 @@ export default function GrammarDojo({ onGainXp, vocabList }) {
 
           {/* Session Size */}
           <div className="space-y-2">
-            <label className="text-[9px] font-black uppercase tracking-wider text-claude-text-muted block pl-1">
+            <label className="text-[9px] font-black uppercase tracking-wider text-claude-text-muted dark:text-claude-text-muted/80 block pl-1">
               Select Deck Challenge Size
             </label>
             <div className="grid grid-cols-4 gap-2">
@@ -416,11 +432,11 @@ export default function GrammarDojo({ onGainXp, vocabList }) {
                   onClick={() => setSessionSize(size)}
                   className={`py-2.5 rounded-xl border font-extrabold text-[11px] cursor-pointer transition-all ${
                     sessionSize === size
-                      ? 'bg-claude-coral text-white border-transparent shadow'
-                      : 'bg-claude-sidebar/30 border-claude-border text-claude-text-muted hover:text-[#f2f0ea]'
+                      ? 'bg-claude-coral text-white border-transparent shadow -translate-y-0.5'
+                      : 'bg-[#eae4d8]/30 dark:bg-claude-sidebar/30 border-[#bca175]/30 text-claude-text-muted hover:text-claude-text'
                   }`}
                 >
-                  {size} Questions
+                  {size} Qs
                 </button>
               ))}
             </div>
@@ -428,7 +444,7 @@ export default function GrammarDojo({ onGainXp, vocabList }) {
 
           {/* Difficulty */}
           <div className="space-y-2">
-            <label className="text-[9px] font-black uppercase tracking-wider text-claude-text-muted block pl-1">
+            <label className="text-[9px] font-black uppercase tracking-wider text-claude-text-muted dark:text-claude-text-muted/80 block pl-1">
               Select Dojo Difficulty Mode
             </label>
             <div className="grid grid-cols-3 gap-2">
@@ -436,8 +452,8 @@ export default function GrammarDojo({ onGainXp, vocabList }) {
                 onClick={() => setDifficulty('easy')}
                 className={`py-2.5 rounded-xl border font-extrabold text-[10px] uppercase tracking-wider cursor-pointer transition-all ${
                   difficulty === 'easy'
-                    ? 'bg-emerald-600 border-transparent text-white shadow'
-                    : 'bg-claude-sidebar/30 border-claude-border text-claude-text-muted hover:text-[#f2f0ea]'
+                    ? 'bg-emerald-600 border-transparent text-white shadow -translate-y-0.5'
+                    : 'bg-[#eae4d8]/30 dark:bg-claude-sidebar/30 border-[#bca175]/30 text-claude-text-muted hover:text-[#22c55e]'
                 }`}
               >
                 🟢 Easy (Guides)
@@ -446,18 +462,18 @@ export default function GrammarDojo({ onGainXp, vocabList }) {
                 onClick={() => setDifficulty('medium')}
                 className={`py-2.5 rounded-xl border font-extrabold text-[10px] uppercase tracking-wider cursor-pointer transition-all ${
                   difficulty === 'medium'
-                    ? 'bg-amber-500 border-transparent text-[#191919] shadow'
-                    : 'bg-claude-sidebar/30 border-claude-border text-claude-text-muted hover:text-[#f2f0ea]'
+                    ? 'bg-amber-500 border-transparent text-[#191919] shadow -translate-y-0.5'
+                    : 'bg-[#eae4d8]/30 dark:bg-claude-sidebar/30 border-[#bca175]/30 text-claude-text-muted hover:text-[#eab308]'
                 }`}
               >
-                🟡 Medium (Toggles)
+                🟡 Medium
               </button>
               <button
                 onClick={() => setDifficulty('hard')}
                 className={`py-2.5 rounded-xl border font-extrabold text-[10px] uppercase tracking-wider cursor-pointer transition-all ${
                   difficulty === 'hard'
-                    ? 'bg-red-600 border-transparent text-white shadow'
-                    : 'bg-claude-sidebar/30 border-claude-border text-claude-text-muted hover:text-[#f2f0ea]'
+                    ? 'bg-red-600 border-transparent text-white shadow -translate-y-0.5'
+                    : 'bg-[#eae4d8]/30 dark:bg-claude-sidebar/30 border-[#bca175]/30 text-claude-text-muted hover:text-[#ef4444]'
                 }`}
               >
                 🔴 Hard (Blind)
@@ -468,31 +484,31 @@ export default function GrammarDojo({ onGainXp, vocabList }) {
 
         <button
           onClick={startDojoSession}
-          className="w-full py-4 mt-2 bg-claude-coral hover:bg-claude-coral/90 text-white font-black text-xs uppercase tracking-widest rounded-2xl shadow-lg cursor-pointer transition-all active:scale-[0.98] text-center"
+          className="w-full py-4 mt-2 bg-claude-coral hover:bg-claude-coral/90 text-white font-black text-xs uppercase tracking-widest rounded-2xl shadow-lg border border-[#e06847]/30 cursor-pointer transition-all active:scale-[0.98] hover:-translate-y-0.5 text-center"
         >
           Enter Sentence Dojo ⚔️
         </button>
       </div>
     );
-  }
+  };
 
-  // 2. FINISHED SESSION SCREEN
-  if (gameState === 'finished') {
+  // 2. FINISHED SESSION SCREEN RENDER HELPER
+  const renderFinishedScreen = () => {
     return (
-      <div className="w-full max-w-xl claude-panel p-8 rounded-3xl text-center space-y-6 animate-fade-in relative overflow-hidden text-[#f2f0ea] bg-claude-card">
-        <div className="absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r from-amber-400 via-claude-coral to-amber-400" />
-        <div className="text-5xl">🏆</div>
+      <div className="w-full max-w-xl backdrop-blur-md bg-claude-card/90 dark:bg-claude-card/85 p-8 rounded-3xl text-center space-y-6 animate-fade-in border border-[#bca175]/35 shadow-2xl relative overflow-hidden text-[#191919] dark:text-[#f2f0ea]">
+        <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-amber-500 via-claude-coral to-amber-500" />
+        <div className="text-5xl animate-bounce">🏆</div>
         <h2 className="text-2xl font-black claude-serif">Dojo Quest Completed!</h2>
         <p className="text-xs text-claude-text-muted max-w-sm mx-auto leading-relaxed">
-          No cap, you successfully finished the customized **{deckLevel}** grammar deck!
+          Amazing study session! You successfully finished the customized **{deckLevel}** grammar deck and completed your training.
         </p>
-        <div className="bg-claude-sidebar/40 border border-claude-border/50 rounded-2xl p-4 text-xs font-black text-claude-coral max-w-xs mx-auto">
+        <div className="bg-[#ebdcb9]/40 dark:bg-claude-sidebar/40 border border-[#bca175]/45 rounded-2xl p-4 text-sm font-black text-claude-coral max-w-xs mx-auto shadow-inner">
           🔥 Total Earned: +{totalXpEarned} XP!
         </div>
         <div className="flex gap-3 justify-center">
           <button
             onClick={startDojoSession}
-            className="px-5 py-3 bg-claude-sidebar hover:bg-claude-card border border-claude-border text-[#f2f0ea] font-extrabold text-xs rounded-xl cursor-pointer"
+            className="px-5 py-3 bg-[#eae4d8]/55 dark:bg-claude-sidebar hover:bg-[#eae4d8]/80 hover:dark:bg-claude-card border border-[#bca175]/45 text-claude-text font-extrabold text-xs rounded-xl cursor-pointer transition-transform active:scale-95"
           >
             Retry Deck
           </button>
@@ -505,235 +521,353 @@ export default function GrammarDojo({ onGainXp, vocabList }) {
         </div>
       </div>
     );
-  }
+  };
 
-  // 3. ACTIVE QUIZ PLAYING BOARD SCREEN
-  return (
-    <div className="w-full max-w-2xl flex flex-col gap-5 animate-fade-in relative z-10 select-none text-[#f2f0ea]">
-      {/* Active Header Progress */}
-      <div className="claude-panel p-4 rounded-2xl flex items-center justify-between bg-claude-card border border-claude-border shadow-md">
-        <div className="space-y-1">
-          <span className="text-[8px] font-black uppercase tracking-widest text-claude-coral block">
-            Sentence Dojo / {deckLevel} Challenge
-          </span>
-          <h2 className="text-xs font-black flex items-center gap-2">
-            <span>Stage {currentLevel + 1} of {sessionLessons.length}</span>
-            <span className="w-1.5 h-1.5 rounded-full bg-claude-border" />
-            <span className="text-claude-text-muted capitalize text-[10px]">({difficulty} mode)</span>
-          </h2>
-        </div>
-
-        {/* Display modes (except Easy, which locks into Guides) */}
-        {difficulty !== 'easy' && (
-          <div className="flex items-center gap-1 bg-claude-sidebar/40 border border-claude-border/60 p-1 rounded-xl shadow-inner">
-            {['kanji', 'kana', 'romaji'].map(mode => (
-              <button
-                key={mode}
-                onClick={() => setDisplayMode(mode)}
-                className={`px-3 py-1.5 text-[9px] font-black uppercase rounded-lg transition-all cursor-pointer ${
-                  displayMode === mode
-                    ? 'bg-claude-coral text-white shadow-md'
-                    : 'text-claude-text-muted hover:text-[#f2f0ea]'
-                }`}
-              >
-                {mode === 'kanji' ? '漢字' : mode === 'kana' ? 'かな' : 'Roma'}
-              </button>
-            ))}
-          </div>
-        )}
-
-        {/* Home exit button */}
-        <button
-          onClick={handleExit}
-          className="p-2 bg-claude-sidebar border border-claude-border/75 rounded-lg hover:border-red-500/50 hover:text-red-500 cursor-pointer text-xs font-bold transition-colors"
-          title="Exit Session"
-        >
-          🚪 Exit
-        </button>
-      </div>
-
-      {/* Main Board Arena */}
-      <div className={`claude-panel p-6 rounded-3xl bg-claude-card relative overflow-hidden flex flex-col gap-5 transition-all duration-300 border-2 ${
-        checked ? (isCorrect ? 'border-emerald-600/60 shadow-emerald-950/10' : 'border-red-600/60 shadow-red-950/10') : 'border-claude-border/80'
-      } ${shake ? 'animate-shake' : ''}`}>
-        <div className="absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r from-transparent via-claude-coral/50 to-transparent" />
-        
-        {/* Concept description box */}
-        <div className="bg-claude-sidebar/40 border border-claude-border/40 rounded-2xl p-4 space-y-1">
-          <div className="flex items-baseline justify-between flex-wrap gap-2">
-            <span className="text-[9px] font-black uppercase text-amber-500 tracking-wider">Concept / 文法解説</span>
-            <span className="text-[9px] font-extrabold text-claude-text-muted italic">{activeLesson.title}</span>
-          </div>
-          <p className="text-xs leading-relaxed text-claude-text-muted font-medium">
-            {activeLesson.concept}
-          </p>
-        </div>
-
-        {/* English Prompt (Hidden in Hard difficulty, unless revealed) */}
-        <div className="text-center space-y-1.5 py-2 min-h-[64px] flex flex-col items-center justify-center bg-claude-sidebar/10 rounded-2xl border border-dashed border-claude-border/30">
-          <span className="text-[8px] font-black uppercase text-claude-text-muted tracking-widest block">English Translate Prompt</span>
-          
-          {difficulty === 'hard' && !hardRevealEnglish ? (
-            <div className="space-y-2">
-              <div className="text-[10px] font-black text-amber-500/80 bg-amber-500/5 px-3 py-1.5 rounded-lg border border-amber-500/20 max-w-sm leading-normal">
-                🕵️ Prompt Hidden! Build using the definitions of the available words.
-              </div>
-              <button
-                onClick={() => setHardRevealEnglish(true)}
-                className="text-[9px] font-black text-claude-coral bg-claude-coral/5 hover:bg-claude-coral/10 border border-claude-coral/20 px-2.5 py-1 rounded-lg transition-colors cursor-pointer"
-              >
-                Reveal English Prompt (-5 XP penalty)
-              </button>
-            </div>
-          ) : (
-            <h3 className="text-base md:text-lg font-extrabold text-[#f2f0ea] italic max-w-md px-4">
-              "{activeLesson.english}"
-            </h3>
-          )}
-        </div>
-
-        {/* Assembled Sentence Slots Zone */}
-        <div className="min-h-16 border-2 border-dashed border-claude-border/80 rounded-2xl p-3 flex flex-wrap gap-2.5 items-center justify-center bg-claude-sidebar/20 shadow-inner">
-          {assembledSlots.length > 0 ? (
-            assembledSlots.map((card, idx) => {
-              const meta = getWordMeta(card);
-              return (
-                <button
-                  key={idx}
-                  onClick={() => handleCardClick(card, 'assembled')}
-                  className="px-4 py-2.5 bg-claude-card border-2 border-claude-coral text-claude-coral font-extrabold text-sm rounded-xl cursor-pointer hover:bg-claude-coral/5 active:scale-95 transition-all shadow-sm flex flex-col items-center"
-                >
-                  {/* Easy mode displays Romaji hint inside slot button */}
-                  {difficulty === 'easy' && meta && (
-                    <span className="text-[7px] font-extrabold text-amber-500/80 tracking-wide uppercase -mb-0.5 select-none">
-                      {meta.romaji}
-                    </span>
-                  )}
-                  <span>{getCardDisplay(card)}</span>
-                </button>
-              );
-            })
-          ) : (
-            <span className="text-xs font-bold text-claude-text-muted/65 italic select-none">
-              Tap word cards from pool below to assemble...
+  // 3. ACTIVE QUIZ PLAYING BOARD SCREEN RENDER HELPER
+  const renderPlayingScreen = () => {
+    return (
+      <div className="w-full max-w-2xl flex flex-col gap-5 animate-fade-in relative z-10 select-none text-[#191919] dark:text-[#f2f0ea]">
+        {/* Active Header Progress */}
+        <div className="bg-[#ebdcb9]/40 dark:bg-[#222220]/80 border-2 border-[#bca175]/50 p-4 rounded-2xl flex items-center justify-between shadow-md text-[#191919] dark:text-[#f2f0ea]">
+          <div className="space-y-1">
+            <span className="text-[8px] font-black uppercase tracking-widest text-claude-coral block">
+              Sentence Dojo / {deckLevel} Challenge
             </span>
+            <h2 className="text-xs font-black flex items-center gap-2">
+              <span>Stage {currentLevel + 1} of {sessionLessons.length}</span>
+              <span className="w-1.5 h-1.5 rounded-full bg-[#bca175]/70" />
+              <span className="text-claude-text-muted capitalize text-[10px]">({difficulty} mode)</span>
+            </h2>
+          </div>
+
+          {/* Display modes (except Easy, which locks into Guides) */}
+          {difficulty !== 'easy' && (
+            <div className="flex items-center gap-1 bg-[#eae4d8]/40 dark:bg-claude-sidebar/40 border border-[#bca175]/35 p-1 rounded-xl shadow-inner">
+              {['kanji', 'kana', 'romaji'].map(mode => (
+                <button
+                  key={mode}
+                  onClick={() => setDisplayMode(mode)}
+                  className={`px-3 py-1.5 text-[9px] font-black uppercase rounded-lg transition-all cursor-pointer ${
+                    displayMode === mode
+                      ? 'bg-claude-coral text-white shadow-md'
+                      : 'text-claude-text-muted hover:text-claude-text'
+                  }`}
+                >
+                  {mode === 'kanji' ? '漢字' : mode === 'kana' ? 'かな' : 'Roma'}
+                </button>
+              ))}
+            </div>
           )}
+
+          {/* Home exit button */}
+          <button
+            onClick={handleExit}
+            className="p-2 px-3 bg-[#eae4d8]/65 dark:bg-claude-sidebar border border-[#bca175]/45 rounded-lg hover:border-red-500/50 hover:text-red-500 cursor-pointer text-[11px] font-bold transition-colors"
+            title="Exit Session"
+          >
+            🚪 Exit
+          </button>
         </div>
 
-        {/* Shuffled Word Cards Pool */}
-        <div className="space-y-3">
-          <div className="flex justify-between items-baseline px-1 flex-wrap gap-2">
-            <span className="text-[8px] font-black uppercase text-claude-text-muted tracking-widest block">Available Words Pool</span>
-            {difficulty === 'hard' && (
-              <span className="text-[7px] font-black uppercase text-claude-coral/80 bg-claude-coral/5 px-2 py-0.5 rounded border border-claude-coral/10">
-                Word definition tooltips active on cards
+        {/* Main Board Arena */}
+        <div className={`backdrop-blur-md bg-claude-card/90 dark:bg-claude-card/85 p-6 rounded-3xl relative overflow-hidden flex flex-col gap-5 transition-all duration-300 border-2 ${
+          checked ? (isCorrect ? 'border-emerald-600/70 shadow-lg shadow-emerald-950/5' : 'border-red-600/70 shadow-lg shadow-red-950/5') : 'border-[#bca175]/50'
+        } ${shake ? 'animate-shake' : ''}`}>
+          <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-transparent via-[#bca175]/50 to-transparent" />
+          
+          {/* Concept description box */}
+          <div className="bg-[#ebdcb9]/20 dark:bg-[#1e1e1c]/45 border border-[#bca175]/35 rounded-2xl p-4 space-y-1">
+            <div className="flex items-baseline justify-between flex-wrap gap-2">
+              <span className="text-[9px] font-black uppercase text-amber-600 dark:text-amber-500 tracking-wider">Concept / 文法解説</span>
+              <span className="text-[9px] font-extrabold text-claude-text-muted italic">{activeLesson.title}</span>
+            </div>
+            <p className="text-xs leading-relaxed text-claude-text-muted font-medium">
+              {activeLesson.concept}
+            </p>
+          </div>
+
+          {/* English Prompt (Hidden in Hard difficulty, unless revealed) */}
+          <div className="text-center space-y-1.5 py-2.5 min-h-[64px] flex flex-col items-center justify-center bg-[#ebdcb9]/10 dark:bg-claude-sidebar/10 rounded-2xl border border-dashed border-[#bca175]/30">
+            <span className="text-[8px] font-black uppercase text-claude-text-muted tracking-widest block">English Translate Prompt</span>
+            
+            {difficulty === 'hard' && !hardRevealEnglish ? (
+              <div className="space-y-2">
+                <div className="text-[10px] font-black text-amber-600 dark:text-amber-500 bg-amber-500/5 px-3 py-1.5 rounded-lg border border-amber-500/20 max-w-sm leading-normal">
+                  🕵️ Prompt Hidden! Build using the definitions of the available words.
+                </div>
+                <button
+                  onClick={() => setHardRevealEnglish(true)}
+                  className="text-[9px] font-black text-claude-coral bg-claude-coral/5 hover:bg-claude-coral/10 border border-claude-coral/20 px-2.5 py-1 rounded-lg transition-colors cursor-pointer"
+                >
+                  Reveal English Prompt (-5 XP penalty)
+                </button>
+              </div>
+            ) : (
+              <h3 className="text-base md:text-lg font-extrabold text-claude-text italic max-w-md px-4">
+                "{activeLesson.english}"
+              </h3>
+            )}
+          </div>
+
+          {/* Assembled Sentence Slots Zone (Tatami styled background grid) */}
+          <div 
+            className="min-h-18 border-2 border-dashed border-[#bca175]/50 dark:border-[#524430]/80 rounded-2xl p-4 flex flex-wrap gap-2.5 items-center justify-center bg-[#eae4d8]/40 dark:bg-[#1a1a18]/85 shadow-inner"
+            style={{
+              backgroundImage: `radial-gradient(circle, transparent 20%, rgba(188, 161, 117, 0.1) 20%, rgba(188, 161, 117, 0.1) 80%, transparent 80%, transparent), radial-gradient(circle, transparent 20%, rgba(188, 161, 117, 0.1) 20%, rgba(188, 161, 117, 0.1) 80%, transparent 80%, transparent)`,
+              backgroundSize: '8px 8px',
+              backgroundPosition: '0 0, 4px 4px'
+            }}
+          >
+            {assembledSlots.length > 0 ? (
+              assembledSlots.map((card, idx) => {
+                const meta = getWordMeta(card);
+                return (
+                  <button
+                    key={idx}
+                    onClick={() => handleCardClick(card, 'assembled')}
+                    className="px-4 py-2.5 bg-[#fbf9f4] dark:bg-[#2b2a26] border-2 border-claude-coral text-claude-coral font-extrabold text-sm rounded-xl cursor-pointer hover:bg-white active:scale-95 transition-all shadow-sm flex flex-col items-center hover:-translate-y-0.5"
+                  >
+                    {/* Easy mode displays Romaji hint inside slot button */}
+                    {difficulty === 'easy' && meta && (
+                      <span className="text-[7px] font-extrabold text-amber-600 dark:text-amber-500/80 tracking-wide uppercase -mb-0.5 select-none">
+                        {meta.romaji}
+                      </span>
+                    )}
+                    <span>{getCardDisplay(card)}</span>
+                  </button>
+                );
+              })
+            ) : (
+              <span className="text-xs font-bold text-claude-text-muted/65 italic select-none">
+                Tap word cards from pool below to assemble...
               </span>
             )}
           </div>
-          
-          <div className="flex flex-wrap gap-2.5 justify-center min-h-[48px]">
-            {shuffledCards.map((card, idx) => {
-              const meta = getWordMeta(card);
-              const dictMean = meta ? meta.meaning || card : card;
-              
-              return (
-                <button
-                  key={idx}
-                  onClick={() => handleCardClick(card, 'shuffled')}
-                  className="px-4 py-2.5 bg-claude-sidebar hover:bg-claude-card border border-claude-border hover:border-claude-coral/45 text-[#f2f0ea] font-extrabold text-sm rounded-xl cursor-pointer transition-all active:scale-95 hover:scale-[1.03] shadow-xs flex flex-col items-center relative group"
-                  title={difficulty === 'hard' ? `Definition: ${dictMean}` : undefined}
-                >
-                  {/* Tooltip for Hard mode detailing word dictionary meanings */}
-                  {difficulty === 'hard' && (
-                    <div className="absolute bottom-full mb-1.5 hidden group-hover:block bg-[#1e1e1c] border border-claude-border text-claude-text-muted text-[8px] font-extrabold px-2 py-1 rounded shadow-lg whitespace-nowrap z-50">
-                      {dictMean}
-                    </div>
-                  )}
 
-                  {/* Easy mode displays Romaji hint inside cards */}
-                  {difficulty === 'easy' && meta && (
-                    <span className="text-[7px] font-extrabold text-amber-500/80 tracking-wide uppercase -mb-0.5 select-none">
-                      {meta.romaji}
-                    </span>
-                  )}
-                  <span>{getCardDisplay(card)}</span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
+          {/* Shuffled Word Cards Pool */}
+          <div className="space-y-3">
+            <div className="flex justify-between items-baseline px-1 flex-wrap gap-2">
+              <span className="text-[8px] font-black uppercase text-claude-text-muted tracking-widest block">Available Words Pool</span>
+              {difficulty === 'hard' && (
+                <span className="text-[7px] font-black uppercase text-claude-coral/80 bg-claude-coral/5 px-2 py-0.5 rounded border border-claude-coral/10">
+                  Word definition tooltips active on cards
+                </span>
+              )}
+            </div>
+            
+            <div className="flex flex-wrap gap-2.5 justify-center min-h-[48px]">
+              {shuffledCards.map((card, idx) => {
+                const meta = getWordMeta(card);
+                const dictMean = meta ? meta.meaning || card : card;
+                
+                return (
+                  <button
+                    key={idx}
+                    onClick={() => handleCardClick(card, 'shuffled')}
+                    className="px-4 py-2.5 bg-[#f3ede0] hover:bg-[#fbf9f4] dark:bg-[#1e1e1c] hover:dark:bg-[#2b2a26] border border-[#bca175]/35 hover:border-[#bca175] text-claude-text font-extrabold text-sm rounded-xl cursor-pointer transition-all active:scale-95 hover:scale-[1.03] shadow-xs flex flex-col items-center relative group hover:-translate-y-0.5"
+                    title={difficulty === 'hard' ? `Definition: ${dictMean}` : undefined}
+                  >
+                    {/* Tooltip for Hard mode detailing word dictionary meanings */}
+                    {difficulty === 'hard' && (
+                      <div className="absolute bottom-full mb-1.5 hidden group-hover:block bg-[#1e1e1c] border border-claude-border text-claude-text-muted text-[8px] font-extrabold px-2 py-1 rounded shadow-lg whitespace-nowrap z-50">
+                        {dictMean}
+                      </div>
+                    )}
 
-        {/* Correct Grammar Formula Banner display */}
-        {checked && isCorrect && activeLesson.pattern && (
-          <div className="bg-amber-500/5 border border-amber-500/25 p-3 rounded-2xl text-center animate-fade-in">
-            <span className="text-[8px] font-black uppercase text-amber-500/80 tracking-wider block">Grammar Pattern Formula</span>
-            <span className="font-extrabold text-xs text-amber-500">
-              {activeLesson.pattern}
-            </span>
-          </div>
-        )}
-
-        {/* Feedback Messages Panel */}
-        {checked && (
-          <div className={`p-4 rounded-2xl border flex items-start gap-3 animate-fade-in ${
-            isCorrect 
-              ? 'bg-emerald-600/5 border-emerald-600/35 text-emerald-500' 
-              : 'bg-red-600/5 border-red-600/35 text-red-500'
-          }`}>
-            <span className="text-lg">{isCorrect ? '🔥' : '⚠️'}</span>
-            <div className="flex-1 space-y-1">
-              <span className="text-[9px] font-black uppercase tracking-wider block">
-                {isCorrect ? 'Correct Assembly!' : 'Study Help / 文法解説'}
-              </span>
-              <p className="text-xs font-bold leading-normal">
-                {isCorrect 
-                  ? `Sheesh, you cooked that sequence perfectly! +${difficulty === 'easy' ? '10' : difficulty === 'medium' ? '20' : '30'} XP awarded.` 
-                  : `Incorrect sequence order. Remember: ${activeLesson.tip}`}
-              </p>
+                    {/* Easy mode displays Romaji hint inside cards */}
+                    {difficulty === 'easy' && meta && (
+                      <span className="text-[7px] font-extrabold text-amber-600 dark:text-amber-500/80 tracking-wide uppercase -mb-0.5 select-none">
+                        {meta.romaji}
+                      </span>
+                    )}
+                    <span>{getCardDisplay(card)}</span>
+                  </button>
+                );
+              })}
             </div>
           </div>
-        )}
 
-        {/* Control Action Buttons */}
-        <div className="flex gap-3 pt-1">
-          {/* Tip Button */}
-          {!checked && (
-            <button
-              onClick={() => setShowTip(!showTip)}
-              className="px-4 py-3 bg-claude-sidebar border border-claude-border hover:bg-claude-card text-claude-text-muted hover:text-[#f2f0ea] font-extrabold text-xs rounded-xl cursor-pointer transition-colors"
-            >
-              {showTip ? 'Hide Hint 👁️' : 'Show Hint 💡'}
-            </button>
+          {/* Correct Grammar Formula Banner display */}
+          {checked && isCorrect && activeLesson.pattern && (
+            <div className="bg-amber-500/5 border border-amber-500/25 p-3 rounded-2xl text-center animate-fade-in">
+              <span className="text-[8px] font-black uppercase text-amber-600 dark:text-amber-500 tracking-wider block">Grammar Pattern Formula</span>
+              <span className="font-extrabold text-xs text-amber-600 dark:text-amber-500">
+                {activeLesson.pattern}
+              </span>
+            </div>
           )}
 
-          {/* Check / Next Button */}
-          {!checked ? (
-            <button
-              onClick={handleCheck}
-              disabled={assembledSlots.length === 0}
-              className={`flex-1 py-3 bg-claude-coral hover:bg-claude-coral/95 text-white font-black text-xs rounded-xl shadow-md cursor-pointer transition-transform active:scale-95 flex items-center justify-center gap-1.5 ${
-                assembledSlots.length === 0 ? 'opacity-50 cursor-not-allowed' : ''
-              }`}
-            >
-              Check Sentence 🔍
-            </button>
-          ) : (
-            <button
-              onClick={handleNext}
-              className="flex-1 py-3 bg-claude-coral hover:bg-claude-coral/95 text-white font-black text-xs rounded-xl shadow-md cursor-pointer transition-transform active:scale-95 flex items-center justify-center gap-1.5"
-            >
-              {currentLevel < sessionLessons.length - 1 ? 'Advance Level ➡️' : 'Complete Quest 🏆'}
-            </button>
+          {/* Feedback Messages Panel */}
+          {checked && (
+            <div className={`p-4 rounded-2xl border flex items-start gap-3 animate-fade-in ${
+              isCorrect 
+                ? 'bg-emerald-600/5 border-emerald-600/35 text-emerald-600 dark:text-emerald-500' 
+                : 'bg-red-600/5 border-red-600/35 text-red-600 dark:text-red-500'
+            }`}>
+              <span className="text-lg">{isCorrect ? '🔥' : '⚠️'}</span>
+              <div className="flex-1 space-y-1">
+                <span className="text-[9px] font-black uppercase tracking-wider block">
+                  {isCorrect ? 'Correct Assembly!' : 'Study Help / 文法解説'}
+                </span>
+                <p className="text-xs font-bold leading-normal">
+                  {isCorrect 
+                    ? `Sheesh, you cooked that sequence perfectly! +${difficulty === 'easy' ? '10' : difficulty === 'medium' ? '20' : '30'} XP awarded.` 
+                    : `Incorrect sequence order. Remember: ${activeLesson.tip}`}
+                </p>
+              </div>
+            </div>
           )}
-        </div>
 
-        {/* Hint tip panel display */}
-        {showTip && (
-          <div className="bg-amber-500/5 border border-amber-500/25 text-amber-500 p-3.5 rounded-xl text-[11px] font-bold leading-normal animate-fade-in">
-            💡 <strong>Hint:</strong> {activeLesson.tip}
+          {/* Control Action Buttons */}
+          <div className="flex gap-3 pt-1">
+            {/* Tip Button */}
+            {!checked && (
+              <button
+                onClick={() => setShowTip(!showTip)}
+                className="px-4 py-3 bg-[#eae4d8]/45 hover:bg-[#eae4d8]/85 dark:bg-claude-sidebar border border-[#bca175]/45 text-claude-text-muted hover:text-claude-text font-extrabold text-xs rounded-xl cursor-pointer transition-colors"
+              >
+                {showTip ? 'Hide Hint 👁️' : 'Show Hint 💡'}
+              </button>
+            )}
+
+            {/* Check / Next Button */}
+            {!checked ? (
+              <button
+                onClick={handleCheck}
+                disabled={assembledSlots.length === 0}
+                className={`flex-1 py-3.5 bg-claude-coral hover:bg-claude-coral/90 text-white font-black text-xs uppercase tracking-widest rounded-xl shadow-lg border border-[#e06847]/30 cursor-pointer transition-all active:scale-[0.97] hover:-translate-y-0.5 flex items-center justify-center gap-1.5 ${
+                  assembledSlots.length === 0 ? 'opacity-50 cursor-not-allowed' : ''
+                }`}
+              >
+                Check Sentence 🔍
+              </button>
+            ) : (
+              <button
+                onClick={handleNext}
+                className="flex-1 py-3.5 bg-claude-coral hover:bg-claude-coral/90 text-white font-black text-xs uppercase tracking-widest rounded-xl shadow-lg border border-[#e06847]/30 cursor-pointer transition-all active:scale-[0.97] hover:-translate-y-0.5 flex items-center justify-center gap-1.5"
+              >
+                {currentLevel < sessionLessons.length - 1 ? 'Advance Level ➡️' : 'Complete Quest 🏆'}
+              </button>
+            )}
           </div>
-        )}
 
+          {/* Hint tip panel display */}
+          {showTip && (
+            <div className="bg-amber-500/5 border border-amber-500/25 text-amber-600 dark:text-amber-500 p-3.5 rounded-xl text-[11px] font-bold leading-normal animate-fade-in">
+              💡 <strong>Hint:</strong> {activeLesson.tip}
+            </div>
+          )}
+
+        </div>
+      </div>
+    );
+  };
+
+  const sakuraPetals = [
+    { id: 1, left: '5%', delay: '0s', duration: '8s', scale: 0.7 },
+    { id: 2, left: '20%', delay: '2s', duration: '11s', scale: 1.0 },
+    { id: 3, left: '35%', delay: '5s', duration: '9s', scale: 0.5 },
+    { id: 4, left: '55%', delay: '1s', duration: '12s', scale: 0.8 },
+    { id: 5, left: '70%', delay: '4s', duration: '7s', scale: 0.6 },
+    { id: 6, left: '85%', delay: '3s', duration: '10s', scale: 0.9 },
+  ];
+
+  return (
+    <div className="w-full min-h-[500px] flex items-center justify-center relative p-2.5 sm:p-5 overflow-hidden rounded-3xl bg-[#f2ede4] dark:bg-[#151514] border-4 border-[#bca175] dark:border-[#524430] shadow-2xl w-full">
+      {/* Traditional wood lattice framing lines overlay */}
+      <div className="absolute inset-0 border-[12px] border-amber-950/20 dark:border-amber-500/5 pointer-events-none z-20" />
+      
+      {/* Dojo background watercolor silhouette art */}
+      <div className="absolute inset-0 pointer-events-none opacity-20 dark:opacity-10 z-0 flex items-end justify-center overflow-hidden">
+        <svg viewBox="0 0 800 400" className="w-full max-h-[300px] translate-y-10 fill-amber-950 dark:fill-slate-100">
+          <circle cx="200" cy="180" r="70" className="opacity-15 dark:opacity-30 fill-[#cc5a37]" />
+          {/* Pagoda Silhouette */}
+          <path d="M 350,400 L 350,320 L 310,320 L 330,300 L 470,300 L 490,320 L 450,320 L 450,400 Z" />
+          <path d="M 370,300 L 370,250 L 330,250 L 350,230 L 450,230 L 470,250 L 430,250 L 430,300 Z" />
+          <path d="M 385,230 L 385,180 L 350,180 L 370,160 L 430,160 L 450,180 L 415,180 L 415,230 Z" />
+          <path d="M 395,160 L 395,130 L 405,130 L 405,160 Z" />
+          
+          <path d="M 330,300 Q 310,310 290,305 Q 310,295 330,300 Z" />
+          <path d="M 470,300 Q 490,310 510,305 Q 490,295 470,300 Z" />
+          <path d="M 350,230 Q 330,240 310,235 Q 330,225 350,230 Z" />
+          <path d="M 450,230 Q 470,240 490,235 Q 470,225 450,230 Z" />
+          {/* Tree branches silhouette */}
+          <path d="M 0,380 Q 150,350 250,280 Q 320,230 360,190" strokeWidth="6" stroke="currentColor" fill="none" />
+          <path d="M 200,315 Q 160,250 120,230" strokeWidth="4" stroke="currentColor" fill="none" />
+          <path d="M 230,295 Q 260,240 300,220" strokeWidth="3" stroke="currentColor" fill="none" />
+        </svg>
+      </div>
+
+      {/* Sakura petals floating background */}
+      {sakuraPetals.map(petal => (
+        <span
+          key={petal.id}
+          className="absolute pointer-events-none w-2.5 h-3.5 bg-pink-300 dark:bg-pink-400 rounded-[50%_0_50%_50%] origin-center animate-[blossom-fall_infinite_linear] opacity-0 z-10"
+          style={{
+            left: petal.left,
+            animationDelay: petal.delay,
+            animationDuration: petal.duration,
+            transform: `scale(${petal.scale}) rotate(15deg)`,
+            top: '-20px'
+          }}
+        />
+      ))}
+
+      {/* Custom Styles Injection */}
+      <style dangerouslySetInnerHTML={{__html: `
+        @keyframes shoji-left {
+          0% { transform: translateX(-100%); }
+          40%, 60% { transform: translateX(0); }
+          100% { transform: translateX(-100%); }
+        }
+        @keyframes shoji-right {
+          0% { transform: translateX(100%); }
+          40%, 60% { transform: translateX(0); }
+          100% { transform: translateX(100%); }
+        }
+        @keyframes blossom-fall {
+          0% { transform: translateY(-10px) rotate(0deg); opacity: 0; }
+          10% { opacity: 0.7; }
+          90% { opacity: 0.7; }
+          100% { transform: translateY(550px) rotate(420deg); opacity: 0; }
+        }
+      `}} />
+
+      {/* Shoji Sliding Doors Transition Overlay */}
+      {shojiActive && (
+        <div className="absolute inset-0 z-50 flex pointer-events-auto overflow-hidden rounded-2xl">
+          {/* Left Shoji Panel */}
+          <div className="w-1/2 h-full bg-[#f6f3eb] dark:bg-[#1f1e1c] border-r-[6px] border-amber-900/60 dark:border-amber-950 relative animate-[shoji-left_0.9s_ease-in-out_forwards] flex items-center justify-end pr-6">
+            {/* Wooden lattice grid */}
+            <div className="absolute inset-0 opacity-15 dark:opacity-20 pointer-events-none" style={{
+              backgroundImage: `linear-gradient(to right, #78350f 1.5px, transparent 1.5px), linear-gradient(to bottom, #78350f 1.5px, transparent 1.5px)`,
+              backgroundSize: '35px 50px'
+            }} />
+            {/* Handle handle plate */}
+            <div className="w-3.5 h-20 bg-amber-950 dark:bg-black rounded-l-md border border-amber-900 shadow-md flex items-center justify-center">
+              <div className="w-1 h-10 bg-amber-800 rounded-full" />
+            </div>
+          </div>
+          {/* Right Shoji Panel */}
+          <div className="w-1/2 h-full bg-[#f6f3eb] dark:bg-[#1f1e1c] border-l-[6px] border-amber-900/60 dark:border-amber-950 relative animate-[shoji-right_0.9s_ease-in-out_forwards] flex items-center justify-start pl-6">
+            {/* Wooden lattice grid */}
+            <div className="absolute inset-0 opacity-15 dark:opacity-20 pointer-events-none" style={{
+              backgroundImage: `linear-gradient(to right, #78350f 1.5px, transparent 1.5px), linear-gradient(to bottom, #78350f 1.5px, transparent 1.5px)`,
+              backgroundSize: '35px 50px'
+            }} />
+            {/* Handle handle plate */}
+            <div className="w-3.5 h-20 bg-amber-950 dark:bg-black rounded-r-md border border-[#bca175]/60 shadow-md flex items-center justify-center">
+              <div className="w-1 h-10 bg-amber-800 rounded-full" />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Actual Dojo Screen Router Content */}
+      <div className="w-full flex justify-center items-center z-10 py-4">
+        {gameState === 'setup' && renderSetupScreen()}
+        {gameState === 'playing' && renderPlayingScreen()}
+        {gameState === 'finished' && renderFinishedScreen()}
       </div>
     </div>
   );

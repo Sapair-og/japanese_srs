@@ -611,3 +611,12 @@ body {
   animation: float-up-fade 1.3s forwards cubic-bezier(0.25, 1, 0.5, 1);
 }
 
+/* Hide scrollbar utility for clean swipe rows */
+.scrollbar-none::-webkit-scrollbar {
+  display: none !important;
+}
+.scrollbar-none {
+  -ms-overflow-style: none !important;
+  scrollbar-width: none !important;
+}
+

@@ -130,6 +130,26 @@ const ToriiGateLogo = ({ className = "w-6 h-6", ...props }) => (
   </svg>
 );
 
+const StoryIcon = ({ accent, className = "w-5 h-5" }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className={className}>
+    <rect x="3" y="4" width="2" height="16" rx="1" fill={accent} fillOpacity={0.25} stroke={accent} strokeWidth={1.5} />
+    <rect x="19" y="4" width="2" height="16" rx="1" fill={accent} fillOpacity={0.25} stroke={accent} strokeWidth={1.5} />
+    <path d="M5 6H19V18H5V6Z" stroke="currentColor" strokeLinejoin="round" />
+    <line x1="8" y1="10" x2="16" y2="10" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" />
+    <line x1="8" y1="14" x2="14" y2="14" stroke={accent} strokeWidth={1.5} strokeLinecap="round" />
+  </svg>
+);
+
+const GrammarIcon = ({ accent, className = "w-5 h-5" }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className={className}>
+    <rect x="3" y="6" width="7" height="12" rx="1.5" stroke="currentColor" />
+    <rect x="14" y="6" width="7" height="12" rx="1.5" stroke="currentColor" />
+    <path d="M10 12H14" stroke={accent} strokeWidth={2.5} strokeLinecap="round" />
+    <circle cx="10" cy="12" r="1.5" fill={accent} stroke={accent} />
+    <circle cx="14" cy="12" r="1.5" fill={accent} stroke={accent} />
+  </svg>
+);
+
 const getNavIcon = (id, accent, isActive) => {
   const className = `w-5 h-5 transition-all duration-300 shrink-0 ${isActive ? 'scale-110' : 'group-hover:scale-105'}`;
   switch (id) {
@@ -137,6 +157,10 @@ const getNavIcon = (id, accent, isActive) => {
       return <DashboardIcon accent={accent} className={className} />;
     case 'quiz':
       return <QuizIcon accent={accent} className={className} />;
+    case 'story':
+      return <StoryIcon accent={accent} className={className} />;
+    case 'grammar':
+      return <GrammarIcon accent={accent} className={className} />;
     case 'study':
       return <StudyIcon accent={accent} className={className} />;
     case 'kana':
@@ -239,6 +263,8 @@ export default function Navbar({ activeTab, setActiveTab, hasCards, themeRegion,
   const navItems = [
     { id: 'dashboard', name: 'Dashboard' },
     { id: 'quiz', name: 'Study Arena', disabled: !hasCards },
+    { id: 'story', name: 'Story Mode' },
+    { id: 'grammar', name: 'Grammar Dojo' },
     { id: 'study', name: 'Study Guide' },
     { id: 'kana', name: 'Kana Board' },
     { id: 'vocab', name: 'Library Manager' },
@@ -571,13 +597,13 @@ export default function Navbar({ activeTab, setActiveTab, hasCards, themeRegion,
       </aside>
 
       {/* Mobile Bottom Navigation Bar */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-claude-sidebar border-t border-claude-border flex justify-around items-center z-50 shadow-lg">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-claude-sidebar border-t border-claude-border flex justify-start items-center overflow-x-auto px-4 gap-2 scrollbar-none z-50 shadow-lg flex-nowrap">
         {navItems.map((item) => (
           <button
             key={item.id}
             disabled={item.disabled}
             onClick={() => setActiveTab(item.id)}
-            className={`flex flex-col items-center justify-center w-20 h-full gap-0.5 text-[10px] font-bold transition-all ${
+            className={`flex flex-col items-center justify-center w-20 shrink-0 h-full gap-0.5 text-[10px] font-bold transition-all ${
               item.disabled
                 ? 'opacity-20 cursor-not-allowed text-slate-500'
                 : activeTab === item.id

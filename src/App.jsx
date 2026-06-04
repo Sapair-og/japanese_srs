@@ -15,6 +15,8 @@ import StudyGuide from './components/StudyGuide';
 import { generateMnemonic } from './utils/mnemonicGenerator';
 import Auth from './components/Auth';
 import { initWasm } from './utils/strokeMatcher';
+import StoryReader from './components/StoryReader';
+import GrammarDojo from './components/GrammarDojo';
 export function calculateLevelInfo(totalCorrect) {
   const xp = (totalCorrect || 0) * 10;
   let level = 1;
@@ -568,6 +570,55 @@ export default function App() {
     handleStartSession(selectedLessons);
   };
 
+  // Experience gain handler for interactive components (Grammar Dojo)
+  const handleGainXp = async (amount = 2) => {
+    if (!userId) return;
+    const today = new Date().toISOString().split('T')[0];
+    const lastDate = stats.lastStudiedDate;
+    let newStreak = stats.streak;
+
+    if (lastDate !== today) {
+      if (!lastDate) {
+        newStreak = 1;
+      } else {
+        const lastDateObj = new Date(lastDate);
+        const todayObj = new Date(today);
+        const diffTime = Math.abs(todayObj - lastDateObj);
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        if (diffDays === 1) {
+          newStreak = stats.streak + 1;
+        } else {
+          newStreak = 1;
+        }
+      }
+    }
+
+    const updatedStats = {
+      ...stats,
+      totalCorrect: stats.totalCorrect + amount,
+      totalAttempts: stats.totalAttempts + amount,
+      lastStudiedDate: today,
+      streak: newStreak
+    };
+
+    // Update user_stats in Supabase
+    const { error } = await supabase
+      .from('user_stats')
+      .update({
+        streak: updatedStats.streak,
+        total_attempts: updatedStats.totalAttempts,
+        total_correct: updatedStats.totalCorrect,
+        last_studied_date: updatedStats.lastStudiedDate
+      })
+      .eq('id', userId);
+
+    if (!error) {
+      setStats(updatedStats);
+    } else {
+      console.error('Error updating stats in Supabase:', error);
+    }
+  };
+
   // Answer response SRS logic handler
   const handleAnswer = async (isCorrect, card) => {
     const today = new Date().toISOString().split('T')[0];
@@ -927,6 +978,19 @@ export default function App() {
             onDeleteWord={handleDeleteWord}
             onAddWord={handleAddWord}
             isAdmin={isAdmin}
+          />
+        )}
+
+        {activeTab === 'story' && (
+          <StoryReader
+            onAddWord={handleAddWord}
+            vocabList={vocabList}
+          />
+        )}
+
+        {activeTab === 'grammar' && (
+          <GrammarDojo
+            onGainXp={handleGainXp}
           />
         )}
 

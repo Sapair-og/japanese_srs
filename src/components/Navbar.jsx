@@ -112,6 +112,24 @@ const VocabIcon = ({ accent, className = "w-5 h-5" }) => (
   </svg>
 );
 
+const ToriiGateLogo = ({ className = "w-6 h-6", ...props }) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" className={className} {...props}>
+    {/* Top curved lintel (Kasagi) */}
+    <path d="M2 5 Q12 7.5 22 5 L22 7 Q12 9.5 2 7 Z" />
+    {/* Second horizontal beam (Nuki) */}
+    <path d="M4 11 H20 V12.5 H4 Z" />
+    {/* Center strut (Gakuzuka) */}
+    <rect x="11" y="8" width="2" height="3" />
+    {/* Left Pillar (Hashira) */}
+    <path d="M7.5 8 L6.2 21 H8.3 L9.6 8 Z" />
+    {/* Right Pillar (Hashira) */}
+    <path d="M16.5 8 L17.8 21 H15.7 L14.4 8 Z" />
+    {/* Base plates (Daiishi) */}
+    <rect x="5.7" y="20" width="3.1" height="1.2" rx="0.3" />
+    <rect x="15.2" y="20" width="3.1" height="1.2" rx="0.3" />
+  </svg>
+);
+
 const getNavIcon = (id, accent, isActive) => {
   const className = `w-5 h-5 transition-all duration-300 shrink-0 ${isActive ? 'scale-110' : 'group-hover:scale-105'}`;
   switch (id) {
@@ -231,8 +249,8 @@ export default function Navbar({ activeTab, setActiveTab, hasCards, themeRegion,
       {/* Mobile Top Header Banner */}
       <div className="md:hidden w-full bg-claude-sidebar border-b border-claude-border px-4 py-3.5 flex justify-between items-center z-40 select-none">
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-claude-coral flex items-center justify-center text-sm shadow-sm text-white font-bold">
-            書
+          <div className="w-8 h-8 rounded-lg bg-claude-coral/10 border border-claude-coral/25 flex items-center justify-center text-claude-coral shrink-0 shadow-inner">
+            <ToriiGateLogo className="w-5 h-5" />
           </div>
           <div>
             <span className="text-sm font-extrabold tracking-tight text-claude-text-heading claude-serif">
@@ -363,8 +381,8 @@ export default function Navbar({ activeTab, setActiveTab, hasCards, themeRegion,
             className="flex items-center gap-3 px-2 cursor-pointer group"
             onClick={() => setActiveTab('dashboard')}
           >
-            <div className="w-10 h-10 rounded-xl bg-claude-coral flex items-center justify-center text-xl shadow-md text-white font-extrabold transition-transform group-hover:scale-105">
-              書
+            <div className="w-10 h-10 rounded-xl bg-claude-coral/10 border border-claude-coral/25 flex items-center justify-center text-claude-coral shrink-0 shadow-inner transition-transform group-hover:scale-105">
+              <ToriiGateLogo className="w-6 h-6" />
             </div>
             <div>
               <span className="text-lg font-black tracking-tight text-claude-text-heading block claude-serif">

@@ -1,5 +1,23 @@
 import { useState, useEffect } from 'react';
 
+const ToriiGateLogo = ({ className = "w-6 h-6", ...props }) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" className={className} {...props}>
+    {/* Top curved lintel (Kasagi) */}
+    <path d="M2 5 Q12 7.5 22 5 L22 7 Q12 9.5 2 7 Z" />
+    {/* Second horizontal beam (Nuki) */}
+    <path d="M4 11 H20 V12.5 H4 Z" />
+    {/* Center strut (Gakuzuka) */}
+    <rect x="11" y="8" width="2" height="3" />
+    {/* Left Pillar (Hashira) */}
+    <path d="M7.5 8 L6.2 21 H8.3 L9.6 8 Z" />
+    {/* Right Pillar (Hashira) */}
+    <path d="M16.5 8 L17.8 21 H15.7 L14.4 8 Z" />
+    {/* Base plates (Daiishi) */}
+    <rect x="5.7" y="20" width="3.1" height="1.2" rx="0.3" />
+    <rect x="15.2" y="20" width="3.1" height="1.2" rx="0.3" />
+  </svg>
+);
+
 const facts = [
   "The Japanese writing system consists of three scripts: Hiragana (for grammar), Katakana (for foreign words), and Kanji (Chinese characters).",
   "Japanese verbs always appear at the very end of a sentence. The standard structure is Subject-Object-Verb (SOV).",
@@ -37,8 +55,8 @@ export default function LoadingScreen() {
           <div className="w-20 h-20 rounded-full border-4 border-[#e06847]/15 border-t-[#e06847] animate-spin" />
           
           {/* Centered logo container */}
-          <div className="absolute w-12 h-12 rounded-full bg-[#1e1e1c] border border-[#2d2d2a] flex items-center justify-center text-lg font-bold text-[#e06847] shadow-sm">
-            書
+          <div className="absolute w-12 h-12 rounded-full bg-[#1e1e1c] border border-[#2d2d2a] flex items-center justify-center text-[#e06847] shadow-sm">
+            <ToriiGateLogo className="w-6 h-6" />
           </div>
         </div>
         

@@ -1397,9 +1397,16 @@ export default function VocabManager({
                   </div>
                   <div>
                     <p className="text-sm font-bold text-claude-text-heading">Your Library is Empty</p>
-                    <p className="text-xs text-claude-text-muted mt-1 max-w-[280px] mx-auto">
+                    <p className="text-xs text-claude-text-muted mt-1 max-w-[280px] mx-auto mb-3">
                       "I don't see any cards here! Load some demo words or paste custom JSON on the left to get us started." — Buster-kun
                     </p>
+                    <button
+                      type="button"
+                      onClick={onLoadDemo}
+                      className="px-4 py-2 bg-claude-coral/10 hover:bg-claude-coral/20 border border-claude-coral/25 text-claude-coral text-xs font-bold rounded-xl transition-all cursor-pointer shadow-xs hover:scale-[1.02] active:scale-[0.98] select-none"
+                    >
+                      ✨ Load Kyoto-Slate N5 Demo Deck
+                    </button>
                   </div>
                 </div>
               )}

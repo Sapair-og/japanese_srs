@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { supabase } from '../utils/supabaseClient';
 import { toKana } from 'wanakana';
 import { renderFurigana } from '../utils/furiganaParser';

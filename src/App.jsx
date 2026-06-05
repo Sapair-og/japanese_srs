@@ -1099,6 +1099,9 @@ export default function App() {
   };
 
   const handleNavTabClick = (tabId) => {
+    if (tabId === 'vocab' && !isAdmin) {
+      return;
+    }
     if (tabId === 'quiz') {
       // If we are already on the quiz tab and a session is active, ask if they want to reset it
       if (activeTab === 'quiz' && activeQueue.length > 0) {
@@ -1187,6 +1190,7 @@ export default function App() {
         stats={stats}
         furiganaMode={furiganaMode}
         onChangeFuriganaMode={setFuriganaMode}
+        isAdmin={isAdmin}
       />
 
       {/* Main Content Area */}
@@ -1257,7 +1261,7 @@ export default function App() {
           />
         )}
 
-        {activeTab === 'vocab' && (
+        {activeTab === 'vocab' && isAdmin && (
           <VocabManager
             vocabList={vocabList}
             onImportVocab={handleImportVocab}

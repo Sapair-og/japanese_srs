@@ -172,7 +172,7 @@ const getNavIcon = (id, accent, isActive) => {
   }
 };
 
-export default function Navbar({ activeTab, setActiveTab, hasCards, themeRegion, themeMode, onChangeTheme, profile, onUpdateProfile, bgMusicEnabled, onToggleMusic, onSignOut, userEmail, stats, furiganaMode, onChangeFuriganaMode }) {
+export default function Navbar({ activeTab, setActiveTab, hasCards, themeRegion, themeMode, onChangeTheme, profile, onUpdateProfile, bgMusicEnabled, onToggleMusic, onSignOut, userEmail, stats, furiganaMode, onChangeFuriganaMode, isAdmin }) {
   const [themeDropdownOpen, setThemeDropdownOpen] = useState(false);
   const [showAllThemes, setShowAllThemes] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -309,7 +309,7 @@ export default function Navbar({ activeTab, setActiveTab, hasCards, themeRegion,
     { id: 'grammar', name: 'Grammar Dojo' },
     { id: 'study', name: 'Study Guide' },
     { id: 'kana', name: 'Kana Board' },
-    { id: 'vocab', name: 'Library Manager' },
+    ...(isAdmin ? [{ id: 'vocab', name: 'Library Manager' }] : []),
   ];
 
   return (
@@ -737,7 +737,7 @@ export default function Navbar({ activeTab, setActiveTab, hasCards, themeRegion,
         <button
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           className={`flex flex-col items-center justify-center w-16 h-full gap-0.5 text-[10px] font-bold transition-all ${
-            (['study', 'kana', 'vocab'].includes(activeTab) || mobileMenuOpen)
+            ((['study', 'kana', ...(isAdmin ? ['vocab'] : [])].includes(activeTab) || mobileMenuOpen))
               ? 'text-claude-coral scale-105'
               : 'text-claude-text-muted hover:text-claude-text'
           }`}
@@ -815,22 +815,24 @@ export default function Navbar({ activeTab, setActiveTab, hasCards, themeRegion,
               </button>
 
               {/* Library Manager */}
-              <button
-                onClick={() => {
-                  setActiveTab('vocab');
-                  setMobileMenuOpen(false);
-                }}
-                className={`p-3 rounded-2xl border flex flex-col items-center gap-1.5 cursor-pointer transition-all ${
-                  activeTab === 'vocab'
-                    ? 'bg-claude-sidebar border-claude-coral text-claude-coral'
-                    : 'bg-claude-card border-claude-border text-claude-text-muted hover:text-claude-text'
-                }`}
-              >
-                <span className="p-2 bg-claude-coral/5 rounded-xl text-lg flex items-center justify-center">
-                  {getNavIcon('vocab', currentRegion.accent, activeTab === 'vocab')}
-                </span>
-                <span className="text-[10px] font-extrabold text-center leading-tight">Library</span>
-              </button>
+              {isAdmin && (
+                <button
+                  onClick={() => {
+                    setActiveTab('vocab');
+                    setMobileMenuOpen(false);
+                  }}
+                  className={`p-3 rounded-2xl border flex flex-col items-center gap-1.5 cursor-pointer transition-all ${
+                    activeTab === 'vocab'
+                      ? 'bg-claude-sidebar border-claude-coral text-claude-coral'
+                      : 'bg-claude-card border-claude-border text-claude-text-muted hover:text-claude-text'
+                  }`}
+                >
+                  <span className="p-2 bg-claude-coral/5 rounded-xl text-lg flex items-center justify-center">
+                    {getNavIcon('vocab', currentRegion.accent, activeTab === 'vocab')}
+                  </span>
+                  <span className="text-[10px] font-extrabold text-center leading-tight">Library</span>
+                </button>
+              )}
             </div>
 
             {/* Quick Settings Section */}

@@ -156,11 +156,11 @@
 .theme-sumeru {
   --bg-primary: #ffffff;
   --bg-card: #ffffff;
-  --bg-sidebar: #f7f7f7;
+  --bg-sidebar: #ffffff;
   --border-color: #e5e5e5;
   --text-primary: #3c3c3c;
   --text-secondary: #afafaf;
-  --text-heading: #4b4b4b;
+  --text-heading: #1b1b1b;
   --accent-coral: #58cc02;
   --success-color: #58cc02;
   --error-color: #ea2b2b;
@@ -171,13 +171,14 @@
   --accent-gradient-end-hover: #58cc02;
   color-scheme: light;
 }
+
 .theme-sumeru.dark {
-  --bg-primary: #121212;
-  --bg-card: #181818;
-  --bg-sidebar: #040404;
+  --bg-primary: #000000;
+  --bg-card: #121212;
+  --bg-sidebar: #000000;
   --border-color: #282828;
-  --text-primary: #e0e0e0;
-  --text-secondary: #b3b3b3;
+  --text-primary: #b3b3b3;
+  --text-secondary: #7f7f7f;
   --text-heading: #ffffff;
   --accent-coral: #1db954;
   --success-color: #1db954;
@@ -188,6 +189,267 @@
   --accent-gradient-end: #1aa34a;
   --accent-gradient-end-hover: #1db954;
   color-scheme: dark;
+}
+
+/* ==========================================
+   DUOLINGO LIGHT THEME STYLING OVERRIDES
+   ========================================== */
+.theme-sumeru:not(.dark) {
+  font-family: 'Nunito', 'Noto Sans JP', sans-serif !important;
+}
+
+/* Duolingo Cards (Flat 3D panels) */
+.theme-sumeru:not(.dark) .claude-panel {
+  background: #ffffff !important;
+  border: 2px solid #e5e5e5 !important;
+  border-bottom: 4px solid #e5e5e5 !important;
+  border-radius: 18px !important;
+  box-shadow: none !important;
+}
+
+/* Duolingo Interactive Cards Hover */
+.theme-sumeru:not(.dark) .claude-panel-interactive:hover,
+.theme-sumeru:not(.dark) .study-card-hover:hover {
+  border-color: #58cc02 !important;
+  border-bottom-color: #46a302 !important;
+  transform: translateY(-2px) !important;
+}
+
+/* Duolingo Clicky Pill Buttons */
+.theme-sumeru:not(.dark) .premium-btn-coral {
+  background: #58cc02 !important;
+  border: 2px solid #58cc02 !important;
+  border-bottom: 4px solid #46a302 !important;
+  color: #ffffff !important;
+  border-radius: 14px !important;
+  box-shadow: none !important;
+  transform: none !important;
+  font-weight: 800 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.08em !important;
+  transition: all 0.1s ease !important;
+}
+
+.theme-sumeru:not(.dark) .premium-btn-coral:hover {
+  background: #61e002 !important;
+  border-color: #61e002 !important;
+}
+
+.theme-sumeru:not(.dark) .premium-btn-coral:active {
+  transform: translateY(2px) !important;
+  border-bottom-width: 2px !important;
+}
+
+/* Duolingo Inputs */
+.theme-sumeru:not(.dark) input[type="text"],
+.theme-sumeru:not(.dark) textarea {
+  border: 2px solid #e5e5e5 !important;
+  border-bottom-width: 4px !important;
+  border-radius: 14px !important;
+  background: #ffffff !important;
+  color: #3c3c3c !important;
+}
+
+.theme-sumeru:not(.dark) input[type="text"]:focus,
+.theme-sumeru:not(.dark) textarea:focus {
+  border-color: #58cc02 !important;
+  outline: none;
+}
+
+/* Duolingo Quiz Choice Option Buttons */
+.theme-sumeru:not(.dark) .grid button,
+.theme-sumeru:not(.dark) button.border {
+  border: 2px solid #e5e5e5 !important;
+  border-bottom: 4px solid #e5e5e5 !important;
+  border-radius: 16px !important;
+  box-shadow: none !important;
+  background: #ffffff !important;
+  color: #3c3c3c !important;
+  font-weight: 700 !important;
+  transition: all 0.1s ease !important;
+}
+
+.theme-sumeru:not(.dark) .grid button:not(:disabled):hover,
+.theme-sumeru:not(.dark) button.border:not(:disabled):hover {
+  border-color: #84d8ff !important;
+  border-bottom-color: #3ca4ff !important;
+  background: #f1f7ff !important;
+  color: #1899e8 !important;
+}
+
+.theme-sumeru:not(.dark) .grid button:not(:disabled):active,
+.theme-sumeru:not(.dark) button.border:not(:disabled):active {
+  transform: translateY(2px) !important;
+  border-bottom-width: 2px !important;
+}
+
+/* Duolingo Correct/Incorrect feedback states */
+.theme-sumeru:not(.dark) button.bg-claude-success {
+  background-color: #58cc02 !important;
+  border-color: #58cc02 !important;
+  border-bottom-color: #46a302 !important;
+  color: #ffffff !important;
+}
+
+.theme-sumeru:not(.dark) button.bg-claude-error {
+  background-color: #ea2b2b !important;
+  border-color: #ea2b2b !important;
+  border-bottom-color: #b81d1d !important;
+  color: #ffffff !important;
+}
+
+.theme-sumeru:not(.dark) .claude-panel.bg-claude-success\/15 {
+  background-color: #58cc02/0.1 !important;
+  border-color: #58cc02 !important;
+  border-bottom-width: 4px !important;
+}
+
+/* Duolingo Sidebar Active State overrides */
+.theme-sumeru:not(.dark) aside button.bg-claude-card {
+  background: #f1f7ff !important;
+  color: #1899e8 !important;
+  border: 2px solid #84d8ff !important;
+  border-bottom-width: 4px !important;
+  border-radius: 14px !important;
+}
+
+.theme-sumeru:not(.dark) aside button:not(.bg-claude-card):hover {
+  background: #f7f7f7 !important;
+  color: #3c3c3c !important;
+}
+
+
+/* ==========================================
+   SPOTIFY DARK THEME STYLING OVERRIDES
+   ========================================== */
+.theme-sumeru.dark {
+  font-family: 'Montserrat', 'Noto Sans JP', sans-serif !important;
+  letter-spacing: -0.015em;
+}
+
+/* Spotify borderless containers */
+.theme-sumeru.dark .claude-panel {
+  background: #121212 !important;
+  border: none !important;
+  border-radius: 8px !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5) !important;
+}
+
+/* Spotify hover zoom on panels */
+.theme-sumeru.dark .claude-panel-interactive:hover,
+.theme-sumeru.dark .study-card-hover:hover {
+  background: #181818 !important;
+  transform: translateY(-4px) !important;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.65) !important;
+}
+
+/* Spotify Pill Flat Green Buttons */
+.theme-sumeru.dark .premium-btn-coral {
+  background: #1db954 !important;
+  background-image: none !important;
+  border: none !important;
+  color: #000000 !important;
+  border-radius: 9999px !important;
+  box-shadow: 0 4px 12px rgba(29, 185, 84, 0.15) !important;
+  font-weight: 700 !important;
+  text-transform: none !important;
+  letter-spacing: 0px !important;
+  transition: transform 0.2s cubic-bezier(0.3, 0, 0, 1), background-color 0.2s ease !important;
+}
+
+.theme-sumeru.dark .premium-btn-coral:hover {
+  background: #1ed760 !important;
+  transform: scale(1.04) !important;
+  box-shadow: 0 6px 16px rgba(29, 185, 84, 0.3) !important;
+}
+
+.theme-sumeru.dark .premium-btn-coral:active {
+  transform: scale(0.98) !important;
+}
+
+/* Spotify Inputs */
+.theme-sumeru.dark input[type="text"],
+.theme-sumeru.dark textarea {
+  border: none !important;
+  border-radius: 8px !important;
+  background: #242424 !important;
+  color: #ffffff !important;
+  box-shadow: inset 0 2px 8px rgba(0,0,0,0.3) !important;
+}
+
+.theme-sumeru.dark input[type="text"]:focus,
+.theme-sumeru.dark textarea:focus {
+  background: #2a2a2a !important;
+  outline: 2px solid #1db954 !important;
+}
+
+/* Spotify List Item Options */
+.theme-sumeru.dark .grid button,
+.theme-sumeru.dark button.border {
+  background: #181818 !important;
+  border: 1px solid #282828 !important;
+  border-radius: 8px !important;
+  box-shadow: none !important;
+  color: #b3b3b3 !important;
+  font-weight: 600 !important;
+  transition: all 0.2s ease !important;
+}
+
+.theme-sumeru.dark .grid button:not(:disabled):hover,
+.theme-sumeru.dark button.border:not(:disabled):hover {
+  background: #282828 !important;
+  border-color: #404040 !important;
+  color: #ffffff !important;
+  transform: scale(1.01) !important;
+}
+
+.theme-sumeru.dark .grid button:not(:disabled):active,
+.theme-sumeru.dark button.border:not(:disabled):active {
+  transform: scale(0.99) !important;
+}
+
+/* Spotify Correct/Incorrect feedback states */
+.theme-sumeru.dark button.bg-claude-success {
+  background-color: #1db954 !important;
+  border-color: #1db954 !important;
+  color: #000000 !important;
+}
+
+.theme-sumeru.dark button.bg-claude-error {
+  background-color: #e91429 !important;
+  border-color: #e91429 !important;
+  color: #ffffff !important;
+}
+
+.theme-sumeru.dark .claude-panel.bg-claude-success\/15 {
+  background-color: rgba(29, 185, 84, 0.1) !important;
+  border: 1px solid rgba(29, 185, 84, 0.4) !important;
+}
+
+/* Spotify Sidebar active state overrides */
+.theme-sumeru.dark aside button.bg-claude-card {
+  background: #282828 !important;
+  color: #ffffff !important;
+  border: none !important;
+  border-radius: 8px !important;
+  position: relative;
+  box-shadow: none !important;
+}
+
+.theme-sumeru.dark aside button.bg-claude-card::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 25%;
+  bottom: 25%;
+  width: 4px;
+  background-color: #1db954;
+  border-radius: 99px;
+}
+
+.theme-sumeru.dark aside button:not(.bg-claude-card):hover {
+  background: transparent !important;
+  color: #ffffff !important;
 }
 
 /* 5. FONTAINE (Hydro) */

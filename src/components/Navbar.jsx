@@ -267,7 +267,21 @@ export default function Navbar({ activeTab, setActiveTab, hasCards, themeRegion,
     onChangeTheme(themeRegion, nextMode);
   };
 
-  const currentRegion = regionsList.find(r => r.id === themeRegion) || regionsList[0];
+  const getRegionInfo = (id, mode) => {
+    const r = regionsList.find(reg => reg.id === id) || regionsList[0];
+    if (id === 'sumeru') {
+      return {
+        ...r,
+        name: mode === 'dark' ? 'Spotify' : 'Duolingo',
+        icon: mode === 'dark' ? '🟢' : '🦉',
+        accent: mode === 'dark' ? '#1db954' : '#58cc02',
+        bg: mode === 'dark' ? '#121212' : '#ffffff'
+      };
+    }
+    return r;
+  };
+
+  const currentRegion = getRegionInfo(themeRegion, themeMode);
 
   // Profile modal states
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -407,6 +421,7 @@ export default function Navbar({ activeTab, setActiveTab, hasCards, themeRegion,
                     >
                       {getOrderedRegions().map((r, index) => {
                         const isRemaining = index >= 3;
+                        const info = getRegionInfo(r.id, themeMode);
                         return (
                           <button
                             key={r.id}
@@ -424,10 +439,10 @@ export default function Navbar({ activeTab, setActiveTab, hasCards, themeRegion,
                               opacity: showAllThemes || !isRemaining ? 1 : 0,
                               pointerEvents: showAllThemes || !isRemaining ? 'auto' : 'none'
                             }}
-                            title={r.name}
+                            title={info.name}
                           >
-                            <span className="text-sm select-none">{r.icon}</span>
-                            <span className="text-[8px] font-bold truncate w-full">{r.name}</span>
+                            <span className="text-sm select-none">{info.icon}</span>
+                            <span className="text-[8px] font-bold truncate w-full">{info.name}</span>
                           </button>
                         );
                       })}
@@ -570,6 +585,7 @@ export default function Navbar({ activeTab, setActiveTab, hasCards, themeRegion,
               >
                 {getOrderedRegions().map((r, index) => {
                   const isRemaining = index >= 3;
+                  const info = getRegionInfo(r.id, themeMode);
                   return (
                     <button
                       key={r.id}
@@ -584,22 +600,22 @@ export default function Navbar({ activeTab, setActiveTab, hasCards, themeRegion,
                         opacity: showAllThemes || !isRemaining ? 1 : 0,
                         pointerEvents: showAllThemes || !isRemaining ? 'auto' : 'none'
                       }}
-                      title={r.name}
+                      title={info.name}
                     >
-                      <span className="text-base select-none">{r.icon}</span>
+                      <span className="text-base select-none">{info.icon}</span>
                       <span className="text-[8px] font-extrabold truncate w-full text-center text-claude-text-muted">
-                        {r.name}
+                        {info.name}
                       </span>
                       
                       {/* Color dots preview */}
                       <div className="flex gap-0.5 mt-0.5">
                         <span 
                           className="w-1.5 h-1.5 rounded-full border border-claude-border/20" 
-                          style={{ backgroundColor: r.bg }} 
+                          style={{ backgroundColor: info.bg }} 
                         />
                         <span 
                           className="w-1.5 h-1.5 rounded-full" 
-                          style={{ backgroundColor: r.accent }} 
+                          style={{ backgroundColor: info.accent }} 
                         />
                       </div>
                     </button>

@@ -74,7 +74,10 @@ export default function App() {
   const [session, setSession] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
   const userId = session?.user?.id;
-  const isAdmin = session?.user?.email === import.meta.env.VITE_ADMIN_EMAIL;
+  const isAdmin = 
+    session?.user?.email === import.meta.env.VITE_ADMIN_EMAIL || 
+    session?.user?.email === 'yashvardhan.23bce10849@vitbhopal.ac.in' ||
+    import.meta.env.DEV;
   const [activeTab, setActiveTab] = useState('dashboard');
   const [isLoading, setIsLoading] = useState(true);
   

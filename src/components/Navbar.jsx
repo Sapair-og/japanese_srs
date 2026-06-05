@@ -175,6 +175,7 @@ const getNavIcon = (id, accent, isActive) => {
 export default function Navbar({ activeTab, setActiveTab, hasCards, themeRegion, themeMode, onChangeTheme, profile, onUpdateProfile, bgMusicEnabled, onToggleMusic, onSignOut, userEmail, stats }) {
   const [themeDropdownOpen, setThemeDropdownOpen] = useState(false);
   const [showAllThemes, setShowAllThemes] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   
   // Autohide Navbar on Inactivity
   const [visible, setVisible] = useState(true);
@@ -653,28 +654,210 @@ export default function Navbar({ activeTab, setActiveTab, hasCards, themeRegion,
       <nav 
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
-        className={`md:hidden fixed bottom-0 left-0 right-0 h-16 bg-claude-sidebar border-t border-claude-border flex justify-start items-center overflow-x-auto px-4 gap-2 scrollbar-none z-50 shadow-lg flex-nowrap transition-transform duration-500 ease-in-out ${
+        className={`md:hidden fixed bottom-0 left-0 right-0 h-16 bg-claude-sidebar border-t border-claude-border flex justify-around items-center px-4 gap-2 z-50 shadow-lg transition-transform duration-500 ease-in-out ${
           visible ? 'translate-y-0' : 'translate-y-full'
         }`}
       >
-        {navItems.map((item) => (
-          <button
-            key={item.id}
-            disabled={item.disabled}
-            onClick={() => setActiveTab(item.id)}
-            className={`flex flex-col items-center justify-center w-20 shrink-0 h-full gap-0.5 text-[10px] font-bold transition-all ${
-              item.disabled
-                ? 'opacity-20 cursor-not-allowed text-slate-500'
-                : activeTab === item.id
-                  ? 'text-claude-coral scale-105'
-                  : 'text-claude-text-muted hover:text-claude-text'
-            }`}
-          >
-            <span>{getNavIcon(item.id, currentRegion.accent, activeTab === item.id)}</span>
-            <span>{item.name}</span>
-          </button>
-        ))}
+        {/* Dashboard Tab */}
+        <button
+          onClick={() => {
+            setActiveTab('dashboard');
+            setMobileMenuOpen(false);
+          }}
+          className={`flex flex-col items-center justify-center w-16 h-full gap-0.5 text-[10px] font-bold transition-all ${
+            activeTab === 'dashboard'
+              ? 'text-claude-coral scale-105'
+              : 'text-claude-text-muted hover:text-claude-text'
+          }`}
+        >
+          <span>{getNavIcon('dashboard', currentRegion.accent, activeTab === 'dashboard')}</span>
+          <span>Home</span>
+        </button>
+
+        {/* Study Arena Tab */}
+        <button
+          disabled={!hasCards}
+          onClick={() => {
+            setActiveTab('quiz');
+            setMobileMenuOpen(false);
+          }}
+          className={`flex flex-col items-center justify-center w-16 h-full gap-0.5 text-[10px] font-bold transition-all ${
+            !hasCards
+              ? 'opacity-20 cursor-not-allowed text-slate-500'
+              : activeTab === 'quiz'
+                ? 'text-claude-coral scale-105'
+                : 'text-claude-text-muted hover:text-claude-text'
+          }`}
+        >
+          <span>{getNavIcon('quiz', currentRegion.accent, activeTab === 'quiz')}</span>
+          <span>Arena</span>
+        </button>
+
+        {/* Grammar Dojo Tab */}
+        <button
+          onClick={() => {
+            setActiveTab('grammar');
+            setMobileMenuOpen(false);
+          }}
+          className={`flex flex-col items-center justify-center w-16 h-full gap-0.5 text-[10px] font-bold transition-all ${
+            activeTab === 'grammar'
+              ? 'text-claude-coral scale-105'
+              : 'text-claude-text-muted hover:text-claude-text'
+          }`}
+        >
+          <span>{getNavIcon('grammar', currentRegion.accent, activeTab === 'grammar')}</span>
+          <span>Dojo</span>
+        </button>
+
+        {/* More/Menu Tab */}
+        <button
+          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          className={`flex flex-col items-center justify-center w-16 h-full gap-0.5 text-[10px] font-bold transition-all ${
+            (['study', 'kana', 'vocab'].includes(activeTab) || mobileMenuOpen)
+              ? 'text-claude-coral scale-105'
+              : 'text-claude-text-muted hover:text-claude-text'
+          }`}
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5 transition-transform duration-300">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+          </svg>
+          <span>Menu</span>
+        </button>
       </nav>
+
+      {/* Mobile Bottom Menu Sheet Overlay */}
+      {mobileMenuOpen && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs z-[99] flex items-end justify-center md:hidden animate-fade-in">
+          {/* Backdrop Click to Close */}
+          <div className="absolute inset-0 cursor-pointer" onClick={() => setMobileMenuOpen(false)} />
+          
+          {/* Bottom Sheet Card */}
+          <div className="bg-claude-card border-t border-claude-border rounded-t-3xl w-full p-6 space-y-6 relative z-10 animate-[slide-up_0.25s_ease-out_forwards] max-h-[85vh] overflow-y-auto select-none">
+            
+            {/* Header */}
+            <div className="flex justify-between items-center border-b border-claude-border pb-3">
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-black uppercase tracking-wider text-claude-text-heading">
+                  More Features
+                </span>
+                <span className="text-[9px] bg-claude-coral/10 text-claude-coral font-bold px-1.5 py-0.5 rounded">
+                  Menu
+                </span>
+              </div>
+              <button 
+                onClick={() => setMobileMenuOpen(false)}
+                className="text-claude-text-muted hover:text-claude-text-heading text-sm font-black p-1 cursor-pointer"
+              >
+                ✕ Close
+              </button>
+            </div>
+
+            {/* Grid of Other Features */}
+            <div className="grid grid-cols-3 gap-3">
+              {/* Study Guide */}
+              <button
+                onClick={() => {
+                  setActiveTab('study');
+                  setMobileMenuOpen(false);
+                }}
+                className={`p-3 rounded-2xl border flex flex-col items-center gap-1.5 cursor-pointer transition-all ${
+                  activeTab === 'study'
+                    ? 'bg-claude-sidebar border-claude-coral text-claude-coral'
+                    : 'bg-claude-card border-claude-border text-claude-text-muted hover:text-claude-text'
+                }`}
+              >
+                <span className="p-2 bg-claude-coral/5 rounded-xl text-lg flex items-center justify-center">
+                  {getNavIcon('study', currentRegion.accent, activeTab === 'study')}
+                </span>
+                <span className="text-[10px] font-extrabold text-center leading-tight">Study Guide</span>
+              </button>
+
+              {/* Kana Board */}
+              <button
+                onClick={() => {
+                  setActiveTab('kana');
+                  setMobileMenuOpen(false);
+                }}
+                className={`p-3 rounded-2xl border flex flex-col items-center gap-1.5 cursor-pointer transition-all ${
+                  activeTab === 'kana'
+                    ? 'bg-claude-sidebar border-claude-coral text-claude-coral'
+                    : 'bg-claude-card border-claude-border text-claude-text-muted hover:text-claude-text'
+                }`}
+              >
+                <span className="p-2 bg-claude-coral/5 rounded-xl text-lg flex items-center justify-center">
+                  {getNavIcon('kana', currentRegion.accent, activeTab === 'kana')}
+                </span>
+                <span className="text-[10px] font-extrabold text-center leading-tight">Kana Board</span>
+              </button>
+
+              {/* Library Manager */}
+              <button
+                onClick={() => {
+                  setActiveTab('vocab');
+                  setMobileMenuOpen(false);
+                }}
+                className={`p-3 rounded-2xl border flex flex-col items-center gap-1.5 cursor-pointer transition-all ${
+                  activeTab === 'vocab'
+                    ? 'bg-claude-sidebar border-claude-coral text-claude-coral'
+                    : 'bg-claude-card border-claude-border text-claude-text-muted hover:text-claude-text'
+                }`}
+              >
+                <span className="p-2 bg-claude-coral/5 rounded-xl text-lg flex items-center justify-center">
+                  {getNavIcon('vocab', currentRegion.accent, activeTab === 'vocab')}
+                </span>
+                <span className="text-[10px] font-extrabold text-center leading-tight">Library</span>
+              </button>
+            </div>
+
+            {/* Quick Settings Section */}
+            <div className="space-y-3 pt-3 border-t border-claude-border">
+              <span className="text-[9px] font-extrabold uppercase tracking-widest text-claude-text-muted pl-0.5">
+                Quick Settings
+              </span>
+              
+              <div className="grid grid-cols-2 gap-2">
+                {/* Toggle Music */}
+                <button
+                  onClick={onToggleMusic}
+                  className="py-2.5 border border-claude-border hover:border-claude-coral/50 bg-claude-sidebar/40 hover:bg-claude-card rounded-xl text-[10px] font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                >
+                  <span>{bgMusicEnabled ? '🔊 Mute Music' : '🔇 Play Music'}</span>
+                </button>
+
+                {/* Light/Dark Toggle */}
+                <button
+                  onClick={handleModeToggle}
+                  className="py-2.5 border border-claude-border hover:border-claude-coral/50 bg-claude-sidebar/40 hover:bg-claude-card rounded-xl text-[10px] font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                >
+                  <span>{themeMode === 'light' ? '☀️ Light Mode' : '🌙 Dark Mode'}</span>
+                </button>
+
+                {/* Edit Profile */}
+                <button
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    handleOpenModal();
+                  }}
+                  className="py-2.5 border border-claude-border hover:border-claude-coral/50 bg-claude-sidebar/40 hover:bg-claude-card rounded-xl text-[10px] font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 col-span-2"
+                >
+                  <span>👤 Edit Profile Details</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Sign Out Button */}
+            <button
+              onClick={() => {
+                setMobileMenuOpen(false);
+                onSignOut();
+              }}
+              className="w-full py-3 bg-red-600/5 hover:bg-red-600/10 text-red-600 border border-red-500/20 hover:border-red-500/40 rounded-xl text-[10px] font-black transition-all cursor-pointer text-center"
+            >
+              🚪 Sign Out ({userEmail})
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Profile Edit Modal overlay */}
       {isModalOpen && (

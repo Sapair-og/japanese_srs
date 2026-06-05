@@ -85,6 +85,15 @@ export default function QuizCard({
   const [srsOnly, setSrsOnly] = useState(() => {
     return localStorage.getItem('jp_vocab_srsonly') === 'true';
   });
+  const [autoGrade, setAutoGrade] = useState(() => {
+    return localStorage.getItem('jp_vocab_autograde') !== 'false';
+  });
+  const autoAdvanceTimeoutRef = useRef(null);
+
+  useEffect(() => {
+    localStorage.setItem('jp_vocab_autograde', autoGrade);
+  }, [autoGrade]);
+
   const [isShake, setIsShake] = useState(false);
   const [showFurigana, setShowFurigana] = useState(true);
   const [showRomaji, setShowRomaji] = useState(true);
@@ -676,6 +685,18 @@ export default function QuizCard({
     setElapsedTimes(prev => [...prev, timePerCard]);
   };
 
+  const hasAnsweredRef = useRef(false);
+
+  const submitAnswer = (rating, card) => {
+    if (hasAnsweredRef.current) return;
+    hasAnsweredRef.current = true;
+    if (autoAdvanceTimeoutRef.current) {
+      clearTimeout(autoAdvanceTimeoutRef.current);
+      autoAdvanceTimeoutRef.current = null;
+    }
+    onAnswer(rating, card);
+  };
+
   const handleTypedSubmit = (e) => {
     if (e) e.preventDefault();
     if (isChecking || !typedAnswer.trim()) return;
@@ -695,6 +716,11 @@ export default function QuizCard({
       setFloatingXps(prev => [...prev, { id: Date.now(), x: Math.random() * 40 - 20, y: Math.random() * 20 - 10 }]);
       setCorrectHistory(prev => [...prev, currentCard]);
       setAnsweredCorrectly(true);
+      if (autoGrade) {
+        autoAdvanceTimeoutRef.current = setTimeout(() => {
+          submitAnswer(2, currentCard);
+        }, 900);
+      }
     } else {
       playIncorrectSound();
       setIsShake(true);
@@ -720,6 +746,11 @@ export default function QuizCard({
       setFloatingXps(prev => [...prev, { id: Date.now(), x: Math.random() * 40 - 20, y: Math.random() * 20 - 10 }]);
       setCorrectHistory(prev => [...prev, currentCard]);
       setAnsweredCorrectly(true);
+      if (autoGrade) {
+        autoAdvanceTimeoutRef.current = setTimeout(() => {
+          submitAnswer(2, currentCard);
+        }, 900);
+      }
     } else {
       playIncorrectSound();
       setIsShake(true);
@@ -894,12 +925,12 @@ export default function QuizCard({
         if (answeredCorrectly === true) {
           if (['1', '2', '3', '4'].includes(e.key)) {
             const rating = parseInt(e.key) - 1; // 0, 1, 2, 3
-            onAnswer(rating, currentCard);
+            submitAnswer(rating, currentCard);
           }
         } else if (answeredCorrectly === false) {
           if (e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar') {
             e.preventDefault();
-            onAnswer(0, currentCard);
+            submitAnswer(0, currentCard);
           }
         }
       }
@@ -919,6 +950,11 @@ export default function QuizCard({
 
   // Generate multiple choice options and synchronize transition to next card
   useEffect(() => {
+    hasAnsweredRef.current = false;
+    if (autoAdvanceTimeoutRef.current) {
+      clearTimeout(autoAdvanceTimeoutRef.current);
+    }
+
     if (!currentCard) {
       setDisplayCard(null);
       setDisplayChoices([]);
@@ -1228,6 +1264,24 @@ export default function QuizCard({
                         }`}
                       >
                         {answerMode === 'mc' ? 'Multiple Choice' : 'Typed Reading'}
+                      </button>
+                    </div>
+
+                    {/* Auto-Grade toggle */}
+                    <div className="flex items-center justify-between p-3.5 bg-claude-card/50 border border-claude-border rounded-xl">
+                      <div className="space-y-0.5 text-left">
+                        <span className="text-[11px] font-bold text-claude-text-heading block">Auto-grade Correct Answers ⚡</span>
+                        <span className="text-[8px] text-claude-text-muted block">Auto-advance correct answers with 'Good' rating</span>
+                      </div>
+                      <button
+                        onClick={() => setAutoGrade(!autoGrade)}
+                        className={`px-3 py-1.5 rounded-lg border text-[9px] font-black transition-all cursor-pointer ${
+                          autoGrade 
+                            ? 'bg-amber-500/10 border-amber-500/30 text-amber-600 dark:text-amber-400' 
+                            : 'bg-claude-card border-claude-border text-claude-text-muted hover:text-claude-text-heading hover:scale-[1.02]'
+                        }`}
+                      >
+                        {autoGrade ? 'Enabled' : 'Disabled'}
                       </button>
                     </div>
 
@@ -1783,47 +1837,61 @@ export default function QuizCard({
               </div>
             ) : isChecking ? (
               answeredCorrectly === true ? (
-                <div className="space-y-4 animate-fade-in w-full text-center">
-                  <div className="text-[10px] font-black text-claude-success uppercase tracking-widest mb-1.5">
-                    🎉 Correct! Rate recall quality for scheduling:
+                autoGrade ? (
+                  <div className="claude-panel border-claude-border p-6 rounded-2xl text-center space-y-4 shadow-sm select-none animate-fade-in bg-claude-success/15 border-claude-success/40 w-full animate-pulse-subtle">
+                    <div className="text-3xl animate-bounce">🎉</div>
+                    <div className="space-y-1">
+                      <span className="text-sm font-extrabold text-claude-success block">Correct! Excellent work!</span>
+                      <span className="text-[10px] text-claude-text-muted block">Auto-advancing with 'Good' rating...</span>
+                    </div>
+                    {/* Premium loading bar indicator */}
+                    <div className="w-24 h-1.5 bg-claude-success/25 mx-auto rounded-full overflow-hidden relative">
+                      <div className="absolute left-0 top-0 h-full bg-claude-success animate-pulse w-full"></div>
+                    </div>
                   </div>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 w-full">
-                    {[
-                      { rating: 0, label: 'Again', color: 'border-red-500/30 hover:bg-red-500/10 text-red-500 dark:text-red-400', emoji: '🔴', desc: 'Forgot' },
-                      { rating: 1, label: 'Hard', color: 'border-orange-500/30 hover:bg-orange-500/10 text-orange-500 dark:text-orange-400', emoji: '🟡', desc: 'Slow' },
-                      { rating: 2, label: 'Good', color: 'border-emerald-500/30 hover:bg-emerald-500/10 text-emerald-500 dark:text-emerald-400', emoji: '🟢', desc: 'Optimal' },
-                      { rating: 3, label: 'Easy', color: 'border-purple-500/30 hover:bg-purple-500/10 text-purple-500 dark:text-purple-400', emoji: '🔵', desc: 'Instant' }
-                    ].map(({ rating, label, color, emoji, desc }) => {
-                      const srsInfo = calculateSM2(
-                        rating,
-                        (displayCard || currentCard).interval || 0,
-                        (displayCard || currentCard).repetitions || 0,
-                        (displayCard || currentCard).easeFactor || 2.5
-                      );
-                      const nextInt = srsInfo.interval;
-                      const intervalLabel = nextInt === 0 ? 'now' : nextInt === 1 ? '1d' : `${nextInt}d`;
-                      
-                      return (
-                        <button
-                          key={rating}
-                          type="button"
-                          onClick={() => onAnswer(rating, currentCard)}
-                          className={`flex flex-col items-center justify-center p-3 border-2 rounded-2xl bg-claude-card cursor-pointer transition-all duration-200 transform hover:scale-[1.03] active:scale-[0.98] ${color}`}
-                        >
-                          <span className="text-lg mb-1">{emoji}</span>
-                          <span className="text-xs font-black uppercase">{label}</span>
-                          <span className="text-[9px] opacity-75 font-semibold mt-0.5">{desc}</span>
-                          <span className="text-[9px] font-black mt-2 bg-black/5 dark:bg-white/5 px-2 py-0.5 rounded-md">
-                            {intervalLabel}
-                          </span>
-                          <span className="text-[8px] opacity-40 font-bold mt-1">
-                            Hotkey {rating + 1}
-                          </span>
-                        </button>
-                      );
-                    })}
+                ) : (
+                  <div className="space-y-4 animate-fade-in w-full text-center">
+                    <div className="text-[10px] font-black text-claude-success uppercase tracking-widest mb-1.5">
+                      🎉 Correct! Rate recall quality for scheduling:
+                    </div>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 w-full">
+                      {[
+                        { rating: 0, label: 'Again', color: 'border-red-500/30 hover:bg-red-500/10 text-red-500 dark:text-red-400', emoji: '🔴', desc: 'Forgot' },
+                        { rating: 1, label: 'Hard', color: 'border-orange-500/30 hover:bg-orange-500/10 text-orange-500 dark:text-orange-400', emoji: '🟡', desc: 'Slow' },
+                        { rating: 2, label: 'Good', color: 'border-emerald-500/30 hover:bg-emerald-500/10 text-emerald-500 dark:text-emerald-400', emoji: '🟢', desc: 'Optimal' },
+                        { rating: 3, label: 'Easy', color: 'border-purple-500/30 hover:bg-purple-500/10 text-purple-500 dark:text-purple-400', emoji: '🔵', desc: 'Instant' }
+                      ].map(({ rating, label, color, emoji, desc }) => {
+                        const srsInfo = calculateSM2(
+                          rating,
+                          (displayCard || currentCard).interval || 0,
+                          (displayCard || currentCard).repetitions || 0,
+                          (displayCard || currentCard).easeFactor || 2.5
+                        );
+                        const nextInt = srsInfo.interval;
+                        const intervalLabel = nextInt === 0 ? 'now' : nextInt === 1 ? '1d' : `${nextInt}d`;
+                        
+                        return (
+                          <button
+                            key={rating}
+                            type="button"
+                            onClick={() => submitAnswer(rating, currentCard)}
+                            className={`flex flex-col items-center justify-center p-3 border-2 rounded-2xl bg-claude-card cursor-pointer transition-all duration-200 transform hover:scale-[1.03] active:scale-[0.98] ${color}`}
+                          >
+                            <span className="text-lg mb-1">{emoji}</span>
+                            <span className="text-xs font-black uppercase">{label}</span>
+                            <span className="text-[9px] opacity-75 font-semibold mt-0.5">{desc}</span>
+                            <span className="text-[9px] font-black mt-2 bg-black/5 dark:bg-white/5 px-2 py-0.5 rounded-md">
+                              {intervalLabel}
+                            </span>
+                            <span className="text-[8px] opacity-40 font-bold mt-1">
+                              Hotkey {rating + 1}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
-                </div>
+                )
               ) : (
                 <div className="space-y-4 animate-fade-in w-full">
                   <div className="text-center text-[10px] font-black text-claude-error uppercase tracking-widest">
@@ -1831,7 +1899,7 @@ export default function QuizCard({
                   </div>
                   <button
                     type="button"
-                    onClick={() => onAnswer(0, currentCard)}
+                    onClick={() => submitAnswer(0, currentCard)}
                     className="w-full py-4 px-6 border-2 border-claude-error/50 bg-claude-card hover:bg-claude-error/10 text-claude-error font-extrabold rounded-2xl text-base transition-all flex items-center justify-center gap-2 cursor-pointer shadow-sm transform hover:scale-[1.01] active:scale-[0.98]"
                   >
                     <span>Incorrect! Next Card ➡️</span>

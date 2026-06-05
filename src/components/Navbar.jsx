@@ -4,7 +4,7 @@ const regionsList = [
   { id: 'liyue', name: 'Liyue', icon: '🔶', bg: '#f9f8f6', accent: '#cc5a37' },
   { id: 'mondstadt', name: 'Mondstadt', icon: '🍃', bg: '#f4faf9', accent: '#0ea5e9' },
   { id: 'inazuma', name: 'Inazuma', icon: '⚡', bg: '#faf5ff', accent: '#a855f7' },
-  { id: 'sumeru', name: 'Sumeru', icon: '🌿', bg: '#f0fdf4', accent: '#22c55e' },
+  { id: 'sumeru', name: 'Sumeru', icon: '🌿', bg: '#ffffff', accent: '#1db954' },
   { id: 'fontaine', name: 'Fontaine', icon: '🌊', bg: '#f0f9ff', accent: '#0284c7' },
   { id: 'natlan', name: 'Natlan', icon: '🔥', bg: '#fff7ed', accent: '#f97316' },
   { id: 'snezhnaya', name: 'Snezhnaya', icon: '❄️', bg: '#f0fdfa', accent: '#0d9488' },

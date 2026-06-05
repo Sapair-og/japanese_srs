@@ -152,41 +152,41 @@
   color-scheme: dark;
 }
 
-/* 4. SUMERU (Dendro) */
+/* 4. SUMERU (Dendro / Duolingo Light & Spotify Dark) */
 .theme-sumeru {
-  --bg-primary: #f0fdf4;
+  --bg-primary: #ffffff;
   --bg-card: #ffffff;
-  --bg-sidebar: #dcfce7;
-  --border-color: #bbf7d0;
-  --text-primary: #14532d;
-  --text-secondary: #16a34a;
-  --text-heading: #14532d;
-  --accent-coral: #22c55e;
-  --success-color: #16a34a;
-  --error-color: #dc2626;
-  --glass-shadow: rgba(34, 197, 94, 0.04);
-  --accent-glow: rgba(34, 197, 94, 0.2);
-  --accent-glow-hover: rgba(34, 197, 94, 0.35);
-  --accent-gradient-end: rgba(34, 197, 94, 0.85);
-  --accent-gradient-end-hover: rgba(34, 197, 94, 0.95);
+  --bg-sidebar: #f7f7f7;
+  --border-color: #e5e5e5;
+  --text-primary: #3c3c3c;
+  --text-secondary: #afafaf;
+  --text-heading: #4b4b4b;
+  --accent-coral: #58cc02;
+  --success-color: #58cc02;
+  --error-color: #ea2b2b;
+  --glass-shadow: rgba(88, 204, 2, 0.02);
+  --accent-glow: rgba(88, 204, 2, 0.12);
+  --accent-glow-hover: rgba(88, 204, 2, 0.25);
+  --accent-gradient-end: #46a302;
+  --accent-gradient-end-hover: #58cc02;
   color-scheme: light;
 }
 .theme-sumeru.dark {
-  --bg-primary: #061a10;
-  --bg-card: #0a2c1b;
-  --bg-sidebar: #03100a;
-  --border-color: #144e31;
-  --text-primary: #dcfce7;
-  --text-secondary: #4ade80;
+  --bg-primary: #121212;
+  --bg-card: #181818;
+  --bg-sidebar: #040404;
+  --border-color: #282828;
+  --text-primary: #e0e0e0;
+  --text-secondary: #b3b3b3;
   --text-heading: #ffffff;
-  --accent-coral: #22c55e;
-  --success-color: #4ade80;
-  --error-color: #f87171;
-  --glass-shadow: rgba(0, 0, 0, 0.5);
-  --accent-glow: rgba(34, 197, 94, 0.2);
-  --accent-glow-hover: rgba(34, 197, 94, 0.35);
-  --accent-gradient-end: rgba(34, 197, 94, 0.85);
-  --accent-gradient-end-hover: rgba(34, 197, 94, 0.95);
+  --accent-coral: #1db954;
+  --success-color: #1db954;
+  --error-color: #e91429;
+  --glass-shadow: rgba(0, 0, 0, 0.7);
+  --accent-glow: rgba(29, 185, 84, 0.15);
+  --accent-glow-hover: rgba(29, 185, 84, 0.3);
+  --accent-gradient-end: #1aa34a;
+  --accent-gradient-end-hover: #1db954;
   color-scheme: dark;
 }
 

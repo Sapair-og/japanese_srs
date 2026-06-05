@@ -172,7 +172,7 @@ const getNavIcon = (id, accent, isActive) => {
   }
 };
 
-export default function Navbar({ activeTab, setActiveTab, hasCards, themeRegion, themeMode, onChangeTheme, profile, onUpdateProfile, bgMusicEnabled, onToggleMusic, onSignOut, userEmail, stats }) {
+export default function Navbar({ activeTab, setActiveTab, hasCards, themeRegion, themeMode, onChangeTheme, profile, onUpdateProfile, bgMusicEnabled, onToggleMusic, onSignOut, userEmail, stats, furiganaMode, onChangeFuriganaMode }) {
   const [themeDropdownOpen, setThemeDropdownOpen] = useState(false);
   const [showAllThemes, setShowAllThemes] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -536,6 +536,30 @@ export default function Navbar({ activeTab, setActiveTab, hasCards, themeRegion,
               </button>
             </div>
             
+            {/* Furigana Display Selector */}
+            <div className="space-y-1 pt-0.5">
+              <div className="flex justify-between items-center px-1">
+                <span className="text-[10px] font-extrabold uppercase tracking-widest text-claude-text-muted">
+                  Furigana Mode
+                </span>
+              </div>
+              <div className="flex bg-claude-card/40 border border-claude-border/45 rounded-lg p-0.5 w-full">
+                {['both', 'kanji', 'kana'].map((modeOption) => (
+                  <button
+                    key={modeOption}
+                    onClick={() => onChangeFuriganaMode(modeOption)}
+                    className={`flex-1 py-1 rounded text-[8px] font-black capitalize transition-all cursor-pointer text-center ${
+                      furiganaMode === modeOption
+                        ? 'bg-claude-card text-claude-coral shadow-xs border border-claude-border/30'
+                        : 'text-claude-text-muted hover:text-claude-text-heading border border-transparent'
+                    }`}
+                  >
+                    {modeOption === 'both' ? 'Both 🌸' : modeOption === 'kanji' ? 'Kanji ⛩️' : 'Kana 💮'}
+                  </button>
+                ))}
+              </div>
+            </div>
+            
             {/* Grid of Regions */}
             <div className="p-1.5 bg-claude-card/40 rounded-xl border border-claude-border overflow-hidden">
               <div 
@@ -842,6 +866,28 @@ export default function Navbar({ activeTab, setActiveTab, hasCards, themeRegion,
                 >
                   <span>👤 Edit Profile Details</span>
                 </button>
+
+                {/* Furigana Selector for Mobile */}
+                <div className="col-span-2 space-y-1.5 pt-1">
+                  <span className="text-[9px] font-extrabold uppercase tracking-widest text-claude-text-muted pl-0.5">
+                    Furigana Mode
+                  </span>
+                  <div className="flex bg-claude-sidebar/40 border border-claude-border rounded-xl p-0.5 w-full">
+                    {['both', 'kanji', 'kana'].map((modeOption) => (
+                      <button
+                        key={modeOption}
+                        onClick={() => onChangeFuriganaMode(modeOption)}
+                        className={`flex-grow py-2 rounded-lg text-[9px] font-extrabold capitalize transition-all cursor-pointer ${
+                          furiganaMode === modeOption
+                            ? 'bg-claude-card text-claude-coral shadow-xs border border-claude-border/30'
+                            : 'text-claude-text-muted hover:text-claude-text-heading border border-transparent'
+                        }`}
+                      >
+                        {modeOption === 'both' ? 'Both 🌸' : modeOption === 'kanji' ? 'Kanji ⛩️' : 'Kana 💮'}
+                      </button>
+                    ))}
+                  </div>
+                </div>
               </div>
             </div>
 

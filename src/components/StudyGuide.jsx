@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { generateMnemonic } from '../utils/mnemonicGenerator';
+import { renderFurigana } from '../utils/furiganaParser';
 
-export default function StudyGuide({ vocabList, onUpdateMnemonic }) {
+export default function StudyGuide({ vocabList, onUpdateMnemonic, furiganaMode }) {
   const [selectedLesson, setSelectedLesson] = useState('All');
   const [searchTerm, setSearchTerm] = useState('');
   const [editingCardId, setEditingCardId] = useState(null);
@@ -172,20 +173,9 @@ export default function StudyGuide({ vocabList, onUpdateMnemonic }) {
                           🔊
                         </button>
                         <div className="flex flex-col min-w-0">
-                          {item.kanji ? (
-                            <>
-                              <span className="text-base font-bold text-claude-text-heading leading-tight japanese-serif">
-                                {item.kanji}
-                              </span>
-                              <span className="text-[9px] text-claude-text-muted tracking-wide japanese-sans -mt-0.5">
-                                {item.hiragana}
-                              </span>
-                            </>
-                          ) : (
-                            <span className="text-base font-bold text-claude-text-heading leading-tight japanese-serif">
-                              {item.hiragana}
-                            </span>
-                          )}
+                          <span className="text-base font-bold text-claude-text-heading leading-tight japanese-serif">
+                            {renderFurigana(item.kanji || item.hiragana, item.hiragana, furiganaMode)}
+                          </span>
                         </div>
                       </div>
                     </td>

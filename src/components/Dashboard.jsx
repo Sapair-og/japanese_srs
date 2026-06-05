@@ -29,6 +29,7 @@ const calculateLevelInfo = (totalCorrect) => {
 export default function Dashboard({ 
   stats, 
   vocabList, 
+  reviewSessions = [],
   onStartSession, 
   onLoadDemo, 
   onClearAll, 
@@ -44,6 +45,8 @@ export default function Dashboard({
   onTriggerPreview,
   isAdmin
 }) {
+  const now = new Date();
+  const dueCardsCount = vocabList ? vocabList.filter(c => !c.nextReview || new Date(c.nextReview) <= now).length : 0;
   const [showSettings, setShowSettings] = useState(false);
   const hasCards = vocabList && vocabList.length > 0;
   
@@ -186,15 +189,29 @@ export default function Dashboard({
       <div className="space-y-6">
         
         {/* Stats Bar */}
-        <Stats stats={stats} vocabCount={vocabList.length} />
+        <Stats stats={stats} vocabList={vocabList} reviewSessions={reviewSessions} />
 
         {/* Simplified Study Call-to-action Card */}
         {hasCards ? (
           <div className="claude-panel border-claude-border p-5 md:p-8 rounded-3xl relative overflow-hidden flex flex-col sm:flex-row items-center justify-between gap-4 sm:gap-6 bg-gradient-to-br from-claude-coral/5 to-transparent shadow-xs">
             <div className="space-y-1 text-center sm:text-left">
-              <h2 className="text-xl font-bold text-claude-text-heading claude-serif">Ready to review Japanese vocabulary?</h2>
+              <div className="flex items-center justify-center sm:justify-start gap-2 mb-1">
+                <span className={`inline-flex items-center gap-1 text-[10px] font-black uppercase px-2 py-0.5 rounded-full ${
+                  dueCardsCount > 0 
+                    ? 'bg-red-500/10 text-red-500 border border-red-500/20' 
+                    : 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20'
+                }`}>
+                  {dueCardsCount > 0 ? `🔥 ${dueCardsCount} reviews due` : '🎉 caught up'}
+                </span>
+              </div>
+              <h2 className="text-xl font-bold text-claude-text-heading claude-serif">
+                {dueCardsCount > 0 ? 'SRS Cards are due for review!' : 'Ready for custom practice?'}
+              </h2>
               <p className="text-xs text-claude-text-muted max-w-lg">
-                Enter the Study Arena to customize your session size, set your difficulty mode (Easy or Hard), and test your memory.
+                {dueCardsCount > 0 
+                  ? `You have ${dueCardsCount} vocabulary cards waiting to be reviewed. Complete them now to build memory pathways!`
+                  : "All caught up on SRS! Enter the Study Arena to review specific lessons, customize card counts, or try hard mode."
+                }
               </p>
             </div>
             <button
@@ -202,7 +219,7 @@ export default function Dashboard({
                 onResetConfig(); // Ensure session launcher is shown
                 setActiveTab('quiz');
               }}
-              className="px-8 py-3.5 premium-btn-coral text-white font-extrabold rounded-2xl w-full sm:w-auto text-center cursor-pointer flex items-center justify-center gap-2 text-xs"
+              className="px-8 py-3.5 premium-btn-coral text-white font-extrabold rounded-2xl w-full sm:w-auto text-center cursor-pointer flex items-center justify-center gap-2 text-xs shadow-md transform hover:scale-[1.02] active:scale-[0.98] transition-all"
             >
               Enter Study Arena ✒️
             </button>
@@ -307,18 +324,90 @@ export default function Dashboard({
             </p>
           </div>
 
-          {/* Learning Tip Card */}
+          {/* Weakest Links / Tip Card */}
           <div className="claude-panel border-claude-border rounded-3xl p-4 sm:p-6 flex flex-col justify-between space-y-3 shadow-xs">
-            <div className="flex items-center gap-2 text-xs font-bold text-claude-text-heading">
-              <span>💡</span>
-              <span className="claude-serif">Learning Tip</span>
+            <div className="flex items-center justify-between border-b border-claude-border/30 pb-2">
+              <div className="flex items-center gap-2 text-xs font-bold text-claude-text-heading">
+                <span>🧠</span>
+                <span className="claude-serif">Struggle Zone</span>
+              </div>
+              <span className="text-[8px] font-black text-claude-coral bg-claude-coral/10 px-1.5 py-0.5 rounded uppercase">
+                Weakest Links
+              </span>
             </div>
-            <p className="text-xs text-claude-text-muted leading-relaxed flex-1 flex items-center justify-center text-center py-2 italic">
-              "{randomTip}"
-            </p>
-            <div className="text-[9px] text-center text-claude-text-muted/60 font-bold uppercase tracking-wider">
-              Memory Associates
-            </div>
+            
+            {(() => {
+              const strugglingCards = vocabList
+                ? [...vocabList]
+                    .filter(c => (c.wrongCount || 0) > 0)
+                    .sort((a, b) => (b.wrongCount || 0) - (a.wrongCount || 0))
+                    .slice(0, 3)
+                : [];
+
+              const weakestLesson = (() => {
+                if (!vocabList || vocabList.length === 0) return null;
+                const lessonStats = {};
+                vocabList.forEach(card => {
+                  const les = card.lesson || 'General';
+                  if (!lessonStats[les]) {
+                    lessonStats[les] = { wrong: 0, total: 0 };
+                  }
+                  lessonStats[les].wrong += card.wrongCount || 0;
+                  lessonStats[les].total += 1;
+                });
+                
+                let worst = null;
+                let maxWrong = 0;
+                Object.keys(lessonStats).forEach(les => {
+                  const stat = lessonStats[les];
+                  if (stat.wrong > maxWrong) {
+                    maxWrong = stat.wrong;
+                    worst = { lesson: les, wrong: stat.wrong, count: stat.total };
+                  }
+                });
+                return worst;
+              })();
+
+              if (strugglingCards.length > 0) {
+                return (
+                  <div className="space-y-3 flex-1 text-left">
+                    <div className="text-[9px] uppercase font-bold text-claude-text-muted">
+                      Hardest Words:
+                    </div>
+                    <div className="space-y-2">
+                      {strugglingCards.map(c => (
+                        <div key={c.id} className="flex justify-between items-center bg-claude-sidebar/30 p-2 rounded-xl border border-claude-border/40 text-xs">
+                          <div>
+                            <span className="font-extrabold text-claude-text-heading japanese-serif">{c.kanji || c.hiragana}</span>
+                            <span className="text-[10px] text-claude-text-muted ml-2">({c.english})</span>
+                          </div>
+                          <span className="text-[9px] text-red-500 font-extrabold bg-red-500/10 px-2 py-0.5 rounded-full">
+                            {c.wrongCount} errors
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                    {weakestLesson && weakestLesson.wrong > 0 && (
+                      <div className="pt-2 border-t border-claude-border/30 flex justify-between items-center text-[10px]">
+                        <span className="text-claude-text-muted">Weakest Category:</span>
+                        <span className="font-bold text-claude-text-heading">📁 {weakestLesson.lesson}</span>
+                      </div>
+                    )}
+                  </div>
+                );
+              } else {
+                return (
+                  <div className="flex-grow flex flex-col justify-center items-center py-4 text-center">
+                    <p className="text-xs text-claude-text-muted italic leading-relaxed">
+                      "{randomTip}"
+                    </p>
+                    <div className="text-[9px] text-claude-text-muted/60 font-bold uppercase tracking-wider mt-3">
+                      Tip: Daily retrieval is key
+                    </div>
+                  </div>
+                );
+              }
+            })()}
           </div>
         </div>
 

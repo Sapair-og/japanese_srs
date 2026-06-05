@@ -1,7 +1,9 @@
-/* eslint-disable */
 import React, { useState, useEffect, useRef } from 'react';
 import { generateMnemonic } from '../utils/mnemonicGenerator';
 import { toKana } from 'wanakana';
+import { calculateSM2 } from '../utils/srsEngine';
+import { supabase } from '../utils/supabaseClient';
+import { renderFurigana, formatJapanese } from '../utils/furiganaParser';
 
 
 export default function QuizCard({ 
@@ -27,7 +29,8 @@ export default function QuizCard({
   selectedLessons,
   setSelectedLessons,
   themeRegion,
-  themeMode
+  themeMode,
+  furiganaMode
 }) {
   const [displayCard, setDisplayCard] = useState(currentCard);
   const [floatingXps, setFloatingXps] = useState([]);
@@ -78,6 +81,10 @@ export default function QuizCard({
 
   const [selectedChoice, setSelectedChoice] = useState(null);
   const [isChecking, setIsChecking] = useState(false);
+  const [answeredCorrectly, setAnsweredCorrectly] = useState(null);
+  const [srsOnly, setSrsOnly] = useState(() => {
+    return localStorage.getItem('jp_vocab_srsonly') === 'true';
+  });
   const [isShake, setIsShake] = useState(false);
   const [showFurigana, setShowFurigana] = useState(true);
   const [showRomaji, setShowRomaji] = useState(true);
@@ -105,6 +112,10 @@ export default function QuizCard({
     }
   }, [answerMode]);
 
+  useEffect(() => {
+    localStorage.setItem('jp_vocab_srsonly', srsOnly);
+  }, [srsOnly]);
+
 
 
 
@@ -121,9 +132,15 @@ export default function QuizCard({
   const [sessionSaved, setSessionSaved] = useState(false);
   const [sessionDuration, setSessionDuration] = useState(0);
   
-  const filteredPoolSize = selectedLessons && selectedLessons.length === 0
-    ? allCards.length
-    : allCards.filter(c => selectedLessons.includes(c.lesson || 'General')).length;
+  const now = new Date();
+  const getDueCards = (cards) => cards.filter(c => !c.nextReview || new Date(c.nextReview) <= now);
+
+  const filteredPool = selectedLessons && selectedLessons.length === 0
+    ? allCards
+    : allCards.filter(c => selectedLessons.includes(c.lesson || 'General'));
+
+  const activePool = srsOnly ? getDueCards(filteredPool) : filteredPool;
+  const filteredPoolSize = activePool.length;
   
   // Randomly select one of the two user-supplied success GIFs for completion screen
   const [successGif] = useState(() => {
@@ -654,14 +671,9 @@ export default function QuizCard({
     setSelectedChoice(null);
     setIsShake(true);
     setIsTimeoutOccurred(true);
+    setAnsweredCorrectly(false);
     setTimeouts(prev => prev + 1);
     setElapsedTimes(prev => [...prev, timePerCard]);
-
-    setTimeout(() => {
-      setIsTimeoutOccurred(false);
-      onAnswer(false, currentCard);
-      setTypedAnswer('');
-    }, 1500);
   };
 
   const handleTypedSubmit = (e) => {
@@ -682,17 +694,11 @@ export default function QuizCard({
       spawnParticles();
       setFloatingXps(prev => [...prev, { id: Date.now(), x: Math.random() * 40 - 20, y: Math.random() * 20 - 10 }]);
       setCorrectHistory(prev => [...prev, currentCard]);
-      setTimeout(() => {
-        onAnswer(true, currentCard);
-        setTypedAnswer('');
-      }, 1200);
+      setAnsweredCorrectly(true);
     } else {
       playIncorrectSound();
       setIsShake(true);
-      setTimeout(() => {
-        onAnswer(false, currentCard);
-        setTypedAnswer('');
-      }, 1700);
+      setAnsweredCorrectly(false);
     }
   };
 
@@ -713,15 +719,11 @@ export default function QuizCard({
       spawnParticles();
       setFloatingXps(prev => [...prev, { id: Date.now(), x: Math.random() * 40 - 20, y: Math.random() * 20 - 10 }]);
       setCorrectHistory(prev => [...prev, currentCard]);
-      setTimeout(() => {
-        onAnswer(true, currentCard);
-      }, 1000);
+      setAnsweredCorrectly(true);
     } else {
       playIncorrectSound();
       setIsShake(true);
-      setTimeout(() => {
-        onAnswer(false, currentCard);
-      }, 1500);
+      setAnsweredCorrectly(false);
     }
   };
 
@@ -804,6 +806,33 @@ export default function QuizCard({
       } catch (e) {
         console.error('Failed to save session history:', e);
       }
+
+      // Save to Supabase review_sessions
+      const accuracyRate = elapsedTimes.length > 0 
+        ? parseFloat(((totalSessionCards / elapsedTimes.length) * 100).toFixed(1)) 
+        : 100.0;
+        
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        const userId = session?.user?.id;
+        if (userId) {
+          supabase
+            .from('review_sessions')
+            .insert([{
+              user_id: userId,
+              duration_seconds: duration,
+              cards_reviewed: totalSessionCards,
+              accuracy_rate: accuracyRate,
+              xp_earned: totalSessionCards * 10
+            }])
+            .then(({ error }) => {
+              if (error) {
+                console.error("Error saving review session to Supabase:", error);
+              } else {
+                window.dispatchEvent(new Event('jp_vocab_session_completed'));
+              }
+            });
+        }
+      });
     }
   }, [currentCard, totalSessionCards, sessionSaved, sessionStartTime, elapsedTimes, timeouts, difficulty]);
 
@@ -843,21 +872,36 @@ export default function QuizCard({
 
   // Keyboard hotkeys handler
   useEffect(() => {
-    if (totalSessionCards === 0 || !currentCard || isChecking || historyIndex !== -1) {
+    if (totalSessionCards === 0 || !currentCard || historyIndex !== -1) {
       return;
     }
 
     const handleKeyDown = (e) => {
-      if (['1', '2', '3', '4'].includes(e.key)) {
-        const idx = parseInt(e.key) - 1;
-        if (displayChoices[idx]) {
-          handleChoiceClick(displayChoices[idx]);
+      if (!isChecking) {
+        if (answerMode === 'mc' && ['1', '2', '3', '4'].includes(e.key)) {
+          const idx = parseInt(e.key) - 1;
+          if (displayChoices[idx]) {
+            handleChoiceClick(displayChoices[idx]);
+          }
         }
-      }
-      
-      if (e.key === ' ' || e.key === 'Spacebar') {
-        e.preventDefault();
-        speakJapanese(currentCard.hiragana);
+        
+        if (e.key === ' ' || e.key === 'Spacebar') {
+          e.preventDefault();
+          speakJapanese(currentCard.hiragana);
+        }
+      } else {
+        // When checking (flipped to back), we allow rating hotkeys
+        if (answeredCorrectly === true) {
+          if (['1', '2', '3', '4'].includes(e.key)) {
+            const rating = parseInt(e.key) - 1; // 0, 1, 2, 3
+            onAnswer(rating, currentCard);
+          }
+        } else if (answeredCorrectly === false) {
+          if (e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar') {
+            e.preventDefault();
+            onAnswer(0, currentCard);
+          }
+        }
       }
       
       if (e.key.toLowerCase() === 'q') {
@@ -869,7 +913,7 @@ export default function QuizCard({
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [currentCard, isChecking, displayChoices, totalSessionCards, historyIndex]);
+  }, [currentCard, isChecking, answeredCorrectly, displayChoices, totalSessionCards, historyIndex, answerMode]);
 
 
 
@@ -925,6 +969,8 @@ export default function QuizCard({
       setIsChecking(false);
       setIsShake(false);
       setSelectedChoice(null);
+      setAnsweredCorrectly(null);
+      setIsTimeoutOccurred(false);
       
       // Delay updating displayCard and displayChoices until the flip-back animation finishes (600ms)
       const timer = setTimeout(() => {
@@ -939,6 +985,8 @@ export default function QuizCard({
       setSelectedChoice(null);
       setIsShake(false);
       setTypedAnswer('');
+      setAnsweredCorrectly(null);
+      setIsTimeoutOccurred(false);
       setDisplayCard(currentCard);
       setDisplayChoices(generateChoicesForCard(currentCard));
     }
@@ -1126,9 +1174,27 @@ export default function QuizCard({
                       ⚙️ Preferences
                     </h3>
 
+                    {/* SRS Mode toggle */}
+                    <div className="flex items-center justify-between p-3.5 bg-claude-card/50 border border-claude-border rounded-xl">
+                      <div className="space-y-0.5 text-left">
+                        <span className="text-[11px] font-bold text-claude-text-heading block">Due Cards Only (SRS) 🧠</span>
+                        <span className="text-[8px] text-claude-text-muted block">Review only cards scheduled for today</span>
+                      </div>
+                      <button
+                        onClick={() => setSrsOnly(!srsOnly)}
+                        className={`px-3 py-1.5 rounded-lg border text-[9px] font-black transition-all cursor-pointer ${
+                          srsOnly 
+                            ? 'bg-amber-500/10 border-amber-500/30 text-amber-600 dark:text-amber-400' 
+                            : 'bg-claude-card border-claude-border text-claude-text-muted hover:text-claude-text-heading hover:scale-[1.02]'
+                        }`}
+                      >
+                        {srsOnly ? 'Enabled' : 'Disabled'}
+                      </button>
+                    </div>
+
                     {/* Auto-Speak toggle */}
                     <div className="flex items-center justify-between p-3.5 bg-claude-card/50 border border-claude-border rounded-xl">
-                      <div className="space-y-0.5">
+                      <div className="space-y-0.5 text-left">
                         <span className="text-[11px] font-bold text-claude-text-heading block">Auto-Speak Vocab 🔊</span>
                         <span className="text-[8px] text-claude-text-muted block">Speak audio automatically on card display</span>
                       </div>
@@ -1215,10 +1281,10 @@ export default function QuizCard({
             {/* Actions Footer */}
             <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-claude-border/50">
               <button
-                onClick={onStartSession}
-                disabled={allCards.length === 0}
+                onClick={() => onStartSession(selectedLessons, srsOnly)}
+                disabled={filteredPoolSize === 0}
                 className={`flex-1 py-4 text-xs premium-btn-coral text-white font-black rounded-2xl text-center flex items-center justify-center gap-2 cursor-pointer ${
-                  allCards.length === 0 ? 'opacity-50 cursor-not-allowed' : ''
+                  filteredPoolSize === 0 ? 'opacity-50 cursor-not-allowed' : ''
                 }`}
               >
                 Launch Study Session ⚡
@@ -1543,7 +1609,7 @@ export default function QuizCard({
                         <div className="text-[10px] uppercase tracking-wider font-extrabold text-claude-text-muted">Type the reading of this Kanji:</div>
                         <div className="flex items-center justify-center gap-4">
                           <div className={`text-3xl sm:text-6xl font-bold tracking-wider text-claude-text-heading ${useSerif ? 'japanese-serif' : 'japanese-sans'}`}>
-                            {cardToRender.kanji}
+                            {renderFurigana(cardToRender.kanji, cardToRender.hiragana, 'kanji')}
                           </div>
                           <button
                             onClick={(e) => { e.stopPropagation(); speakJapanese(cardToRender.hiragana); }}
@@ -1574,13 +1640,15 @@ export default function QuizCard({
                       <div className="space-y-3">
                         {/* Pronunciation Hints Row */}
                         <div className="flex justify-center items-center gap-3 text-sm min-h-[24px]">
-                          <span 
-                            className={`text-claude-text font-semibold transition-opacity duration-300 ${
-                              showFurigana ? 'opacity-100' : 'opacity-0 select-none'
-                            }`}
-                          >
-                            {cardToRender.hiragana}
-                          </span>
+                          {furiganaMode !== 'both' && (
+                            <span 
+                              className={`text-claude-text font-semibold transition-opacity duration-300 ${
+                                showFurigana ? 'opacity-100' : 'opacity-0 select-none'
+                              }`}
+                            >
+                              {cardToRender.hiragana}
+                            </span>
+                          )}
                           {cardToRender.romaji && (
                             <span 
                               className={`text-claude-text-muted italic transition-opacity duration-300 ${
@@ -1595,7 +1663,7 @@ export default function QuizCard({
                         {/* Kanji representation and Speaker button inline */}
                         <div className="flex items-center justify-center gap-4">
                           <div className={`text-4xl sm:text-7xl font-bold tracking-wider text-claude-text-heading ${useSerif ? 'japanese-serif' : 'japanese-sans'}`}>
-                            {cardToRender.kanji}
+                            {renderFurigana(cardToRender.kanji, cardToRender.hiragana, furiganaMode)}
                           </div>
                           <button
                             onClick={(e) => { e.stopPropagation(); speakJapanese(cardToRender.hiragana); }}
@@ -1641,13 +1709,9 @@ export default function QuizCard({
                 className={`flip-card-back claude-panel border-claude-border p-5 sm:p-12 text-center relative overflow-hidden shadow-md flex flex-col justify-center items-center ${
                   historyIndex !== -1
                     ? 'border-claude-success/60'
-                    : answerMode === 'typed'
-                      ? typedAnswer && (typedAnswer.toLowerCase().trim() === (displayCard || currentCard).hiragana.toLowerCase().trim() || ((displayCard || currentCard).romaji && typedAnswer.toLowerCase().trim() === (displayCard || currentCard).romaji.toLowerCase().trim()))
-                        ? 'border-claude-success/60'
-                        : 'border-claude-error/60'
-                      : selectedChoice && selectedChoice.toLowerCase().trim() === (displayCard || currentCard).english.toLowerCase().trim()
-                        ? 'border-claude-success/60'
-                        : 'border-claude-error/60'
+                    : answeredCorrectly
+                      ? 'border-claude-success/60'
+                      : 'border-claude-error/60'
                 }`}
               >
                 {/* Visual Mnemonic Callout & Correct Meaning */}
@@ -1656,7 +1720,7 @@ export default function QuizCard({
                     <div className="space-y-1">
                       <span className="text-[8px] uppercase font-bold text-claude-text-muted tracking-wider block">Japanese</span>
                       <div className="text-3xl font-black text-claude-text-heading japanese-serif">
-                        {cardToRender.kanji || cardToRender.hiragana}
+                        {renderFurigana(cardToRender.kanji || cardToRender.hiragana, cardToRender.hiragana, furiganaMode)}
                       </div>
                     </div>
 
@@ -1675,6 +1739,21 @@ export default function QuizCard({
                         {cardToRender.mnemonic || generateMnemonic(cardToRender.hiragana, cardToRender.romaji, cardToRender.english)}
                       </p>
                     </div>
+
+                    {/* Context sentences if present */}
+                    {cardToRender.context_japanese && (
+                      <div className="p-3 bg-claude-sidebar/40 border border-claude-border/50 rounded-2xl max-w-sm mx-auto text-left space-y-1 mt-3">
+                        <span className="text-[8px] uppercase font-extrabold text-claude-text-muted tracking-widest block">💬 Context Sentence</span>
+                        <p className="text-[11px] font-semibold text-claude-text-heading leading-relaxed japanese-serif">
+                          {formatJapanese(cardToRender.context_japanese, furiganaMode)}
+                        </p>
+                        {cardToRender.context_english && (
+                          <p className="text-[10px] text-claude-text-muted">
+                            {cardToRender.context_english}
+                          </p>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -1702,6 +1781,66 @@ export default function QuizCard({
                   Resume Active Quiz ⚡
                 </button>
               </div>
+            ) : isChecking ? (
+              answeredCorrectly === true ? (
+                <div className="space-y-4 animate-fade-in w-full text-center">
+                  <div className="text-[10px] font-black text-claude-success uppercase tracking-widest mb-1.5">
+                    🎉 Correct! Rate recall quality for scheduling:
+                  </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 w-full">
+                    {[
+                      { rating: 0, label: 'Again', color: 'border-red-500/30 hover:bg-red-500/10 text-red-500 dark:text-red-400', emoji: '🔴', desc: 'Forgot' },
+                      { rating: 1, label: 'Hard', color: 'border-orange-500/30 hover:bg-orange-500/10 text-orange-500 dark:text-orange-400', emoji: '🟡', desc: 'Slow' },
+                      { rating: 2, label: 'Good', color: 'border-emerald-500/30 hover:bg-emerald-500/10 text-emerald-500 dark:text-emerald-400', emoji: '🟢', desc: 'Optimal' },
+                      { rating: 3, label: 'Easy', color: 'border-purple-500/30 hover:bg-purple-500/10 text-purple-500 dark:text-purple-400', emoji: '🔵', desc: 'Instant' }
+                    ].map(({ rating, label, color, emoji, desc }) => {
+                      const srsInfo = calculateSM2(
+                        rating,
+                        (displayCard || currentCard).interval || 0,
+                        (displayCard || currentCard).repetitions || 0,
+                        (displayCard || currentCard).easeFactor || 2.5
+                      );
+                      const nextInt = srsInfo.interval;
+                      const intervalLabel = nextInt === 0 ? 'now' : nextInt === 1 ? '1d' : `${nextInt}d`;
+                      
+                      return (
+                        <button
+                          key={rating}
+                          type="button"
+                          onClick={() => onAnswer(rating, currentCard)}
+                          className={`flex flex-col items-center justify-center p-3 border-2 rounded-2xl bg-claude-card cursor-pointer transition-all duration-200 transform hover:scale-[1.03] active:scale-[0.98] ${color}`}
+                        >
+                          <span className="text-lg mb-1">{emoji}</span>
+                          <span className="text-xs font-black uppercase">{label}</span>
+                          <span className="text-[9px] opacity-75 font-semibold mt-0.5">{desc}</span>
+                          <span className="text-[9px] font-black mt-2 bg-black/5 dark:bg-white/5 px-2 py-0.5 rounded-md">
+                            {intervalLabel}
+                          </span>
+                          <span className="text-[8px] opacity-40 font-bold mt-1">
+                            Hotkey {rating + 1}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-4 animate-fade-in w-full">
+                  <div className="text-center text-[10px] font-black text-claude-error uppercase tracking-widest">
+                    😢 Incorrect or timed out!
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => onAnswer(0, currentCard)}
+                    className="w-full py-4 px-6 border-2 border-claude-error/50 bg-claude-card hover:bg-claude-error/10 text-claude-error font-extrabold rounded-2xl text-base transition-all flex items-center justify-center gap-2 cursor-pointer shadow-sm transform hover:scale-[1.01] active:scale-[0.98]"
+                  >
+                    <span>Incorrect! Next Card ➡️</span>
+                    <span className="text-[10px] font-bold opacity-60 bg-black/5 dark:bg-white/5 px-2 py-0.5 rounded-md">
+                      Enter / Space / 1
+                    </span>
+                  </button>
+                </div>
+              )
             ) : answerMode === 'typed' ? (
               <form onSubmit={handleTypedSubmit} className="w-full space-y-3">
                 <div className="relative">

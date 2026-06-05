@@ -15,7 +15,7 @@ import StudyGuide from './components/StudyGuide';
 import { generateMnemonic } from './utils/mnemonicGenerator';
 import Auth from './components/Auth';
 import { initWasm } from './utils/strokeMatcher';
-import StoryReader from './components/StoryReader';
+// import StoryReader from './components/StoryReader';
 import GrammarDojo from './components/GrammarDojo';
 export function calculateLevelInfo(totalCorrect) {
   const xp = (totalCorrect || 0) * 10;
@@ -985,12 +985,12 @@ export default function App() {
           />
         )}
 
-        {activeTab === 'story' && (
+        {/* {activeTab === 'story' && (
           <StoryReader
             onAddWord={handleAddWord}
             vocabList={vocabList}
           />
-        )}
+        )} */}
 
         {activeTab === 'grammar' && (
           <GrammarDojo

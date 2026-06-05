@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 const regionsList = [
   { id: 'liyue', name: 'Liyue', icon: '🔶', bg: '#f9f8f6', accent: '#cc5a37' },
@@ -176,6 +176,47 @@ export default function Navbar({ activeTab, setActiveTab, hasCards, themeRegion,
   const [themeDropdownOpen, setThemeDropdownOpen] = useState(false);
   const [showAllThemes, setShowAllThemes] = useState(false);
   
+  // Autohide Navbar on Inactivity
+  const [visible, setVisible] = useState(true);
+  const [isHovered, setIsHovered] = useState(false);
+  const timeoutRef = useRef(null);
+
+  useEffect(() => {
+    const handleActivity = () => {
+      setVisible(true);
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+      timeoutRef.current = setTimeout(() => {
+        if (!isHovered) {
+          setVisible(false);
+        }
+      }, 3000); // 3 seconds timeout
+    };
+
+    window.addEventListener('mousemove', handleActivity);
+    window.addEventListener('keydown', handleActivity);
+    window.addEventListener('touchstart', handleActivity);
+    window.addEventListener('scroll', handleActivity);
+
+    // Start initial inactivity timer
+    timeoutRef.current = setTimeout(() => {
+      if (!isHovered) {
+        setVisible(false);
+      }
+    }, 3000);
+
+    return () => {
+      window.removeEventListener('mousemove', handleActivity);
+      window.removeEventListener('keydown', handleActivity);
+      window.removeEventListener('touchstart', handleActivity);
+      window.removeEventListener('scroll', handleActivity);
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, [isHovered]);
+
   const { level, xp, xpInCurrentLevel, xpForNextLevel, progressPercent } = calculateLevelInfo(stats?.totalCorrect || 0);
 
   const getTop3Regions = () => {
@@ -263,7 +304,7 @@ export default function Navbar({ activeTab, setActiveTab, hasCards, themeRegion,
   const navItems = [
     { id: 'dashboard', name: 'Dashboard' },
     { id: 'quiz', name: 'Study Arena', disabled: !hasCards },
-    { id: 'story', name: 'Story Mode' },
+    // { id: 'story', name: 'Story Mode' },
     { id: 'grammar', name: 'Grammar Dojo' },
     { id: 'study', name: 'Study Guide' },
     { id: 'kana', name: 'Kana Board' },
@@ -273,7 +314,13 @@ export default function Navbar({ activeTab, setActiveTab, hasCards, themeRegion,
   return (
     <>
       {/* Mobile Top Header Banner */}
-      <div className="md:hidden w-full bg-claude-sidebar border-b border-claude-border px-4 py-3.5 flex justify-between items-center z-40 select-none">
+      <div 
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+        className={`md:hidden w-full bg-claude-sidebar border-b border-claude-border px-4 py-3.5 flex justify-between items-center z-40 select-none transition-all duration-500 ease-in-out ${
+          visible ? 'translate-y-0' : '-translate-y-full -mb-[65px]'
+        }`}
+      >
         <div className="flex items-center gap-2.5">
           <div className="w-8 h-8 rounded-lg bg-claude-coral/10 border border-claude-coral/25 flex items-center justify-center text-claude-coral shrink-0 shadow-inner">
             <ToriiGateLogo className="w-5 h-5" />
@@ -400,7 +447,13 @@ export default function Navbar({ activeTab, setActiveTab, hasCards, themeRegion,
     </div>
 
       {/* Desktop Left Sidebar */}
-      <aside className="hidden md:flex w-64 h-screen sticky top-0 bg-claude-sidebar border-r border-claude-border flex-col justify-between py-8 px-5 z-40 select-none">
+      <aside 
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+        className={`hidden md:flex w-64 h-screen sticky top-0 bg-claude-sidebar border-r border-claude-border flex-col justify-between py-8 px-5 z-40 select-none transition-all duration-500 ease-in-out ${
+          visible ? 'translate-x-0' : '-translate-x-full -mr-64'
+        }`}
+      >
         <div className="space-y-8">
           {/* Logo Brand */}
           <div 
@@ -597,7 +650,13 @@ export default function Navbar({ activeTab, setActiveTab, hasCards, themeRegion,
       </aside>
 
       {/* Mobile Bottom Navigation Bar */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-claude-sidebar border-t border-claude-border flex justify-start items-center overflow-x-auto px-4 gap-2 scrollbar-none z-50 shadow-lg flex-nowrap">
+      <nav 
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+        className={`md:hidden fixed bottom-0 left-0 right-0 h-16 bg-claude-sidebar border-t border-claude-border flex justify-start items-center overflow-x-auto px-4 gap-2 scrollbar-none z-50 shadow-lg flex-nowrap transition-transform duration-500 ease-in-out ${
+          visible ? 'translate-y-0' : 'translate-y-full'
+        }`}
+      >
         {navItems.map((item) => (
           <button
             key={item.id}

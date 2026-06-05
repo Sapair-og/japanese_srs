@@ -257,6 +257,9 @@ export default function GrammarDojo({ onGainXp, vocabList }) {
   const [hearts, setHearts] = useState(3);
   const [streak, setStreak] = useState(0);
 
+  // Pop-out Modal for Study Rules
+  const [activeModalLesson, setActiveModalLesson] = useState(null);
+
   // Mascot interactions
   const [mascotMood, setMascotMood] = useState('neutral');
   const [mascotSpeech, setMascotSpeech] = useState("Welcome to the Dojo! Select a training scroll below to test your grammar skills.");
@@ -528,6 +531,7 @@ export default function GrammarDojo({ onGainXp, vocabList }) {
     triggerStateChange(() => {
       setMascotMood('neutral');
       setMascotSpeech("Welcome to the Dojo! Select a training scroll below to test your grammar skills.");
+      setActiveModalLesson(null);
       setGameState('setup');
     });
   };
@@ -762,7 +766,8 @@ export default function GrammarDojo({ onGainXp, vocabList }) {
             return (
               <div 
                 key={lesson.id} 
-                className="bg-claude-card border border-claude-border p-5 rounded-2xl transition-all duration-300 flex flex-col justify-between hover:scale-[1.01] hover:shadow-md"
+                onClick={() => setActiveModalLesson({ lesson, idx, japaneseExample })}
+                className="bg-claude-card border border-claude-border p-5 rounded-2xl transition-all duration-300 flex flex-col justify-between hover:scale-[1.02] hover:shadow-md cursor-pointer hover:bg-claude-sidebar/35"
               >
                 <div className="space-y-2">
                   <div className="flex justify-between items-center">
@@ -802,6 +807,72 @@ export default function GrammarDojo({ onGainXp, vocabList }) {
             );
           })}
         </div>
+
+        {/* Pop-out Modal for Rule Detail */}
+        {activeModalLesson && (
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-[100] flex items-center justify-center p-4 animate-fade-in">
+            {/* Backdrop click to close */}
+            <div className="absolute inset-0 cursor-pointer" onClick={() => setActiveModalLesson(null)} />
+            
+            {/* Modal Content Card */}
+            <div className="bg-claude-card border border-claude-border rounded-3xl p-8 max-w-xl w-full shadow-2xl relative z-10 flex flex-col gap-6 animate-[scale-in_0.25s_ease-out_forwards] select-none text-left">
+              <button 
+                onClick={() => setActiveModalLesson(null)}
+                className="absolute top-5 right-5 text-claude-text-muted hover:text-claude-text-heading text-lg font-bold p-1 cursor-pointer transition-colors"
+              >
+                ✕
+              </button>
+              
+              <div className="space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-[10px] font-black text-claude-coral uppercase tracking-widest">
+                    Principle {activeModalLesson.idx + 1}
+                  </span>
+                  <span className="px-3 py-1 bg-claude-coral/10 text-claude-coral border border-claude-coral/20 rounded-lg text-xs font-black font-mono">
+                    {deckLevel}
+                  </span>
+                </div>
+                
+                <h3 className="text-2xl font-black text-claude-text leading-tight">
+                  {activeModalLesson.lesson.title}
+                </h3>
+                
+                <div className="text-xs font-bold text-amber-700 dark:text-amber-500 bg-amber-500/5 px-4 py-2.5 rounded-xl border border-amber-500/15 font-mono">
+                  Formula: {activeModalLesson.lesson.pattern}
+                </div>
+                
+                <p className="text-sm font-semibold leading-relaxed text-claude-text-muted pt-2 border-t border-claude-border/50">
+                  {activeModalLesson.lesson.concept}
+                </p>
+              </div>
+
+              <div className="space-y-2.5 pt-2">
+                <span className="text-[10px] font-black text-claude-text-muted uppercase tracking-widest block pl-0.5">Example Sentence:</span>
+                <div className="bg-claude-bg p-4.5 rounded-2xl border border-claude-border/50 space-y-1.5 shadow-inner">
+                  <div className="text-lg font-black text-claude-text leading-tight">
+                    {activeModalLesson.japaneseExample}
+                  </div>
+                  <div className="text-xs text-claude-text-muted font-medium leading-relaxed italic">
+                    "{activeModalLesson.lesson.english}"
+                  </div>
+                </div>
+              </div>
+
+              {activeModalLesson.lesson.tip && (
+                <div className="bg-amber-500/5 border border-amber-500/15 text-amber-600 dark:text-amber-500 p-4 rounded-2xl text-xs font-bold leading-normal">
+                  💡 <strong>Grammar Tip:</strong> {activeModalLesson.lesson.tip}
+                </div>
+              )}
+
+              <button
+                onClick={() => setActiveModalLesson(null)}
+                className="w-full py-4 bg-claude-coral hover:bg-claude-coral/95 text-white font-extrabold text-xs uppercase tracking-widest rounded-2xl shadow-[0_4px_0_0_#9f4124] active:translate-y-[4px] active:shadow-none border border-[#e06847]/30 transition-all cursor-pointer text-center mt-2"
+              >
+                I Understand! 👍
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     );
   };

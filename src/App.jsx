@@ -666,6 +666,37 @@ export default function App() {
     }
   };
 
+  // Update individual word card
+  const handleUpdateWord = async (updatedWord) => {
+    const { id, hiragana, kanji, group, english, romaji, lesson, audio_url, mnemonic, context_japanese, context_english } = updatedWord;
+    
+    const { data, error } = await supabase
+      .from('vocabulary')
+      .update({
+        hiragana: hiragana.trim(),
+        kanji: kanji?.trim() || '',
+        group: group?.trim() || 'Noun',
+        english: english.trim(),
+        romaji: romaji?.trim() || '',
+        lesson: lesson?.trim() || 'General',
+        audio_url: audio_url || null,
+        mnemonic: mnemonic?.trim() || '',
+        context_japanese: context_japanese || null,
+        context_english: context_english || null
+      })
+      .eq('id', id)
+      .select();
+
+    if (!error && data && data.length > 0) {
+      setVocabList(prev => prev.map(word => word.id === id ? { ...word, ...data[0] } : word));
+      setActiveQueue(prev => prev.map(word => word.id === id ? { ...word, ...data[0] } : word));
+      return data[0];
+    } else {
+      console.error('Error updating word:', error);
+      throw error || new Error("Failed to update word in database");
+    }
+  };
+
   // Clear data
   const handleClearAll = async () => {
     if (window.confirm('Are you sure you want to delete all vocabulary cards and reset stats? This cannot be undone.')) {
@@ -1269,6 +1300,7 @@ export default function App() {
             onLoadDemo={handleLoadDemo}
             onDeleteWord={handleDeleteWord}
             onAddWord={handleAddWord}
+            onUpdateWord={handleUpdateWord}
             isAdmin={isAdmin}
             furiganaMode={furiganaMode}
           />

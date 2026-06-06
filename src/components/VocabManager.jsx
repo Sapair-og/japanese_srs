@@ -10,6 +10,7 @@ export default function VocabManager({
   onLoadDemo, 
   onDeleteWord, 
   onAddWord, 
+  onUpdateWord,
   isAdmin,
   furiganaMode
 }) {
@@ -58,11 +59,31 @@ export default function VocabManager({
   const [singleGroup, setSingleGroup] = useState('');
   const [singleEnglish, setSingleEnglish] = useState('');
   const [singleLesson, setSingleLesson] = useState('General');
+  const [singleLessonMode, setSingleLessonMode] = useState('General');
   const [singleMnemonic, setSingleMnemonic] = useState('');
   const [singleContextJapanese, setSingleContextJapanese] = useState('');
   const [singleContextEnglish, setSingleContextEnglish] = useState('');
   const [minedParagraph, setMinedParagraph] = useState('');
   const [minedResults, setMinedResults] = useState([]);
+
+  // Card Editing States
+  const [editingWord, setEditingWord] = useState(null);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editHiragana, setEditHiragana] = useState('');
+  const [editKanji, setEditKanji] = useState('');
+  const [editRomaji, setEditRomaji] = useState('');
+  const [editGroup, setEditGroup] = useState('');
+  const [editEnglish, setEditEnglish] = useState('');
+  const [editLesson, setEditLesson] = useState('General');
+  const [editLessonMode, setEditLessonMode] = useState('General');
+  const [editMnemonic, setEditMnemonic] = useState('');
+  const [editContextJapanese, setEditContextJapanese] = useState('');
+  const [editContextEnglish, setEditContextEnglish] = useState('');
+  const [editAudioUrl, setEditAudioUrl] = useState('');
+  const [editAudioFile, setEditAudioFile] = useState(null);
+  const [editAudioBlob, setEditAudioBlob] = useState(null);
+  const [editAudioPreviewUrl, setEditAudioPreviewUrl] = useState(null);
+  const [editIsRecording, setEditIsRecording] = useState(false);
 
   // Custom audio upload states
   const [isRecording, setIsRecording] = useState(false);
@@ -75,7 +96,27 @@ export default function VocabManager({
   // Bulk upload states
   const [bulkAudioFiles, setBulkAudioFiles] = useState([]);
   const [bulkLesson, setBulkLesson] = useState('General');
+  const [bulkLessonMode, setBulkLessonMode] = useState('General');
   const [isUploading, setIsUploading] = useState(false);
+
+  // Sync preset lesson modes
+  useEffect(() => {
+    if (singleLessonMode !== 'Custom') {
+      setSingleLesson(singleLessonMode);
+    }
+  }, [singleLessonMode]);
+
+  useEffect(() => {
+    if (bulkLessonMode !== 'Custom') {
+      setBulkLesson(bulkLessonMode);
+    }
+  }, [bulkLessonMode]);
+
+  useEffect(() => {
+    if (editLessonMode !== 'Custom') {
+      setEditLesson(editLessonMode);
+    }
+  }, [editLessonMode]);
 
   const startRecording = async () => {
     try {
@@ -119,6 +160,137 @@ export default function VocabManager({
       setSingleAudioFile(file);
       setAudioUrl(URL.createObjectURL(file));
       setAudioBlob(null); // Clear recorded blob if we select a file
+    }
+  };
+
+  const editMediaRecorderRef = useRef(null);
+  const editAudioChunksRef = useRef([]);
+
+  const startEditRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mediaRecorder = new MediaRecorder(stream);
+      editMediaRecorderRef.current = mediaRecorder;
+      editAudioChunksRef.current = [];
+
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          editAudioChunksRef.current.push(event.data);
+        }
+      };
+
+      mediaRecorder.onstop = () => {
+        const blob = new Blob(editAudioChunksRef.current, { type: 'audio/webm' });
+        setEditAudioBlob(blob);
+        setEditAudioPreviewUrl(URL.createObjectURL(blob));
+        setEditAudioFile(null);
+      };
+
+      mediaRecorder.start();
+      setEditIsRecording(true);
+    } catch (err) {
+      console.error("Error accessing microphone:", err);
+      alert("Could not access microphone.");
+    }
+  };
+
+  const stopEditRecording = () => {
+    if (editMediaRecorderRef.current && editIsRecording) {
+      editMediaRecorderRef.current.stop();
+      editMediaRecorderRef.current.stream.getTracks().forEach(track => track.stop());
+      setEditIsRecording(false);
+    }
+  };
+
+  const handleEditFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setEditAudioFile(file);
+      setEditAudioPreviewUrl(URL.createObjectURL(file));
+      setEditAudioBlob(null);
+    }
+  };
+
+  const handleStartEdit = (word) => {
+    setEditingWord(word);
+    setEditHiragana(word.hiragana || '');
+    setEditKanji(word.kanji || '');
+    setEditRomaji(word.romaji || '');
+    setEditGroup(word.group || 'Noun');
+    setEditEnglish(word.english || '');
+    setEditMnemonic(word.mnemonic || '');
+    setEditContextJapanese(word.context_japanese || '');
+    setEditContextEnglish(word.context_english || '');
+    setEditAudioUrl(word.audio_url || '');
+    setEditAudioFile(null);
+    setEditAudioBlob(null);
+    setEditAudioPreviewUrl(word.audio_url || null);
+    setEditIsRecording(false);
+    
+    // Set lesson modes
+    const val = word.lesson || 'General';
+    if (['N5', 'N4', 'General'].includes(val)) {
+      setEditLessonMode(val);
+      setEditLesson(val);
+    } else {
+      setEditLessonMode('Custom');
+      setEditLesson(val);
+    }
+    
+    setShowEditModal(true);
+  };
+
+  const handleEditSubmit = async (e) => {
+    e.preventDefault();
+    setErrorMsg(null);
+    setSuccessMsg(null);
+    setIsUploading(true);
+
+    const sanitize = (text) => {
+      if (!text) return '';
+      return String(text).replace(/<[^>]*>/g, '').trim();
+    };
+
+    const cleanHiragana = sanitize(editHiragana);
+    const cleanEnglish = sanitize(editEnglish);
+
+    if (!cleanHiragana || !cleanEnglish) {
+      setErrorMsg('Hiragana and English are required.');
+      setIsUploading(false);
+      return;
+    }
+
+    try {
+      let vocalUrl = editAudioUrl;
+      if (editAudioBlob || editAudioFile) {
+        const publicUrl = await uploadAudioToSupabase(editAudioBlob || editAudioFile, cleanHiragana);
+        if (publicUrl) {
+          vocalUrl = publicUrl;
+        }
+      }
+
+      const updatedWord = {
+        id: editingWord.id,
+        hiragana: cleanHiragana,
+        kanji: sanitize(editKanji),
+        romaji: sanitize(editRomaji),
+        group: sanitize(editGroup),
+        english: cleanEnglish,
+        lesson: sanitize(editLesson) || 'General',
+        mnemonic: sanitize(editMnemonic),
+        context_japanese: sanitize(editContextJapanese) || null,
+        context_english: sanitize(editContextEnglish) || null,
+        audio_url: vocalUrl || null
+      };
+
+      await onUpdateWord(updatedWord);
+      setSuccessMsg(`Successfully updated "${cleanHiragana}"!`);
+      setShowEditModal(false);
+      setEditingWord(null);
+    } catch (err) {
+      setErrorMsg(`Failed to update word: ${err.message}`);
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -747,15 +919,33 @@ export default function VocabManager({
 
                   {/* Bulk Lesson and Audio Match Selection */}
                   <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="text-[9px] uppercase font-extrabold text-claude-text-muted tracking-wider block mb-1">Bulk Lesson Name</label>
-                      <input
-                        type="text"
-                        value={bulkLesson}
-                        onChange={(e) => setBulkLesson(e.target.value)}
-                        placeholder="General"
-                        className="w-full px-3 py-2 bg-claude-sidebar/40 border border-claude-border rounded-xl text-xs focus:outline-none focus:border-claude-coral/70 text-claude-text"
-                      />
+                    <div className="space-y-1">
+                      <label className="text-[9px] uppercase font-extrabold text-claude-text-muted tracking-wider block">Bulk Lesson / JLPT Level</label>
+                      <div className="flex gap-1.5 mb-1.5 select-none">
+                        {['N5', 'N4', 'General', 'Custom'].map((m) => (
+                          <button
+                            key={m}
+                            type="button"
+                            onClick={() => setBulkLessonMode(m)}
+                            className={`px-2.5 py-1.5 rounded-lg border text-[9px] font-black transition-all cursor-pointer ${
+                              bulkLessonMode === m
+                                ? 'bg-claude-coral/10 border-claude-coral text-claude-coral'
+                                : 'bg-claude-card hover:bg-claude-sidebar border-claude-border text-claude-text-muted hover:text-claude-text-heading'
+                            }`}
+                          >
+                            {m}
+                          </button>
+                        ))}
+                      </div>
+                      {bulkLessonMode === 'Custom' && (
+                        <input
+                          type="text"
+                          value={bulkLesson}
+                          onChange={(e) => setBulkLesson(e.target.value)}
+                          placeholder="Type custom lesson..."
+                          className="w-full px-3 py-2 bg-claude-sidebar/40 border border-claude-border rounded-xl text-xs focus:outline-none focus:border-claude-coral/70 text-claude-text animate-fade-in"
+                        />
+                      )}
                     </div>
                     <div>
                       <label className="text-[9px] uppercase font-extrabold text-claude-text-muted tracking-wider block mb-1">Select Vocals (Bulk)</label>
@@ -1006,15 +1196,34 @@ export default function VocabManager({
                         className="w-full px-3 py-2 bg-claude-sidebar/40 border border-claude-border rounded-xl text-xs focus:outline-none focus:border-claude-coral/70 text-claude-text"
                       />
                     </div>
-                    <div>
-                      <label className="text-[9px] uppercase font-extrabold text-claude-text-muted tracking-wider">Lesson Name</label>
-                      <input
-                        type="text"
-                        value={singleLesson}
-                        onChange={(e) => setSingleLesson(e.target.value)}
-                        placeholder="General"
-                        className="w-full px-3 py-2 bg-claude-sidebar/40 border border-claude-border rounded-xl text-xs focus:outline-none focus:border-claude-coral/70 text-claude-text"
-                      />
+                    <div className="space-y-1">
+                      <label className="text-[9px] uppercase font-extrabold text-claude-text-muted tracking-wider block">Lesson / JLPT Level</label>
+                      <div className="flex gap-1.5 mb-1.5 select-none">
+                        {['N5', 'N4', 'General', 'Custom'].map((m) => (
+                          <button
+                            key={m}
+                            type="button"
+                            onClick={() => setSingleLessonMode(m)}
+                            className={`px-2.5 py-1.5 rounded-lg border text-[9px] font-black transition-all cursor-pointer ${
+                              singleLessonMode === m
+                                ? 'bg-claude-coral/10 border-claude-coral text-claude-coral'
+                                : 'bg-claude-card hover:bg-claude-sidebar border-claude-border text-claude-text-muted hover:text-claude-text-heading'
+                            }`}
+                          >
+                            {m}
+                          </button>
+                        ))}
+                      </div>
+                      {singleLessonMode === 'Custom' && (
+                        <input
+                          type="text"
+                          required
+                          value={singleLesson}
+                          onChange={(e) => setSingleLesson(e.target.value)}
+                          placeholder="Type custom lesson..."
+                          className="w-full px-3 py-2 bg-claude-sidebar/40 border border-claude-border rounded-xl text-xs focus:outline-none focus:border-claude-coral/70 text-claude-text animate-fade-in"
+                        />
+                      )}
                     </div>
                   </div>
 
@@ -1366,13 +1575,22 @@ export default function VocabManager({
                         </div>
                       </div>
                       {isAdmin && (
-                        <button
-                          onClick={() => onDeleteWord(word)}
-                          className="text-claude-text-muted hover:text-rose-400 p-1.5 hover:bg-red-950/20 rounded-lg transition-colors border border-transparent hover:border-red-900/20 md:opacity-0 md:group-hover:opacity-100 focus:opacity-100 cursor-pointer"
-                          title="Delete card"
-                        >
-                          🗑️
-                        </button>
+                        <div className="flex gap-1 shrink-0">
+                          <button
+                            onClick={() => handleStartEdit(word)}
+                            className="text-claude-text-muted hover:text-claude-coral p-1.5 hover:bg-claude-sidebar rounded-lg transition-colors border border-transparent hover:border-claude-border md:opacity-0 md:group-hover:opacity-100 focus:opacity-100 cursor-pointer"
+                            title="Edit card"
+                          >
+                            ✏️
+                          </button>
+                          <button
+                            onClick={() => onDeleteWord(word)}
+                            className="text-claude-text-muted hover:text-rose-400 p-1.5 hover:bg-red-950/20 rounded-lg transition-colors border border-transparent hover:border-red-900/20 md:opacity-0 md:group-hover:opacity-100 focus:opacity-100 cursor-pointer"
+                            title="Delete card"
+                          >
+                            🗑️
+                          </button>
+                        </div>
                       )}
                     </div>
                   ))}
@@ -1414,6 +1632,236 @@ export default function VocabManager({
           </div>
         </div>
       </div>
+
+      {/* Card Edit Modal Overlay */}
+      {showEditModal && editingWord && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs z-[100] flex items-center justify-center p-4 animate-fade-in select-none">
+          {/* Backdrop click to close */}
+          <div className="absolute inset-0 cursor-pointer" onClick={() => { setShowEditModal(false); setEditingWord(null); }} />
+          
+          <div className="bg-claude-card border border-claude-border rounded-3xl p-6 max-w-lg w-full relative z-10 animate-fade-in max-h-[90vh] overflow-y-auto shadow-2xl space-y-4 text-left">
+            <div className="flex justify-between items-center border-b border-claude-border pb-3">
+              <div>
+                <h3 className="text-base font-black text-claude-text-heading claude-serif">Edit Vocabulary Card</h3>
+                <p className="text-[10px] text-claude-text-muted">Modify card properties and commit updates directly to the database.</p>
+              </div>
+              <button 
+                type="button"
+                onClick={() => { setShowEditModal(false); setEditingWord(null); }}
+                className="text-claude-text-muted hover:text-claude-text-heading text-sm font-black p-1 cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleEditSubmit} className="space-y-4">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-[9px] uppercase font-extrabold text-claude-text-muted tracking-wider block mb-0.5">Hiragana *</label>
+                  <input
+                    type="text"
+                    required
+                    value={editHiragana}
+                    onChange={(e) => setEditHiragana(toKana(e.target.value, { IMEMode: true }))}
+                    placeholder="たべる"
+                    className="w-full px-3 py-2 bg-claude-sidebar/40 border border-claude-border rounded-xl text-xs focus:outline-none focus:border-claude-coral text-claude-text-heading font-semibold"
+                  />
+                </div>
+                <div>
+                  <label className="text-[9px] uppercase font-extrabold text-claude-text-muted tracking-wider block mb-0.5">Kanji (Optional)</label>
+                  <input
+                    type="text"
+                    value={editKanji}
+                    onChange={(e) => setEditKanji(e.target.value)}
+                    placeholder="食べる"
+                    className="w-full px-3 py-2 bg-claude-sidebar/40 border border-claude-border rounded-xl text-xs focus:outline-none focus:border-claude-coral text-claude-text-heading font-semibold"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-[9px] uppercase font-extrabold text-claude-text-muted tracking-wider block mb-0.5">Romaji (Optional)</label>
+                  <input
+                    type="text"
+                    value={editRomaji}
+                    onChange={(e) => setEditRomaji(e.target.value)}
+                    placeholder="taberu"
+                    className="w-full px-3 py-2 bg-claude-sidebar/40 border border-claude-border rounded-xl text-xs focus:outline-none focus:border-claude-coral text-claude-text-heading font-semibold"
+                  />
+                </div>
+                <div>
+                  <label className="text-[9px] uppercase font-extrabold text-claude-text-muted tracking-wider block mb-0.5">Group (Optional)</label>
+                  <input
+                    type="text"
+                    value={editGroup}
+                    onChange={(e) => setEditGroup(e.target.value)}
+                    placeholder="Verb Group 2"
+                    className="w-full px-3 py-2 bg-claude-sidebar/40 border border-claude-border rounded-xl text-xs focus:outline-none focus:border-claude-coral text-claude-text-heading font-semibold"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-[9px] uppercase font-extrabold text-claude-text-muted tracking-wider block mb-0.5">English Definition *</label>
+                  <input
+                    type="text"
+                    required
+                    value={editEnglish}
+                    onChange={(e) => setEditEnglish(e.target.value)}
+                    placeholder="to eat"
+                    className="w-full px-3 py-2 bg-claude-sidebar/40 border border-claude-border rounded-xl text-xs focus:outline-none focus:border-claude-coral text-claude-text-heading font-semibold"
+                  />
+                </div>
+                
+                <div className="space-y-1">
+                  <label className="text-[9px] uppercase font-extrabold text-claude-text-muted tracking-wider block">Lesson / JLPT Level</label>
+                  <div className="flex gap-1 mb-1 select-none">
+                    {['N5', 'N4', 'General', 'Custom'].map((m) => (
+                      <button
+                        key={m}
+                        type="button"
+                        onClick={() => setEditLessonMode(m)}
+                        className={`px-2 py-1.5 rounded-lg border text-[8px] font-black transition-all cursor-pointer ${
+                          editLessonMode === m
+                            ? 'bg-claude-coral/10 border-claude-coral text-claude-coral'
+                            : 'bg-claude-card hover:bg-claude-sidebar border-claude-border text-claude-text-muted hover:text-claude-text-heading'
+                        }`}
+                      >
+                        {m}
+                      </button>
+                    ))}
+                  </div>
+                  {editLessonMode === 'Custom' && (
+                    <input
+                      type="text"
+                      required
+                      value={editLesson}
+                      onChange={(e) => setEditLesson(e.target.value)}
+                      placeholder="Type custom lesson..."
+                      className="w-full px-3 py-2 bg-claude-sidebar/40 border border-claude-border rounded-xl text-xs focus:outline-none focus:border-claude-coral text-claude-text-heading font-semibold animate-fade-in"
+                    />
+                  )}
+                </div>
+              </div>
+
+              <div>
+                <label className="text-[9px] uppercase font-extrabold text-claude-text-muted tracking-wider block mb-0.5">Mnemonic / Learning Trick</label>
+                <textarea
+                  value={editMnemonic}
+                  onChange={(e) => setEditMnemonic(e.target.value)}
+                  placeholder="Memory mnemonic trick..."
+                  rows={2}
+                  className="w-full px-3 py-2 bg-claude-sidebar/40 border border-claude-border rounded-xl text-xs focus:outline-none focus:border-claude-coral text-claude-text-heading font-semibold resize-none"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-[9px] uppercase font-extrabold text-claude-text-muted tracking-wider block mb-0.5">Context Sentence (Japanese)</label>
+                  <input
+                    type="text"
+                    value={editContextJapanese}
+                    onChange={(e) => setEditContextJapanese(e.target.value)}
+                    placeholder="Context sentence..."
+                    className="w-full px-3 py-2 bg-claude-sidebar/40 border border-claude-border rounded-xl text-xs focus:outline-none focus:border-claude-coral text-claude-text-heading font-semibold"
+                  />
+                </div>
+                <div>
+                  <label className="text-[9px] uppercase font-extrabold text-claude-text-muted tracking-wider block mb-0.5">Context Translation (English)</label>
+                  <input
+                    type="text"
+                    value={editContextEnglish}
+                    onChange={(e) => setEditContextEnglish(e.target.value)}
+                    placeholder="Sentence translation..."
+                    className="w-full px-3 py-2 bg-claude-sidebar/40 border border-claude-border rounded-xl text-xs focus:outline-none focus:border-claude-coral text-claude-text-heading font-semibold"
+                  />
+                </div>
+              </div>
+
+              {/* Vocal Audio Edit/Upload Section */}
+              <div className="p-3 bg-claude-sidebar/35 border border-claude-border/80 rounded-2xl space-y-2">
+                <label className="text-[9px] uppercase font-extrabold text-claude-text-muted tracking-wider block">Audio Vocal Clip</label>
+                
+                <div className="flex items-center gap-3">
+                  {!editIsRecording ? (
+                    <button
+                      type="button"
+                      onClick={startEditRecording}
+                      className="px-3 py-1.5 bg-claude-coral/10 hover:bg-claude-coral/20 border border-claude-coral/30 hover:border-claude-coral/50 text-claude-coral text-xs font-bold rounded-lg transition-all flex items-center gap-1.5 cursor-pointer"
+                    >
+                      🎙️ Record New
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={stopEditRecording}
+                      className="px-3 py-1.5 bg-red-500/10 hover:bg-red-500/20 border border-red-500/40 text-red-500 text-xs font-bold rounded-lg animate-pulse transition-all flex items-center gap-1.5 cursor-pointer"
+                    >
+                      ⏹️ Stop
+                    </button>
+                  )}
+                  
+                  <div className="flex-1">
+                    <input
+                      type="file"
+                      accept="audio/*"
+                      onChange={handleEditFileChange}
+                      id="edit-audio-file"
+                      className="hidden"
+                    />
+                    <label
+                      htmlFor="edit-audio-file"
+                      className="px-3 py-1.5 bg-claude-card hover:bg-claude-sidebar border border-claude-border text-claude-text-muted hover:text-claude-text-heading text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer h-[32px]"
+                    >
+                      📁 Upload New
+                    </label>
+                  </div>
+                </div>
+
+                {editAudioPreviewUrl && (
+                  <div className="flex items-center justify-between bg-claude-card/50 border border-claude-border/50 rounded-xl p-1.5 select-none mt-1.5">
+                    <audio src={editAudioPreviewUrl} controls className="h-6 w-[180px] shrink-0" />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEditAudioBlob(null);
+                        setEditAudioFile(null);
+                        setEditAudioPreviewUrl(null);
+                        setEditAudioUrl('');
+                      }}
+                      className="text-xs text-red-400 hover:text-red-500 p-1 hover:bg-red-950/25 rounded-md cursor-pointer font-bold"
+                      title="Clear Vocal"
+                    >
+                      ✕ Clear Audio
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              <div className="flex gap-3 pt-3 border-t border-claude-border">
+                <button
+                  type="submit"
+                  disabled={isUploading}
+                  className={`flex-1 py-3 bg-claude-coral hover:bg-claude-coral/95 text-white font-extrabold rounded-xl shadow-md transition-all text-xs cursor-pointer text-center ${
+                    isUploading ? 'opacity-65 cursor-not-allowed animate-pulse' : ''
+                  }`}
+                >
+                  {isUploading ? 'Saving... ⚡' : 'Save Changes ⚡'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setShowEditModal(false); setEditingWord(null); }}
+                  className="flex-1 py-3 bg-claude-sidebar border border-claude-border hover:border-claude-text-heading text-claude-text font-bold rounded-xl transition-all text-xs cursor-pointer text-center"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

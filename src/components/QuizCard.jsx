@@ -150,6 +150,60 @@ export default function QuizCard({
 
   const activePool = srsOnly ? getDueCards(filteredPool) : filteredPool;
   const filteredPoolSize = activePool.length;
+
+  // Grouping lessons and counts
+  const lessonCounts = allCards.reduce((acc, card) => {
+    const les = card.lesson || 'General';
+    acc[les] = (acc[les] || 0) + 1;
+    return acc;
+  }, {});
+
+  const uniqueLessons = Array.from(new Set(allCards.map(c => c.lesson || 'General'))).sort();
+
+  const n5Lessons = uniqueLessons.filter(l => l.toLowerCase().includes('n5'));
+  const n4Lessons = uniqueLessons.filter(l => l.toLowerCase().includes('n4'));
+  const otherLessons = uniqueLessons.filter(l => !l.toLowerCase().includes('n5') && !l.toLowerCase().includes('n4'));
+
+  const handleSelectAllN5 = () => {
+    setSelectedLessons(prev => {
+      const filtered = prev.filter(l => !n5Lessons.includes(l));
+      return [...filtered, ...n5Lessons];
+    });
+  };
+
+  const handleDeselectAllN5 = () => {
+    setSelectedLessons(prev => prev.filter(l => !n5Lessons.includes(l)));
+  };
+
+  const handleSelectAllN4 = () => {
+    setSelectedLessons(prev => {
+      const filtered = prev.filter(l => !n4Lessons.includes(l));
+      return [...filtered, ...n4Lessons];
+    });
+  };
+
+  const handleDeselectAllN4 = () => {
+    setSelectedLessons(prev => prev.filter(l => !n4Lessons.includes(l)));
+  };
+
+  const handleSelectAllOthers = () => {
+    setSelectedLessons(prev => {
+      const filtered = prev.filter(l => !otherLessons.includes(l));
+      return [...filtered, ...otherLessons];
+    });
+  };
+
+  const handleDeselectAllOthers = () => {
+    setSelectedLessons(prev => prev.filter(l => !otherLessons.includes(l)));
+  };
+
+  const handleToggleLesson = (les) => {
+    if (selectedLessons.includes(les)) {
+      setSelectedLessons(prev => prev.filter(l => l !== les));
+    } else {
+      setSelectedLessons(prev => [...prev, les]);
+    }
+  };
   
   // Randomly select one of the two user-supplied success GIFs for completion screen
   const [successGif] = useState(() => {
@@ -1153,51 +1207,188 @@ export default function QuizCard({
                 </div>
 
                 {/* Select Lessons filter */}
-                <div className="p-5 bg-claude-sidebar/20 border border-claude-border/60 rounded-2xl space-y-3">
-                  <div className="flex justify-between items-baseline pb-1 border-b border-claude-border/20">
-                    <label className="text-[10px] uppercase font-bold text-claude-text-muted tracking-wider">
-                      Lessons Category Filter
-                    </label>
-                    <span className="text-[10px] font-bold text-claude-coral bg-claude-coral/10 border border-claude-coral/20 px-2 py-0.5 rounded">
-                      {selectedLessons.length === 0 ? 'All Lessons' : `${selectedLessons.length} Selected`}
-                    </span>
+                <div className="p-5 bg-claude-sidebar/20 border border-claude-border/60 rounded-2xl space-y-4">
+                  <div className="flex justify-between items-center pb-2 border-b border-claude-border/20">
+                    <div className="space-y-0.5">
+                      <label className="text-[10px] uppercase font-black text-claude-text-heading tracking-wider block">
+                        Decks & Lessons Category Selector
+                      </label>
+                      <span className="text-[8px] text-claude-text-muted block">Filter cards by JLPT level or custom uploads</span>
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setSelectedLessons([])}
+                        className={`px-2.5 py-1 rounded-lg border text-[8px] font-black transition-all cursor-pointer ${
+                          selectedLessons.length === 0
+                            ? 'bg-claude-coral/15 border-claude-coral text-claude-coral'
+                            : 'bg-claude-card hover:bg-claude-sidebar border-claude-border text-claude-text-muted'
+                        }`}
+                      >
+                        🌐 Select All ({allCards.length} Cards)
+                      </button>
+                    </div>
                   </div>
-                  
-                  <div className="flex flex-wrap gap-1.5 max-h-32 overflow-y-auto pr-1 py-1">
-                    <button
-                      type="button"
-                      onClick={() => setSelectedLessons([])}
-                      className={`py-1 px-2.5 rounded-lg border text-[9px] font-black transition-all cursor-pointer ${
-                        selectedLessons.length === 0
-                          ? 'bg-claude-coral/10 border-claude-coral text-claude-coral shadow-xs'
-                          : 'bg-claude-card hover:bg-claude-sidebar border-claude-border text-claude-text-muted hover:text-claude-text-heading hover:scale-[1.02]'
-                      }`}
-                    >
-                      🌐 All Lessons
-                    </button>
-                    {Array.from(new Set(allCards.map(c => c.lesson || 'General'))).sort().map((les) => {
-                      const isSelected = selectedLessons.includes(les);
-                      return (
-                        <button
-                          key={les}
-                          type="button"
-                          onClick={() => {
-                            if (isSelected) {
-                              setSelectedLessons(prev => prev.filter(l => l !== les));
-                            } else {
-                              setSelectedLessons(prev => [...prev, les]);
-                            }
-                          }}
-                          className={`py-1 px-2.5 rounded-lg border text-[9px] font-black transition-all cursor-pointer ${
-                            isSelected
-                              ? 'bg-claude-coral/10 border-claude-coral text-claude-coral shadow-xs'
-                              : 'bg-claude-card hover:bg-claude-sidebar border-claude-border text-claude-text-muted hover:text-claude-text-heading hover:scale-[1.02]'
-                          }`}
-                        >
-                          📁 {les}
-                        </button>
-                      );
-                    })}
+
+                  {/* Scroll Container for Groups */}
+                  <div className="space-y-4 max-h-60 overflow-y-auto pr-1 py-1">
+                    
+                    {/* JLPT N5 Group */}
+                    {n5Lessons.length > 0 && (
+                      <div className="space-y-2">
+                        <div className="flex justify-between items-center bg-emerald-500/5 px-2.5 py-1.5 rounded-lg border border-emerald-500/10">
+                          <span className="text-[9px] font-extrabold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                            💮 JLPT N5 Decks
+                          </span>
+                          <div className="flex gap-1 text-[8px]">
+                            <button
+                              type="button"
+                              onClick={handleSelectAllN5}
+                              className="px-1.5 py-0.5 font-bold hover:text-emerald-600 transition-colors cursor-pointer border border-emerald-500/25 hover:border-emerald-500 rounded bg-claude-card text-emerald-600/85"
+                            >
+                              Select All
+                            </button>
+                            <button
+                              type="button"
+                              onClick={handleDeselectAllN5}
+                              className="px-1.5 py-0.5 font-bold hover:text-red-500 transition-colors cursor-pointer border border-red-500/25 hover:border-red-500 rounded bg-claude-card text-red-500/85"
+                            >
+                              Clear
+                            </button>
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                          {n5Lessons.map((les) => {
+                            const isSelected = selectedLessons.includes(les);
+                            const count = lessonCounts[les] || 0;
+                            return (
+                              <button
+                                key={les}
+                                type="button"
+                                onClick={() => handleToggleLesson(les)}
+                                className={`px-3 py-2.5 rounded-xl border text-left flex justify-between items-center transition-all cursor-pointer ${
+                                  isSelected
+                                    ? 'bg-claude-coral/10 border-claude-coral text-claude-coral'
+                                    : 'bg-claude-card hover:bg-claude-sidebar border-claude-border text-claude-text-muted hover:text-claude-text-heading'
+                                }`}
+                              >
+                                <span className="text-[10px] font-bold truncate max-w-[130px]" title={les}>
+                                  {isSelected ? '✓' : '📁'} {les}
+                                </span>
+                                <span className="text-[8px] font-bold opacity-75 bg-black/5 dark:bg-white/5 px-1.5 py-0.5 rounded-md">
+                                  {count} cards
+                                </span>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* JLPT N4 Group */}
+                    {n4Lessons.length > 0 && (
+                      <div className="space-y-2">
+                        <div className="flex justify-between items-center bg-blue-500/5 px-2.5 py-1.5 rounded-lg border border-blue-500/10">
+                          <span className="text-[9px] font-extrabold uppercase tracking-wider text-blue-600 dark:text-blue-400 flex items-center gap-1">
+                            ⛩️ JLPT N4 Decks
+                          </span>
+                          <div className="flex gap-1 text-[8px]">
+                            <button
+                              type="button"
+                              onClick={handleSelectAllN4}
+                              className="px-1.5 py-0.5 font-bold hover:text-blue-600 transition-colors cursor-pointer border border-blue-500/25 hover:border-blue-500 rounded bg-claude-card text-blue-600/85"
+                            >
+                              Select All
+                            </button>
+                            <button
+                              type="button"
+                              onClick={handleDeselectAllN4}
+                              className="px-1.5 py-0.5 font-bold hover:text-red-500 transition-colors cursor-pointer border border-red-500/25 hover:border-red-500 rounded bg-claude-card text-red-500/85"
+                            >
+                              Clear
+                            </button>
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                          {n4Lessons.map((les) => {
+                            const isSelected = selectedLessons.includes(les);
+                            const count = lessonCounts[les] || 0;
+                            return (
+                              <button
+                                key={les}
+                                type="button"
+                                onClick={() => handleToggleLesson(les)}
+                                className={`px-3 py-2.5 rounded-xl border text-left flex justify-between items-center transition-all cursor-pointer ${
+                                  isSelected
+                                    ? 'bg-claude-coral/10 border-claude-coral text-claude-coral'
+                                    : 'bg-claude-card hover:bg-claude-sidebar border-claude-border text-claude-text-muted hover:text-claude-text-heading'
+                                }`}
+                              >
+                                <span className="text-[10px] font-bold truncate max-w-[130px]" title={les}>
+                                  {isSelected ? '✓' : '📁'} {les}
+                                </span>
+                                <span className="text-[8px] font-bold opacity-75 bg-black/5 dark:bg-white/5 px-1.5 py-0.5 rounded-md">
+                                  {count} cards
+                                </span>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Other Decks Group */}
+                    {otherLessons.length > 0 && (
+                      <div className="space-y-2">
+                        <div className="flex justify-between items-center bg-claude-sidebar px-2.5 py-1.5 rounded-lg border border-claude-border/60">
+                          <span className="text-[9px] font-extrabold uppercase tracking-wider text-claude-text-heading flex items-center gap-1">
+                            📁 Other Lessons / Categories
+                          </span>
+                          <div className="flex gap-1 text-[8px]">
+                            <button
+                              type="button"
+                              onClick={handleSelectAllOthers}
+                              className="px-1.5 py-0.5 font-bold hover:text-claude-coral transition-colors cursor-pointer border border-claude-border hover:border-claude-coral/40 rounded bg-claude-card text-claude-text-muted"
+                            >
+                              Select All
+                            </button>
+                            <button
+                              type="button"
+                              onClick={handleDeselectAllOthers}
+                              className="px-1.5 py-0.5 font-bold hover:text-red-500 transition-colors cursor-pointer border border-red-500/25 hover:border-red-500 rounded bg-claude-card text-red-500/85"
+                            >
+                              Clear
+                            </button>
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                          {otherLessons.map((les) => {
+                            const isSelected = selectedLessons.includes(les);
+                            const count = lessonCounts[les] || 0;
+                            return (
+                              <button
+                                key={les}
+                                type="button"
+                                onClick={() => handleToggleLesson(les)}
+                                className={`px-3 py-2.5 rounded-xl border text-left flex justify-between items-center transition-all cursor-pointer ${
+                                  isSelected
+                                    ? 'bg-claude-coral/10 border-claude-coral text-claude-coral'
+                                    : 'bg-claude-card hover:bg-claude-sidebar border-claude-border text-claude-text-muted hover:text-claude-text-heading'
+                                }`}
+                              >
+                                <span className="text-[10px] font-bold truncate max-w-[130px]" title={les}>
+                                  {isSelected ? '✓' : '📁'} {les}
+                                </span>
+                                <span className="text-[8px] font-bold opacity-75 bg-black/5 dark:bg-white/5 px-1.5 py-0.5 rounded-md">
+                                  {count} cards
+                                </span>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+
                   </div>
                 </div>
               </div>

@@ -222,6 +222,8 @@ export default function QuizCard({
     return saved === 'true';
   });
 
+  const [showShortcutsHelp, setShowShortcutsHelp] = useState(false);
+
   // Sync auto-speak settings
   useEffect(() => {
     localStorage.setItem('jp_vocab_autospeak', autoSpeak);
@@ -955,13 +957,18 @@ export default function QuizCard({
     }
   }, [currentCard, autoSpeak]);
 
-  // Keyboard hotkeys handler
+  // Keyboard hotkeys handler (only active during study sessions)
   useEffect(() => {
-    if (totalSessionCards === 0 || !currentCard || historyIndex !== -1) {
+    if (totalSessionCards === 0 || !currentCard || historyIndex !== -1 || showShortcutsHelp) {
       return;
     }
 
     const handleKeyDown = (e) => {
+      // Ignore keypresses inside inputs
+      if (document.activeElement && (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA')) {
+        return;
+      }
+
       if (!isChecking) {
         if (answerMode === 'mc' && ['1', '2', '3', '4'].includes(e.key)) {
           const idx = parseInt(e.key) - 1;
@@ -998,7 +1005,7 @@ export default function QuizCard({
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [currentCard, isChecking, answeredCorrectly, displayChoices, totalSessionCards, historyIndex, answerMode]);
+  }, [currentCard, isChecking, answeredCorrectly, displayChoices, totalSessionCards, historyIndex, answerMode, showShortcutsHelp]);
 
 
 
@@ -1082,6 +1089,145 @@ export default function QuizCard({
     }
   }, [currentCard, allCards, difficulty, questionIndex]);
 
+  // Global hotkeys handler (always active while in Quiz tab for Help modal toggling)
+  useEffect(() => {
+    const handleGlobalKeyDown = (e) => {
+      // Ignore keypresses inside text fields (unless Escape is pressed to blur them)
+      if (document.activeElement && (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA')) {
+        if (e.key === 'Escape') {
+          document.activeElement.blur();
+        }
+        return;
+      }
+
+      if (e.key.toLowerCase() === 'h' || e.key === '?') {
+        e.preventDefault();
+        setShowShortcutsHelp(prev => !prev);
+      } else if (e.key === 'Escape' && showShortcutsHelp) {
+        e.preventDefault();
+        setShowShortcutsHelp(false);
+      }
+    };
+
+    window.addEventListener('keydown', handleGlobalKeyDown);
+    return () => window.removeEventListener('keydown', handleGlobalKeyDown);
+  }, [showShortcutsHelp]);
+
+  // Renders the Keyboard Shortcuts help modal
+  const renderShortcutsHelpModal = () => {
+    if (!showShortcutsHelp) return null;
+    return (
+      <div className="fixed inset-0 bg-black/60 backdrop-blur-xs z-[100] flex items-center justify-center p-4 animate-fade-in select-none">
+        <div className="bg-claude-card border border-claude-border rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-4 relative overflow-hidden text-left">
+          {/* Header */}
+          <div className="flex justify-between items-start">
+            <div className="space-y-1">
+              <h3 className="text-lg font-black text-claude-text-heading flex items-center gap-2">
+                ⌨️ Keyboard Shortcuts
+              </h3>
+              <p className="text-[11px] text-claude-text-muted">
+                Boost your study speed with these keyboard hotkeys.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowShortcutsHelp(false)}
+              className="text-claude-text-muted hover:text-claude-text-heading text-lg p-1 hover:bg-claude-sidebar rounded-full transition-colors cursor-pointer"
+            >
+              ✕
+            </button>
+          </div>
+
+          {/* Content / Shortcuts List */}
+          <div className="space-y-3.5 max-h-[300px] overflow-y-auto pr-1">
+            <div className="space-y-2">
+              <span className="text-[10px] font-black uppercase tracking-wider text-claude-coral">General</span>
+              <div className="grid grid-cols-2 gap-2 text-xs">
+                <div className="flex items-center gap-1.5 p-2 bg-claude-sidebar/55 rounded-xl border border-claude-border/40">
+                  <kbd className="px-1.5 py-0.5 bg-claude-bg border border-claude-border rounded font-mono text-[10px] shadow-xs text-claude-text-heading">H</kbd>
+                  <span className="text-claude-text-muted">or</span>
+                  <kbd className="px-1.5 py-0.5 bg-claude-bg border border-claude-border rounded font-mono text-[10px] shadow-xs text-claude-text-heading">?</kbd>
+                  <span className="text-claude-text-muted text-[10px] font-medium ml-auto">Toggle Shortcuts</span>
+                </div>
+                <div className="flex items-center gap-1.5 p-2 bg-claude-sidebar/55 rounded-xl border border-claude-border/40">
+                  <kbd className="px-1.5 py-0.5 bg-claude-bg border border-claude-border rounded font-mono text-[10px] shadow-xs text-claude-text-heading">Q</kbd>
+                  <span className="text-claude-text-muted text-[10px] font-medium ml-auto">Quit Session</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <span className="text-[10px] font-black uppercase tracking-wider text-claude-coral">While Answering</span>
+              <div className="space-y-2 text-xs">
+                <div className="flex items-center gap-1.5 p-2 bg-claude-sidebar/55 rounded-xl border border-claude-border/40">
+                  <kbd className="px-1.5 py-0.5 bg-claude-bg border border-claude-border rounded font-mono text-[10px] shadow-xs text-claude-text-heading">Space</kbd>
+                  <span className="text-claude-text-muted text-[10px] font-medium ml-auto">Hear Pronunciation</span>
+                </div>
+                {answerMode === 'mc' && (
+                  <div className="flex items-center gap-1.5 p-2 bg-claude-sidebar/55 rounded-xl border border-claude-border/40">
+                    <kbd className="px-1.5 py-0.5 bg-claude-bg border border-claude-border rounded font-mono text-[10px] shadow-xs text-claude-text-heading">1</kbd>
+                    <span className="text-claude-text-muted">to</span>
+                    <kbd className="px-1.5 py-0.5 bg-claude-bg border border-claude-border rounded font-mono text-[10px] shadow-xs text-claude-text-heading">4</kbd>
+                    <span className="text-claude-text-muted text-[10px] font-medium ml-auto">Select Choice</span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <span className="text-[10px] font-black uppercase tracking-wider text-claude-coral">Once Card Flipped (Revealed)</span>
+              <div className="space-y-2 text-xs">
+                {/* Correct side */}
+                <div className="p-2 bg-claude-sidebar/55 rounded-xl border border-claude-border/40 space-y-1.5 text-left">
+                  <span className="text-[9px] font-bold text-claude-success block">If Correct:</span>
+                  <div className="grid grid-cols-2 gap-1.5 text-[10px]">
+                    <div className="flex items-center gap-1.5">
+                      <kbd className="px-1.5 py-0.5 bg-claude-bg border border-claude-border rounded font-mono text-[9px] shadow-xs text-claude-text-heading">1</kbd>
+                      <span className="text-claude-text-muted text-[9px]">Forgot 😭</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <kbd className="px-1.5 py-0.5 bg-claude-bg border border-claude-border rounded font-mono text-[9px] shadow-xs text-claude-text-heading">2</kbd>
+                      <span className="text-claude-text-muted text-[9px]">Hard 🤕</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <kbd className="px-1.5 py-0.5 bg-claude-bg border border-claude-border rounded font-mono text-[9px] shadow-xs text-claude-text-heading">3</kbd>
+                      <span className="text-claude-text-muted text-[9px]">Good 😊</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <kbd className="px-1.5 py-0.5 bg-claude-bg border border-claude-border rounded font-mono text-[9px] shadow-xs text-claude-text-heading">4</kbd>
+                      <span className="text-claude-text-muted text-[9px]">Easy 😎</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Incorrect side */}
+                <div className="flex items-center gap-1.5 p-2 bg-claude-sidebar/55 rounded-xl border border-claude-border/40">
+                  <span className="text-[9px] font-bold text-claude-error block mr-2">If Incorrect:</span>
+                  <kbd className="px-1.5 py-0.5 bg-claude-bg border border-claude-border rounded font-mono text-[10px] shadow-xs text-claude-text-heading">Space</kbd>
+                  <span className="text-claude-text-muted">or</span>
+                  <kbd className="px-1.5 py-0.5 bg-claude-bg border border-claude-border rounded font-mono text-[10px] shadow-xs text-claude-text-heading">Enter</kbd>
+                  <span className="text-claude-text-muted text-[10px] font-medium ml-auto">Next Card</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Footer / Info */}
+          <div className="pt-3 border-t border-claude-border/50 flex justify-between items-center text-[10px] text-claude-text-muted">
+            <span>Press <kbd className="px-1 bg-claude-sidebar border border-claude-border rounded font-mono text-[9px]">Esc</kbd> to close</span>
+            <button
+              type="button"
+              onClick={() => setShowShortcutsHelp(false)}
+              className="px-4 py-2 bg-claude-coral hover:bg-claude-coral/90 text-white font-extrabold rounded-xl transition-all cursor-pointer hover:scale-[1.02] active:scale-[0.98]"
+            >
+              Got it!
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   if (totalSessionCards === 0) {
     return (
       <>
@@ -1090,16 +1236,27 @@ export default function QuizCard({
           <div className="claude-panel border-claude-border rounded-3xl p-6 md:p-8 space-y-6 md:space-y-8 shadow-xs select-none">
             
             {/* Header Title */}
-            <div className="text-center space-y-2 pb-5 border-b border-claude-border/50">
-              <div className="inline-flex items-center gap-1.5 bg-claude-coral/10 text-claude-coral text-[10px] font-extrabold uppercase px-3 py-1 rounded-full border border-claude-coral/25 tracking-wider select-none mb-1">
-                🕹️ Review Controls
+            <div className="flex flex-col sm:flex-row justify-between items-center gap-4 pb-5 border-b border-claude-border/50 relative">
+              <div className="hidden sm:block w-24"></div>
+              <div className="text-center space-y-2 flex-1">
+                <div className="inline-flex items-center gap-1.5 bg-claude-coral/10 text-claude-coral text-[10px] font-extrabold uppercase px-3 py-1 rounded-full border border-claude-coral/25 tracking-wider select-none mb-1">
+                  🕹️ Review Controls
+                </div>
+                <h2 className="text-2xl md:text-3xl font-extrabold text-claude-text-heading claude-serif">
+                  Configure Study Arena 🎛️
+                </h2>
+                <p className="text-xs text-claude-text-muted max-w-lg mx-auto leading-relaxed">
+                  Select your settings and launch your customized Japanese vocabulary review.
+                </p>
               </div>
-              <h2 className="text-2xl md:text-3xl font-extrabold text-claude-text-heading claude-serif">
-                Configure Study Arena 🎛️
-              </h2>
-              <p className="text-xs text-claude-text-muted max-w-lg mx-auto leading-relaxed">
-                Select your settings and launch your customized Japanese vocabulary review.
-              </p>
+              <button
+                type="button"
+                onClick={() => setShowShortcutsHelp(true)}
+                className="bg-claude-card border border-claude-border hover:border-claude-coral hover:text-claude-coral rounded-xl px-2.5 py-1.5 flex items-center gap-1.5 shadow-sm text-[10px] font-bold transition-all cursor-pointer hover:scale-[1.02] active:scale-[0.98]"
+                title="Keyboard Shortcuts (Press H)"
+              >
+                ⌨️ Shortcuts (H)
+              </button>
             </div>
 
             {/* 2-Column Responsive Grid Layout */}
@@ -1543,6 +1700,7 @@ export default function QuizCard({
             </div>
           </div>
         </div>
+        {renderShortcutsHelpModal()}
       </>
     );
   }
@@ -1651,6 +1809,7 @@ export default function QuizCard({
             </div>
           </div>
         </div>
+        {renderShortcutsHelpModal()}
       </>
     );
   }
@@ -1669,17 +1828,27 @@ export default function QuizCard({
         <div className="space-y-6">
           {/* Header/Stats overlay */}
           <div className="flex justify-between items-center text-xs font-semibold text-claude-text-muted px-1 select-none">
-            <button
-              onClick={() => {
-                if (window.confirm("Are you sure you want to quit this study session? Your progress in this session will be lost.")) {
-                  onResetConfig();
-                }
-              }}
-              className="bg-claude-card border border-claude-border hover:border-red-500 hover:text-red-500 rounded-lg px-2.5 py-1.5 flex items-center gap-1.5 shadow-sm transition-colors cursor-pointer"
-              title="Quit study session"
-            >
-              🚪 Quit
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => {
+                  if (window.confirm("Are you sure you want to quit this study session? Your progress in this session will be lost.")) {
+                    onResetConfig();
+                  }
+                }}
+                className="bg-claude-card border border-claude-border hover:border-red-500 hover:text-red-500 rounded-lg px-2.5 py-1.5 flex items-center gap-1.5 shadow-sm transition-colors cursor-pointer"
+                title="Quit study session"
+              >
+                🚪 Quit
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowShortcutsHelp(true)}
+                className="bg-claude-card border border-claude-border hover:border-claude-coral hover:text-claude-coral rounded-lg px-2.5 py-1.5 flex items-center gap-1.5 shadow-sm transition-all cursor-pointer hover:scale-[1.02] active:scale-[0.98]"
+                title="Keyboard Shortcuts (Press H)"
+              >
+                ⌨️ <span className="hidden sm:inline">Shortcuts</span>
+              </button>
+            </div>
             <span className="bg-claude-card border border-claude-border rounded-lg px-2.5 py-1.5 flex items-center gap-1.5 shadow-sm">
               <span className="w-2 h-2 rounded-full bg-claude-coral animate-ping"></span>
               Queue: {queueLength} left
@@ -2185,6 +2354,7 @@ export default function QuizCard({
           </div>
         </div>
       </div>
+      {renderShortcutsHelpModal()}
     </>
   );
 }

@@ -1364,7 +1364,7 @@ export default function QuizCard({
                 </div>
 
                 {/* Select Lessons filter */}
-                <div className="p-5 bg-claude-sidebar/20 border border-claude-border/60 rounded-2xl space-y-4">
+                <div className="pt-4 border-t border-claude-border/30 space-y-3.5">
                   <div className="flex justify-between items-center pb-2 border-b border-claude-border/20">
                     <div className="space-y-0.5">
                       <label className="text-[10px] uppercase font-black text-claude-text-heading tracking-wider block">
@@ -1388,7 +1388,7 @@ export default function QuizCard({
                   </div>
 
                   {/* Scroll Container for Groups */}
-                  <div className="space-y-4 max-h-60 overflow-y-auto pr-1 py-1">
+                  <div className="space-y-3 max-h-[120px] overflow-y-auto pr-1 py-0.5">
                     
                     {/* JLPT N5 Group */}
                     {n5Lessons.length > 0 && (
@@ -1423,7 +1423,7 @@ export default function QuizCard({
                                 key={les}
                                 type="button"
                                 onClick={() => handleToggleLesson(les)}
-                                className={`px-3 py-2.5 rounded-xl border text-left flex justify-between items-center transition-all cursor-pointer ${
+                                className={`px-2.5 py-1.5 rounded-lg border text-left flex justify-between items-center transition-all cursor-pointer ${
                                   isSelected
                                     ? 'bg-claude-coral/10 border-claude-coral text-claude-coral'
                                     : 'bg-claude-card hover:bg-claude-sidebar border-claude-border text-claude-text-muted hover:text-claude-text-heading'
@@ -1475,7 +1475,7 @@ export default function QuizCard({
                                 key={les}
                                 type="button"
                                 onClick={() => handleToggleLesson(les)}
-                                className={`px-3 py-2.5 rounded-xl border text-left flex justify-between items-center transition-all cursor-pointer ${
+                                className={`px-2.5 py-1.5 rounded-lg border text-left flex justify-between items-center transition-all cursor-pointer ${
                                   isSelected
                                     ? 'bg-claude-coral/10 border-claude-coral text-claude-coral'
                                     : 'bg-claude-card hover:bg-claude-sidebar border-claude-border text-claude-text-muted hover:text-claude-text-heading'
@@ -1527,7 +1527,7 @@ export default function QuizCard({
                                 key={les}
                                 type="button"
                                 onClick={() => handleToggleLesson(les)}
-                                className={`px-3 py-2.5 rounded-xl border text-left flex justify-between items-center transition-all cursor-pointer ${
+                                className={`px-2.5 py-1.5 rounded-lg border text-left flex justify-between items-center transition-all cursor-pointer ${
                                   isSelected
                                     ? 'bg-claude-coral/10 border-claude-coral text-claude-coral'
                                     : 'bg-claude-card hover:bg-claude-sidebar border-claude-border text-claude-text-muted hover:text-claude-text-heading'

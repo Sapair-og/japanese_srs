@@ -177,46 +177,41 @@ export default function Navbar({ activeTab, setActiveTab, hasCards, themeRegion,
   const [showAllThemes, setShowAllThemes] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   
-  // Autohide Navbar on Inactivity
+  // Autohide Navbar on Inactivity inside the Navbar region only
   const [visible, setVisible] = useState(true);
-  const [isHovered, setIsHovered] = useState(false);
   const timeoutRef = useRef(null);
 
-  useEffect(() => {
-    const handleActivity = () => {
-      setVisible(true);
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
-      timeoutRef.current = setTimeout(() => {
-        if (!isHovered) {
-          setVisible(false);
-        }
-      }, 3000); // 3 seconds timeout
-    };
+  const showNavbar = () => {
+    setVisible(true);
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+  };
 
-    window.addEventListener('mousemove', handleActivity);
-    window.addEventListener('keydown', handleActivity);
-    window.addEventListener('touchstart', handleActivity);
-    window.addEventListener('scroll', handleActivity);
-
-    // Start initial inactivity timer
+  const hideNavbarWithDelay = () => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
     timeoutRef.current = setTimeout(() => {
-      if (!isHovered) {
-        setVisible(false);
-      }
-    }, 3000);
+      setVisible(false);
+    }, 2500); // 2.5 seconds timeout
+  };
 
+  const handleTouchActivity = () => {
+    showNavbar();
+    hideNavbarWithDelay();
+  };
+
+  useEffect(() => {
+    // Hide after initial 2.5 seconds of mount
+    hideNavbarWithDelay();
     return () => {
-      window.removeEventListener('mousemove', handleActivity);
-      window.removeEventListener('keydown', handleActivity);
-      window.removeEventListener('touchstart', handleActivity);
-      window.removeEventListener('scroll', handleActivity);
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
       }
     };
-  }, [isHovered]);
+  }, []);
 
   const { level, xp, xpInCurrentLevel, xpForNextLevel, progressPercent } = calculateLevelInfo(stats?.totalCorrect || 0);
 
@@ -330,10 +325,12 @@ export default function Navbar({ activeTab, setActiveTab, hasCards, themeRegion,
     <>
       {/* Mobile Top Header Banner */}
       <div 
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
-        className={`md:hidden w-full bg-claude-sidebar border-b border-claude-border px-4 py-3.5 flex justify-between items-center z-40 select-none transition-all duration-500 ease-in-out ${
-          visible ? 'translate-y-0' : '-translate-y-full -mb-[65px]'
+        onMouseEnter={showNavbar}
+        onMouseMove={showNavbar}
+        onMouseLeave={hideNavbarWithDelay}
+        onTouchStart={handleTouchActivity}
+        className={`md:hidden fixed top-0 left-0 right-0 bg-claude-sidebar border-b border-claude-border px-4 py-3.5 flex justify-between items-center z-40 select-none transition-all duration-500 ease-in-out ${
+          visible ? 'translate-y-0' : '-translate-y-full'
         }`}
       >
         <div className="flex items-center gap-2.5">
@@ -464,10 +461,11 @@ export default function Navbar({ activeTab, setActiveTab, hasCards, themeRegion,
 
       {/* Desktop Left Sidebar */}
       <aside 
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
-        className={`hidden md:flex w-64 h-screen sticky top-0 bg-claude-sidebar border-r border-claude-border flex-col justify-between py-8 px-5 z-40 select-none transition-all duration-500 ease-in-out ${
-          visible ? 'translate-x-0' : '-translate-x-full -mr-64'
+        onMouseEnter={showNavbar}
+        onMouseMove={showNavbar}
+        onMouseLeave={hideNavbarWithDelay}
+        className={`hidden md:flex w-64 h-screen fixed top-0 left-0 bg-claude-sidebar border-r border-claude-border flex-col justify-between py-8 px-5 z-40 select-none transition-all duration-500 ease-in-out ${
+          visible ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
         <div className="space-y-8">
@@ -692,8 +690,10 @@ export default function Navbar({ activeTab, setActiveTab, hasCards, themeRegion,
 
       {/* Mobile Bottom Navigation Bar */}
       <nav 
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
+        onMouseEnter={showNavbar}
+        onMouseMove={showNavbar}
+        onMouseLeave={hideNavbarWithDelay}
+        onTouchStart={handleTouchActivity}
         className={`md:hidden fixed bottom-0 left-0 right-0 h-16 bg-claude-sidebar border-t border-claude-border flex justify-around items-center px-4 gap-2 z-50 shadow-lg transition-transform duration-500 ease-in-out ${
           visible ? 'translate-y-0' : 'translate-y-full'
         }`}
@@ -1043,6 +1043,32 @@ export default function Navbar({ activeTab, setActiveTab, hasCards, themeRegion,
 
           </div>
         </div>
+      )}
+
+      {/* Detector Zones for Autohide Trigger (only active when hidden) */}
+      {!visible && (
+        <>
+          {/* Desktop Left Sidebar Detector (left 12px area of screen) */}
+          <div 
+            className="hidden md:block fixed left-0 top-0 w-3 h-screen z-50 pointer-events-auto"
+            onMouseEnter={showNavbar}
+            onMouseMove={showNavbar}
+          />
+          {/* Mobile Top Banner Detector (top 12px area of screen) */}
+          <div 
+            className="md:hidden fixed top-0 left-0 right-0 h-3 z-50 pointer-events-auto"
+            onMouseEnter={showNavbar}
+            onMouseMove={showNavbar}
+            onTouchStart={handleTouchActivity}
+          />
+          {/* Mobile Bottom Nav Detector (bottom 12px area of screen) */}
+          <div 
+            className="md:hidden fixed bottom-0 left-0 right-0 h-3 z-50 pointer-events-auto"
+            onMouseEnter={showNavbar}
+            onMouseMove={showNavbar}
+            onTouchStart={handleTouchActivity}
+          />
+        </>
       )}
     </>
   );

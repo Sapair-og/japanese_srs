@@ -172,46 +172,31 @@ const getNavIcon = (id, accent, isActive) => {
   }
 };
 
-export default function Navbar({ activeTab, setActiveTab, hasCards, themeRegion, themeMode, onChangeTheme, profile, onUpdateProfile, bgMusicEnabled, onToggleMusic, onSignOut, userEmail, stats, furiganaMode, onChangeFuriganaMode, isAdmin }) {
+export default function Navbar({ 
+  activeTab, 
+  setActiveTab, 
+  hasCards, 
+  themeRegion, 
+  themeMode, 
+  onChangeTheme, 
+  profile, 
+  onUpdateProfile, 
+  bgMusicEnabled, 
+  onToggleMusic, 
+  onSignOut, 
+  userEmail, 
+  stats, 
+  furiganaMode, 
+  onChangeFuriganaMode, 
+  isAdmin,
+  visible,
+  showNavbar,
+  hideNavbarWithDelay,
+  handleTouchActivity
+}) {
   const [themeDropdownOpen, setThemeDropdownOpen] = useState(false);
   const [showAllThemes, setShowAllThemes] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  
-  // Autohide Navbar on Inactivity inside the Navbar region only
-  const [visible, setVisible] = useState(true);
-  const timeoutRef = useRef(null);
-
-  const showNavbar = () => {
-    setVisible(true);
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-      timeoutRef.current = null;
-    }
-  };
-
-  const hideNavbarWithDelay = () => {
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-    }
-    timeoutRef.current = setTimeout(() => {
-      setVisible(false);
-    }, 2500); // 2.5 seconds timeout
-  };
-
-  const handleTouchActivity = () => {
-    showNavbar();
-    hideNavbarWithDelay();
-  };
-
-  useEffect(() => {
-    // Hide after initial 2.5 seconds of mount
-    hideNavbarWithDelay();
-    return () => {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
-    };
-  }, []);
 
   const { level, xp, xpInCurrentLevel, xpForNextLevel, progressPercent } = calculateLevelInfo(stats?.totalCorrect || 0);
 

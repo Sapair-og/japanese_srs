@@ -134,6 +134,42 @@ export default function App() {
   const [sessionLimit, setSessionLimit] = useState(0);
   const [selectedLessons, setSelectedLessons] = useState([]);
 
+  // Autohide Navbar on Inactivity inside the Navbar region only
+  const [navbarVisible, setNavbarVisible] = useState(true);
+  const navbarTimeoutRef = useRef(null);
+
+  const showNavbar = () => {
+    setNavbarVisible(true);
+    if (navbarTimeoutRef.current) {
+      clearTimeout(navbarTimeoutRef.current);
+      navbarTimeoutRef.current = null;
+    }
+  };
+
+  const hideNavbarWithDelay = () => {
+    if (navbarTimeoutRef.current) {
+      clearTimeout(navbarTimeoutRef.current);
+    }
+    navbarTimeoutRef.current = setTimeout(() => {
+      setNavbarVisible(false);
+    }, 2500); // 2.5 seconds timeout
+  };
+
+  const handleTouchActivity = () => {
+    showNavbar();
+    hideNavbarWithDelay();
+  };
+
+  useEffect(() => {
+    // Hide after initial 2.5 seconds of mount
+    hideNavbarWithDelay();
+    return () => {
+      if (navbarTimeoutRef.current) {
+        clearTimeout(navbarTimeoutRef.current);
+      }
+    };
+  }, []);
+
   // Study Arena Timer states
   const [timerEnabled, setTimerEnabled] = useState(() => {
     const saved = localStorage.getItem('jp_vocab_timer_enabled');
@@ -1226,10 +1262,16 @@ export default function App() {
         furiganaMode={furiganaMode}
         onChangeFuriganaMode={setFuriganaMode}
         isAdmin={isAdmin}
+        visible={navbarVisible}
+        showNavbar={showNavbar}
+        hideNavbarWithDelay={hideNavbarWithDelay}
+        handleTouchActivity={handleTouchActivity}
       />
 
       {/* Main Content Area */}
-      <main className={`flex-1 flex flex-col overflow-y-auto w-full pt-16 md:pt-0 md:pl-64 transition-all duration-300 ${
+      <main className={`flex-1 flex flex-col overflow-y-auto w-full transition-all duration-500 ease-in-out ${
+        navbarVisible ? 'pt-16 md:pt-0 md:pl-64' : 'pt-0 md:pt-0 md:pl-0'
+      } ${
         activeTab === 'grammar' 
           ? 'h-full justify-start items-stretch' 
           : 'px-3 sm:px-4 md:px-8 py-5 pb-24 md:pb-6 justify-center items-center'

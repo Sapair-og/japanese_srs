@@ -18,6 +18,7 @@ import { initWasm } from './utils/strokeMatcher';
 // import StoryReader from './components/StoryReader';
 import GrammarDojo from './components/GrammarDojo';
 import { calculateSM2 } from './utils/srsEngine';
+import { sortVocabByJlptPreference } from './utils/jlptPrioritizer';
 export function calculateLevelInfo(totalCorrect) {
   const xp = (totalCorrect || 0) * 10;
   let level = 1;
@@ -781,8 +782,11 @@ export default function App() {
       return;
     }
     
-    // Shuffle the vocabulary list to start a fresh queue
-    const shuffled = pool.sort(() => 0.5 - Math.random());
+    // Shuffle the vocabulary list to start a fresh queue.
+    // If difficulty is set to hard, prioritize important JLPT cards first.
+    const shuffled = difficulty === 'hard' 
+      ? sortVocabByJlptPreference(pool) 
+      : pool.sort(() => 0.5 - Math.random());
     const limit = Math.min(sessionLimit > 0 ? sessionLimit : shuffled.length, shuffled.length);
     const selected = shuffled.slice(0, limit);
 

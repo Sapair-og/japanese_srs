@@ -19,6 +19,7 @@ import { initWasm } from './utils/strokeMatcher';
 import GrammarDojo from './components/GrammarDojo';
 import { calculateSM2 } from './utils/srsEngine';
 import { sortVocabByJlptPreference } from './utils/jlptPrioritizer';
+import { setCachedVocab, getCachedVocab } from './utils/indexedDbCache';
 export function calculateLevelInfo(totalCorrect) {
   const xp = (totalCorrect || 0) * 10;
   let level = 1;
@@ -528,12 +529,12 @@ export default function App() {
             };
           });
           setVocabList(merged);
-          // Save to local cache for offline usage
-          try {
-            localStorage.setItem('jp_vocab_cached_list', JSON.stringify(merged));
-          } catch (cacheErr) {
-            console.warn("Could not cache vocabList locally:", cacheErr);
-          }
+          // Save to local cache asynchronously for offline usage using IndexedDB
+          setCachedVocab(merged).then(success => {
+            if (!success) {
+              console.warn("Could not cache vocabList in IndexedDB");
+            }
+          });
         }
 
         // 5. Fetch user review sessions
@@ -554,16 +555,11 @@ export default function App() {
         }
       } catch (err) {
         console.error('Failed to connect to Supabase database:', err);
-        // Fallback to local cache if offline
-        const cached = localStorage.getItem('jp_vocab_cached_list');
-        if (cached) {
-          try {
-            setVocabList(JSON.parse(cached));
-            console.log("Loaded vocabulary from offline cache.");
-          } catch (parseErr) {
-            console.error("Failed to parse cached list:", parseErr);
-            setDbError(true);
-          }
+        // Fallback to local cache asynchronously if offline
+        const cachedList = await getCachedVocab();
+        if (cachedList && cachedList.length > 0) {
+          setVocabList(cachedList);
+          console.log("Loaded vocabulary from offline cache.");
         } else {
           setDbError(true);
         }

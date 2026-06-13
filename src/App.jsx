@@ -1271,7 +1271,9 @@ export default function App() {
       } ${
         activeTab === 'grammar' 
           ? 'h-full justify-start items-stretch' 
-          : 'px-3 sm:px-4 md:px-8 py-5 pb-24 md:pb-6 justify-center items-center'
+          : ['kanji', 'kana', 'study', 'vocab', 'dashboard'].includes(activeTab)
+            ? 'px-3 sm:px-4 md:px-8 py-5 pb-24 md:pb-6 justify-start items-stretch'
+            : 'px-3 sm:px-4 md:px-8 py-5 pb-24 md:pb-6 justify-center items-center'
       }`}>
         {isOffline && (
           <div className="w-full max-w-6xl mx-auto mb-4 p-3 bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 rounded-2xl flex items-center justify-between text-xs font-bold animate-pulse-subtle shadow-sm select-none">

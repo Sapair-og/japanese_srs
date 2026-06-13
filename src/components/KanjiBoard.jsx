@@ -742,7 +742,7 @@ export default function KanjiBoard({ themeRegion, themeMode, vocabList = [] }) {
                     <div className="text-[10px] font-black text-claude-text-muted uppercase tracking-widest">
                       {quizConfig.type === 'kanji-to-reading' ? 'Guess the readings for:' : 'What does this kanji represent?'}
                     </div>
-                    <div className="text-8xl font-black text-claude-text-heading leading-none bg-claude-sidebar border border-claude-border p-7 rounded-3xl w-36 h-36 flex items-center justify-center shadow-inner claude-serif">
+                    <div className="text-8xl font-black text-claude-text-heading leading-none bg-claude-sidebar border border-claude-border p-7 rounded-3xl w-36 h-36 flex items-center justify-center shadow-inner japanese-serif">
                       {quizQueue[currentIdx]?.character}
                     </div>
                   </div>
@@ -867,10 +867,10 @@ export default function KanjiBoard({ themeRegion, themeMode, vocabList = [] }) {
               <button
                 key={index}
                 onClick={() => setSelectedKanji(item)}
-                className="relative bg-claude-card border border-claude-border hover:border-[var(--glow-border)] rounded-2xl p-6 md:p-7 flex flex-col items-center justify-center gap-3 transition-all duration-300 hover:shadow-[0_0_15px_var(--glow-color)] hover:scale-[1.03] cursor-pointer"
+                className="relative bg-claude-card border border-claude-border hover:border-[var(--glow-border)] rounded-2xl pt-5 pb-4 px-4 flex flex-col items-center justify-center gap-2.5 transition-all duration-300 hover:shadow-[0_0_15px_var(--glow-color)] hover:scale-[1.03] cursor-pointer"
               >
                 {/* Large Kanji symbol */}
-                <span className="text-4xl font-black text-claude-text-heading leading-tight claude-serif">
+                <span className="text-4xl font-black text-claude-text-heading leading-none japanese-serif">
                   {item.character}
                 </span>
 
@@ -971,7 +971,7 @@ export default function KanjiBoard({ themeRegion, themeMode, vocabList = [] }) {
               <div className="relative w-full aspect-square max-w-[210px] border border-claude-border bg-claude-card rounded-2xl overflow-hidden flex items-center justify-center shadow-inner group">
                 
                 {/* Large Kanji symbol underneath */}
-                <div className="absolute inset-0 flex items-center justify-center text-8xl font-black text-claude-text-heading/10 pointer-events-none select-none font-serif">
+                <div className="absolute inset-0 flex items-center justify-center text-8xl font-black text-claude-text-heading/10 pointer-events-none select-none japanese-serif">
                   {selectedKanji.character}
                 </div>
 
@@ -1035,7 +1035,7 @@ export default function KanjiBoard({ themeRegion, themeMode, vocabList = [] }) {
               {/* Top Row: Character Meaning & Close */}
               <div className="flex justify-between items-start">
                 <div>
-                  <h2 className="text-4xl font-black text-claude-text-heading claude-serif leading-none">
+                  <h2 className="text-4xl font-black text-claude-text-heading japanese-serif leading-none">
                     {selectedKanji.character}
                   </h2>
                   <p className="text-xs font-black text-claude-coral uppercase tracking-wider mt-1.5">

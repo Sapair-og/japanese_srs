@@ -6,6 +6,7 @@ import Dashboard from './components/Dashboard';
 import QuizCard from './components/QuizCard';
 import VocabManager from './components/VocabManager';
 import KanaBoard from './components/KanaBoard';
+import KanjiBoard from './components/KanjiBoard';
 import ErrorFallback from './components/ErrorFallback';
 import { demoVocab } from './utils/demoData';
 import { supabase } from './utils/supabaseClient';
@@ -1375,6 +1376,14 @@ export default function App() {
           <KanaBoard 
             themeRegion={themeRegion} 
             themeMode={themeMode} 
+          />
+        )}
+
+        {activeTab === 'kanji' && (
+          <KanjiBoard 
+            themeRegion={themeRegion} 
+            themeMode={themeMode} 
+            vocabList={vocabList}
           />
         )}
       </main>

@@ -150,6 +150,13 @@ const GrammarIcon = ({ accent, className = "w-5 h-5" }) => (
   </svg>
 );
 
+const KanjiIcon = ({ accent, className = "w-5 h-5" }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className={className}>
+    <rect x="4" y="4" width="16" height="16" rx="2" stroke="currentColor" />
+    <path d="M12 7v10M8 10h8M9 14h6" stroke={accent} strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
+
 const getNavIcon = (id, accent, isActive) => {
   const className = `w-5 h-5 transition-all duration-300 shrink-0 ${isActive ? 'scale-110' : 'group-hover:scale-105'}`;
   switch (id) {
@@ -165,6 +172,8 @@ const getNavIcon = (id, accent, isActive) => {
       return <StudyIcon accent={accent} className={className} />;
     case 'kana':
       return <KanaIcon accent={accent} className={className} />;
+    case 'kanji':
+      return <KanjiIcon accent={accent} className={className} />;
     case 'vocab':
       return <VocabIcon accent={accent} className={className} />;
     default:
@@ -303,6 +312,7 @@ export default function Navbar({
     { id: 'grammar', name: 'Grammar Dojo' },
     { id: 'study', name: 'Study Guide' },
     { id: 'kana', name: 'Kana Board' },
+    { id: 'kanji', name: 'Kanji Dojo' },
     ...(isAdmin ? [{ id: 'vocab', name: 'Library Manager' }] : []),
   ];
 

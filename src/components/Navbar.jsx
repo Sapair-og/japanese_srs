@@ -459,11 +459,11 @@ export default function Navbar({
         onMouseEnter={showNavbar}
         onMouseMove={showNavbar}
         onMouseLeave={hideNavbarWithDelay}
-        className={`hidden md:flex w-64 h-screen fixed top-0 left-0 bg-claude-sidebar border-r border-claude-border flex-col justify-between py-8 px-5 z-40 select-none transition-all duration-500 ease-in-out ${
+        className={`hidden md:flex w-64 h-screen fixed top-0 left-0 bg-claude-sidebar border-r border-claude-border flex-col justify-between py-8 px-5 z-40 select-none overflow-y-auto scrollbar-none transition-all duration-500 ease-in-out ${
           visible ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
-        <div className="space-y-8">
+        <div className="space-y-8 shrink-0">
           {/* Logo Brand */}
           <div 
             className="flex items-center gap-3 px-2 cursor-pointer group"
@@ -508,7 +508,7 @@ export default function Navbar({
         </div>
 
         {/* Footer Area: User Profile Mockup & Theme Switcher */}
-        <div className="space-y-4 pt-4 border-t border-claude-border">
+        <div className="space-y-4 pt-4 border-t border-claude-border shrink-0">
           {/* Theme Switcher Widget */}
           <div className="space-y-2">
             <div className="flex justify-between items-center px-1">

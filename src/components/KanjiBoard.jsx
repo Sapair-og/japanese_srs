@@ -74,6 +74,15 @@ export default function KanjiBoard({ themeRegion, themeMode, vocabList = [] }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedKanji, setSelectedKanji] = useState(null);
   
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 24;
+
+  // Reset page when filter or search changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [activeLevel, searchQuery]);
+  
   // Calligraphy Canvas practice states
   const [canvasGridVisible, setCanvasGridVisible] = useState(true);
   const canvasRef = useRef(null);
@@ -122,6 +131,13 @@ export default function KanjiBoard({ themeRegion, themeMode, vocabList = [] }) {
       return matchesLevel && matchesSearch;
     });
   }, [activeLevel, searchQuery]);
+
+  const paginatedKanji = React.useMemo(() => {
+    const start = (currentPage - 1) * itemsPerPage;
+    return filteredKanji.slice(start, start + itemsPerPage);
+  }, [filteredKanji, currentPage]);
+
+  const totalPages = Math.ceil(filteredKanji.length / itemsPerPage);
 
   // Find example words from vocabList for the selected Kanji
   const exampleWords = React.useMemo(() => {
@@ -846,25 +862,25 @@ export default function KanjiBoard({ themeRegion, themeMode, vocabList = [] }) {
           </div>
 
           {/* Grid Layout of Kanji Cards */}
-          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3.5">
-            {filteredKanji.map((item, index) => (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
+            {paginatedKanji.map((item, index) => (
               <button
                 key={index}
                 onClick={() => setSelectedKanji(item)}
-                className="relative bg-claude-card border border-claude-border hover:border-[var(--glow-border)] rounded-2xl p-4.5 flex flex-col items-center justify-center gap-2 transition-all duration-300 hover:shadow-[0_0_15px_var(--glow-color)] hover:scale-[1.03] cursor-pointer"
+                className="relative bg-claude-card border border-claude-border hover:border-[var(--glow-border)] rounded-2xl p-6 md:p-7 flex flex-col items-center justify-center gap-3 transition-all duration-300 hover:shadow-[0_0_15px_var(--glow-color)] hover:scale-[1.03] cursor-pointer"
               >
                 {/* Large Kanji symbol */}
-                <span className="text-3xl font-black text-claude-text-heading leading-tight claude-serif">
+                <span className="text-4xl font-black text-claude-text-heading leading-tight claude-serif">
                   {item.character}
                 </span>
 
                 {/* Primary Meaning */}
-                <span className="text-[10px] font-bold text-claude-text-muted text-center truncate w-full">
+                <span className="text-[11px] font-extrabold text-claude-text-muted text-center truncate w-full">
                   {item.meaning}
                 </span>
 
                 {/* Level badge indicator */}
-                <span className={`text-[7px] font-black uppercase px-2 py-0.5 rounded-full ${
+                <span className={`text-[7px] font-black uppercase px-2.5 py-0.5 rounded-full ${
                   item.level === 'n5' ? 'bg-emerald-500/10 text-emerald-600' :
                   item.level === 'n4' ? 'bg-purple-500/10 text-purple-600' :
                   'bg-orange-500/10 text-orange-600'
@@ -874,6 +890,59 @@ export default function KanjiBoard({ themeRegion, themeMode, vocabList = [] }) {
               </button>
             ))}
           </div>
+
+          {/* Pagination Controls */}
+          {totalPages > 1 && (
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-6 border-t border-claude-border/50">
+              <span className="text-[10px] font-black uppercase text-claude-text-muted">
+                Page {currentPage} of {totalPages} (Showing {filteredKanji.length} items)
+              </span>
+              
+              <div className="flex items-center gap-2">
+                <button
+                  disabled={currentPage === 1}
+                  onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                  className="px-3.5 py-2 bg-claude-card hover:bg-claude-sidebar border border-claude-border rounded-xl text-xs font-black text-claude-text-heading disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer active:translate-y-0.5 transition-all"
+                >
+                  ◀️ Prev
+                </button>
+                
+                {/* Pages indicators */}
+                <div className="hidden sm:flex items-center gap-1.5">
+                  {Array.from({ length: totalPages }, (_, i) => i + 1)
+                    .filter(p => p === 1 || p === totalPages || Math.abs(p - currentPage) <= 1)
+                    .map((p, idx, arr) => {
+                      const prevVal = arr[idx - 1];
+                      const showEllipsis = prevVal && p - prevVal > 1;
+                      
+                      return (
+                        <React.Fragment key={p}>
+                          {showEllipsis && <span className="text-claude-text-muted text-xs px-1">...</span>}
+                          <button
+                            onClick={() => setCurrentPage(p)}
+                            className={`w-8 h-8 rounded-xl text-xs font-black flex items-center justify-center border transition-all cursor-pointer ${
+                              currentPage === p
+                                ? `${themeColors.border} bg-claude-sidebar/40 text-claude-coral border-2 shadow-xs scale-105`
+                                : 'border-claude-border bg-claude-card text-claude-text-muted hover:text-claude-text-heading hover:bg-claude-sidebar'
+                            }`}
+                          >
+                            {p}
+                          </button>
+                        </React.Fragment>
+                      );
+                    })}
+                </div>
+
+                <button
+                  disabled={currentPage === totalPages}
+                  onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                  className="px-3.5 py-2 bg-claude-card hover:bg-claude-sidebar border border-claude-border rounded-xl text-xs font-black text-claude-text-heading disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer active:translate-y-0.5 transition-all"
+                >
+                  Next ▶️
+                </button>
+              </div>
+            </div>
+          )}
 
           {/* Fallback empty view */}
           {filteredKanji.length === 0 && (

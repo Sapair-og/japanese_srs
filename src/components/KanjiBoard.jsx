@@ -9,13 +9,26 @@ const playCorrectSound = () => {
     const osc1 = ctx.createOscillator();
     const gain1 = ctx.createGain();
     osc1.type = 'sine';
-    osc1.frequency.setValueAtTime(523.25, now); // C5
-    gain1.gain.setValueAtTime(0.08, now);
-    gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+    osc1.frequency.setValueAtTime(587.33, now); // D5
+    gain1.gain.setValueAtTime(0.06, now);
+    gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
     osc1.connect(gain1);
     gain1.connect(ctx.destination);
+    
+    // Add minor harmony
+    const osc2 = ctx.createOscillator();
+    const gain2 = ctx.createGain();
+    osc2.type = 'sine';
+    osc2.frequency.setValueAtTime(880.00, now); // A5
+    gain2.gain.setValueAtTime(0.04, now);
+    gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+    osc2.connect(gain2);
+    gain2.connect(ctx.destination);
+
     osc1.start(now);
-    osc1.stop(now + 0.3);
+    osc2.start(now);
+    osc1.stop(now + 0.35);
+    osc2.stop(now + 0.35);
   } catch (e) {
     console.warn("Audio Context blocked:", e);
   }
@@ -27,14 +40,14 @@ const playIncorrectSound = () => {
     const now = ctx.currentTime;
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
-    osc.type = 'sawtooth';
-    osc.frequency.setValueAtTime(180, now); // Low buzz
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(140, now); // Low buzz
     gain.gain.setValueAtTime(0.08, now);
-    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.45);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
     osc.connect(gain);
     gain.connect(ctx.destination);
     osc.start(now);
-    osc.stop(now + 0.45);
+    osc.stop(now + 0.5);
   } catch (e) {
     console.warn("Audio Context blocked:", e);
   }
@@ -46,8 +59,7 @@ const speakKanji = (char) => {
     window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(char);
     utterance.lang = 'ja-JP';
-    utterance.rate = 0.8;
-    // Find Japanese voice if available
+    utterance.rate = 0.7; // Slowed down as requested in the plan
     const voices = window.speechSynthesis.getVoices();
     const jaVoice = voices.find(v => v.lang.startsWith('ja'));
     if (jaVoice) {
@@ -155,12 +167,14 @@ export default function KanjiBoard({ themeRegion, themeMode, vocabList = [] }) {
     canvas.style.width = `${size}px`;
     canvas.style.height = `${size}px`;
 
-    // Clear and draw grid if visible
+    // Clear canvas
     ctx.clearRect(0, 0, size, size);
+
+    // Draw Japanese Genkouyoushi grid
     if (canvasGridVisible) {
-      ctx.strokeStyle = themeMode === 'dark' ? 'rgba(241, 245, 249, 0.12)' : 'rgba(15, 23, 42, 0.08)';
+      ctx.strokeStyle = themeMode === 'dark' ? 'rgba(241, 245, 249, 0.1)' : 'rgba(15, 23, 42, 0.06)';
       ctx.lineWidth = 1;
-      ctx.setLineDash([5, 5]);
+      ctx.setLineDash([6, 6]);
 
       // Vertical mid
       ctx.beginPath();
@@ -188,6 +202,15 @@ export default function KanjiBoard({ themeRegion, themeMode, vocabList = [] }) {
 
       ctx.setLineDash([]); // Reset line dash
     }
+
+    // Draw Zen circle watermark (Enso) in center
+    ctx.strokeStyle = themeMode === 'dark' ? 'rgba(241, 245, 249, 0.05)' : 'rgba(15, 23, 42, 0.03)';
+    ctx.lineWidth = 12;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    // Incomplete circle (Zen aesthetic of imperfection)
+    ctx.arc(size / 2, size / 2, size * 0.34, 0.12, Math.PI * 1.9);
+    ctx.stroke();
   };
 
   useEffect(() => {
@@ -233,8 +256,9 @@ export default function KanjiBoard({ themeRegion, themeMode, vocabList = [] }) {
     const coords = getCanvasCoords(e);
 
     ctx.beginPath();
-    ctx.strokeStyle = themeMode === 'dark' ? '#f87171' : '#dc2626'; // Red brush
-    ctx.lineWidth = 6;
+    // Beautiful dynamic semi-transparent brush stroke
+    ctx.strokeStyle = themeMode === 'dark' ? 'rgba(248, 113, 113, 0.85)' : 'rgba(220, 38, 38, 0.85)';
+    ctx.lineWidth = 7;
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
     ctx.moveTo(lastPosRef.current.x, lastPosRef.current.y);
@@ -264,18 +288,18 @@ export default function KanjiBoard({ themeRegion, themeMode, vocabList = [] }) {
     const colors = ['#ffb7c5', '#ff9ebb', '#ff7fa3', '#e06847', '#ffe3e8'];
     const tempParticles = [];
     
-    for (let i = 0; i < 25; i++) {
+    for (let i = 0; i < 30; i++) {
       tempParticles.push({
         x: canvas.width / 2,
         y: canvas.height / 3,
-        vx: (Math.random() - 0.5) * 8,
-        vy: -Math.random() * 5 - 4,
-        size: Math.random() * 8 + 5,
+        vx: (Math.random() - 0.5) * 9,
+        vy: -Math.random() * 6 - 5,
+        size: Math.random() * 9 + 4,
         color: colors[Math.floor(Math.random() * colors.length)],
         angle: Math.random() * Math.PI * 2,
-        spin: (Math.random() - 0.5) * 0.2,
+        spin: (Math.random() - 0.5) * 0.25,
         opacity: 1,
-        decay: Math.random() * 0.02 + 0.015
+        decay: Math.random() * 0.018 + 0.012
       });
     }
 
@@ -295,7 +319,7 @@ export default function KanjiBoard({ themeRegion, themeMode, vocabList = [] }) {
       particlesRef.current = particlesRef.current.filter(p => {
         p.x += p.vx;
         p.y += p.vy;
-        p.vy += 0.15; // Gravity
+        p.vy += 0.16; // Gravity
         p.angle += p.spin;
         p.opacity -= p.decay;
 
@@ -308,7 +332,7 @@ export default function KanjiBoard({ themeRegion, themeMode, vocabList = [] }) {
         ctx.rotate(p.angle);
 
         ctx.beginPath();
-        ctx.ellipse(0, 0, p.size, p.size / 1.8, 0, 0, Math.PI * 2);
+        ctx.ellipse(0, 0, p.size, p.size / 1.7, 0, 0, Math.PI * 2);
         ctx.fill();
 
         ctx.beginPath();
@@ -338,14 +362,12 @@ export default function KanjiBoard({ themeRegion, themeMode, vocabList = [] }) {
 
   // --- QUIZ GAME ENGINE ---
   const startQuiz = () => {
-    // Generate pool of kanji based on selected categories
     let pool = kanjiList.filter(k => quizConfig.categories.includes(k.level));
     if (pool.length === 0) return;
 
     // Shuffle pool
     pool = [...pool].sort(() => Math.random() - 0.5);
 
-    // Apply limits
     const totalQ = Math.min(pool.length, quizConfig.numQuestions);
     const queue = pool.slice(0, totalQ);
 
@@ -377,12 +399,10 @@ export default function KanjiBoard({ themeRegion, themeMode, vocabList = [] }) {
           k.onyomi + ' / ' + k.kunyomi;
       });
 
-    // Pick unique distractors
     const uniqueDistractors = Array.from(new Set(distractors))
       .sort(() => Math.random() - 0.5)
       .slice(0, 3);
 
-    // Combine and shuffle options
     const allOptions = [correctVal, ...uniqueDistractors].sort(() => Math.random() - 0.5);
     setOptions(allOptions);
   };
@@ -418,7 +438,6 @@ export default function KanjiBoard({ themeRegion, themeMode, vocabList = [] }) {
       }]);
     }
 
-    // Wait and advance
     setTimeout(() => {
       const nextIdx = currentIdx + 1;
       if (nextIdx < quizQueue.length) {
@@ -432,8 +451,20 @@ export default function KanjiBoard({ themeRegion, themeMode, vocabList = [] }) {
     }, 1800);
   };
 
+  // Glow variable helper
+  const getGlowStyle = (rawColor) => {
+    return {
+      '--glow-color': `${rawColor}22`,
+      '--glow-border': `${rawColor}55`,
+      '--accent-color': rawColor
+    };
+  };
+
   return (
-    <div className="w-full max-w-6xl mx-auto space-y-6 select-none relative pb-12">
+    <div 
+      className="w-full max-w-6xl mx-auto space-y-6 select-none relative pb-12"
+      style={getGlowStyle(themeColors.raw)}
+    >
       {/* Background canvas for sakura particle bursts */}
       {quizActive && !quizFinished && (
         <canvas 
@@ -442,51 +473,52 @@ export default function KanjiBoard({ themeRegion, themeMode, vocabList = [] }) {
         />
       )}
 
-      {/* Title Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-claude-border pb-5">
+      {/* Header Banner */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-claude-border pb-6">
         <div>
-          <h1 className="text-2xl font-black text-claude-text-heading claude-serif flex items-center gap-2">
+          <h1 className="text-3xl font-black text-claude-text-heading claude-serif flex items-center gap-2.5">
             <span>⛩️</span> Kanji Dojo
           </h1>
-          <p className="text-xs text-claude-text-muted mt-1 font-semibold">
-            Master the core N5, N4, and Daily Life Kanji with memory mnemonics, handwriting practice, and MCQ tests.
+          <p className="text-xs text-claude-text-muted mt-1.5 font-bold tracking-tight max-w-2xl">
+            Prepare for JLPT N5 and N4. Browse all 300 characters, interact with stroke guides, draw on the practice canvas, and run customizable revision tests.
           </p>
         </div>
 
         {!quizActive && (
           <button
             onClick={() => setQuizActive(true)}
-            className={`px-5 py-2.5 rounded-xl text-xs font-black text-white ${themeColors.accent} hover:opacity-90 shadow-md cursor-pointer transition-all active:scale-95 flex items-center gap-1.5`}
+            className={`px-5 py-3 rounded-2xl text-xs font-black text-white ${themeColors.accent} hover:opacity-90 shadow-md cursor-pointer transition-all active:translate-y-0.5 active:shadow-inner hover:scale-[1.02] flex items-center gap-1.5`}
           >
             <span>🎯</span> Start Kanji Quiz
           </button>
         )}
       </div>
 
-      {/* QUIZ INTERFACE */}
+      {/* QUIZ ARENA */}
       {quizActive ? (
-        <div className="bg-claude-card border border-claude-border rounded-3xl p-6 md:p-8 shadow-sm">
+        <div className="bg-claude-card border border-claude-border rounded-3xl p-6 md:p-8 shadow-md transition-all duration-300">
           
           {/* Quiz Setup Panel */}
           {!quizQueue.length || quizFinished ? (
             <div>
               {quizFinished ? (
                 // Quiz Completed Screen
-                <div className="text-center space-y-6 max-w-lg mx-auto py-4">
-                  <div className="text-6xl">🌸</div>
-                  <h2 className="text-2xl font-black text-claude-text-heading claude-serif">
-                    Quiz Completed!
+                <div className="text-center space-y-6 max-w-lg mx-auto py-6">
+                  <div className="text-7xl animate-bounce">🌸</div>
+                  <h2 className="text-3xl font-black text-claude-text-heading claude-serif">
+                    Quiz Session Finished!
                   </h2>
-                  <div className="bg-claude-sidebar border border-claude-border rounded-2xl p-6 space-y-3">
-                    <div className="flex justify-between text-sm font-bold border-b border-claude-border/50 pb-2">
+                  
+                  <div className="bg-claude-sidebar border border-claude-border rounded-2xl p-6 space-y-3.5 shadow-inner">
+                    <div className="flex justify-between text-xs font-extrabold border-b border-claude-border/50 pb-2.5">
                       <span className="text-claude-text-muted">Total Questions:</span>
                       <span className="text-claude-text-heading">{quizQueue.length}</span>
                     </div>
-                    <div className="flex justify-between text-sm font-bold border-b border-claude-border/50 pb-2">
+                    <div className="flex justify-between text-xs font-extrabold border-b border-claude-border/50 pb-2.5">
                       <span className="text-claude-text-muted">Correct Answers:</span>
-                      <span className="text-green-500 font-extrabold">{quizScore}</span>
+                      <span className="text-green-500 font-black">{quizScore}</span>
                     </div>
-                    <div className="flex justify-between text-sm font-bold">
+                    <div className="flex justify-between text-xs font-extrabold">
                       <span className="text-claude-text-muted">Success Rate:</span>
                       <span className={`font-black ${quizScore === quizQueue.length ? 'text-green-500' : 'text-claude-coral'}`}>
                         {Math.round((quizScore / quizQueue.length) * 100)}%
@@ -494,30 +526,29 @@ export default function KanjiBoard({ themeRegion, themeMode, vocabList = [] }) {
                     </div>
                   </div>
 
-                  {/* Rating emoji & message */}
-                  <p className="text-sm font-extrabold text-claude-text-heading italic animate-bounce">
-                    {quizScore === quizQueue.length ? 'Perfect Score! Sugoi! 🌸🏆' :
-                     quizScore >= quizQueue.length * 0.8 ? 'Excellent job! Great study habits! 🎯🌟' :
-                     quizScore >= quizQueue.length * 0.5 ? 'Good try! Keep practicing! 💮' :
-                     'Keep learning, you will get better! Ganbare! 🎯'}
+                  <p className="text-sm font-extrabold text-claude-text-heading italic">
+                    {quizScore === quizQueue.length ? 'Flawless Victory! Sugoi! 🌸🏆' :
+                     quizScore >= quizQueue.length * 0.8 ? 'Excellent work! Almost perfect! 🎯🌟' :
+                     quizScore >= quizQueue.length * 0.5 ? 'Nice try! Keep practicing! 💮' :
+                     'Keep studying, practice makes perfect! Ganbare! 🎯'}
                   </p>
 
                   {/* Incorrect Answers Review Table */}
                   {incorrectAnswers.length > 0 && (
                     <div className="text-left space-y-3 mt-6">
-                      <h3 className="text-xs font-black uppercase tracking-wider text-claude-text-muted">
-                        Review Incorrect Answers
+                      <h3 className="text-[10px] font-black uppercase tracking-wider text-claude-text-muted">
+                        Review Missed Items
                       </h3>
-                      <div className="max-h-48 overflow-y-auto border border-claude-border rounded-xl bg-claude-sidebar/40 divide-y divide-claude-border">
+                      <div className="max-h-52 overflow-y-auto border border-claude-border rounded-2xl bg-claude-sidebar/30 divide-y divide-claude-border">
                         {incorrectAnswers.map((item, i) => (
-                          <div key={i} className="p-3 text-xs flex justify-between items-center gap-3">
+                          <div key={i} className="p-3.5 text-xs flex justify-between items-center gap-4 hover:bg-claude-sidebar/20 transition-colors">
                             <div>
-                              <span className="text-lg font-black mr-2 text-claude-text-heading">{item.question.character}</span>
+                              <span className="text-xl font-black mr-2 text-claude-text-heading leading-none">{item.question.character}</span>
                               <span className="text-claude-text-muted">({item.question.meaning})</span>
                             </div>
                             <div className="text-right">
-                              <div className="text-[10px] text-red-500 font-bold">You: {item.yourAnswer}</div>
-                              <div className="text-[10px] text-green-500 font-extrabold">Correct: {item.correctAnswer}</div>
+                              <div className="text-[10px] text-red-500 font-bold">You selected: {item.yourAnswer}</div>
+                              <div className="text-[10px] text-green-500 font-black">Correct: {item.correctAnswer}</div>
                             </div>
                           </div>
                         ))}
@@ -525,10 +556,10 @@ export default function KanjiBoard({ themeRegion, themeMode, vocabList = [] }) {
                     </div>
                   )}
 
-                  <div className="flex gap-3 pt-4 justify-center">
+                  <div className="flex gap-3 pt-6 justify-center">
                     <button
                       onClick={startQuiz}
-                      className={`px-5 py-2.5 rounded-xl text-xs font-black text-white ${themeColors.accent} hover:opacity-95 cursor-pointer shadow active:scale-95`}
+                      className={`px-6 py-3 rounded-2xl text-xs font-black text-white ${themeColors.accent} hover:opacity-95 cursor-pointer shadow active:translate-y-0.5`}
                     >
                       🔄 Retake Quiz
                     </button>
@@ -537,29 +568,29 @@ export default function KanjiBoard({ themeRegion, themeMode, vocabList = [] }) {
                         setQuizActive(false);
                         setQuizQueue([]);
                       }}
-                      className="px-5 py-2.5 rounded-xl text-xs font-black bg-claude-sidebar border border-claude-border text-claude-text-heading hover:bg-claude-card cursor-pointer active:scale-95"
+                      className="px-6 py-3 rounded-2xl text-xs font-black bg-claude-sidebar border border-claude-border text-claude-text-heading hover:bg-claude-card cursor-pointer active:translate-y-0.5"
                     >
                       ↩️ Back to Dojo
                     </button>
                   </div>
                 </div>
               ) : (
-                // Quiz Configuration Screen
+                // Quiz Setup Screen
                 <div className="max-w-md mx-auto space-y-6">
-                  <h2 className="text-lg font-extrabold text-claude-text-heading border-b border-claude-border pb-3 flex items-center gap-2">
-                    <span>⚙️</span> Customize Your Quiz
+                  <h2 className="text-xl font-black text-claude-text-heading border-b border-claude-border pb-4 flex items-center gap-2.5">
+                    <span>⚙️</span> Quiz Configuration
                   </h2>
 
                   {/* Category select */}
-                  <div className="space-y-2">
+                  <div className="space-y-2.5">
                     <label className="text-[10px] font-black uppercase tracking-wider text-claude-text-muted">
                       Select Card Categories
                     </label>
                     <div className="grid grid-cols-3 gap-2">
                       {[
-                        { id: 'n5', name: 'N5 Kanji', count: 80 },
-                        { id: 'n4', name: 'N4 Kanji', count: 80 },
-                        { id: 'daily', name: 'Daily Life', count: 30 }
+                        { id: 'n5', name: 'N5 Kanji', count: 103, emoji: '💮' },
+                        { id: 'n4', name: 'N4 Kanji', count: 167, emoji: '🌸' },
+                        { id: 'daily', name: 'Daily Life', count: 30, emoji: '🏠' }
                       ].map(cat => {
                         const isSelected = quizConfig.categories.includes(cat.id);
                         return (
@@ -573,14 +604,14 @@ export default function KanjiBoard({ themeRegion, themeMode, vocabList = [] }) {
                                 return { ...prev, categories: newCats };
                               });
                             }}
-                            className={`p-3 rounded-2xl border text-center transition-all cursor-pointer ${
+                            className={`p-3.5 rounded-2xl border text-center transition-all cursor-pointer ${
                               isSelected 
-                                ? `${themeColors.border} bg-claude-sidebar text-claude-coral shadow-sm scale-[1.02]`
+                                ? `${themeColors.border} bg-claude-sidebar/40 text-claude-coral shadow-sm scale-[1.02] border-2`
                                 : 'border-claude-border bg-claude-card hover:bg-claude-sidebar/20 text-claude-text-muted'
                             }`}
                           >
-                            <div className="text-xs font-black">{cat.name}</div>
-                            <div className="text-[9px] opacity-60 mt-0.5">{cat.count} items</div>
+                            <div className="text-xs font-black">{cat.emoji} {cat.name}</div>
+                            <div className="text-[9px] opacity-70 mt-1">{cat.count} items</div>
                           </button>
                         );
                       })}
@@ -588,12 +619,12 @@ export default function KanjiBoard({ themeRegion, themeMode, vocabList = [] }) {
                   </div>
 
                   {/* Question count */}
-                  <div className="space-y-2">
+                  <div className="space-y-2.5">
                     <label className="text-[10px] font-black uppercase tracking-wider text-claude-text-muted">
                       Number of Questions
                     </label>
-                    <div className="flex bg-claude-sidebar border border-claude-border rounded-xl p-1">
-                      {[5, 10, 15, 20, 30].map(n => (
+                    <div className="flex bg-claude-sidebar border border-claude-border rounded-2xl p-1 shadow-inner">
+                      {[5, 10, 15, 20, 30, 50].map(n => (
                         <button
                           key={n}
                           type="button"
@@ -611,22 +642,22 @@ export default function KanjiBoard({ themeRegion, themeMode, vocabList = [] }) {
                   </div>
 
                   {/* Question formats */}
-                  <div className="space-y-2">
+                  <div className="space-y-2.5">
                     <label className="text-[10px] font-black uppercase tracking-wider text-claude-text-muted">
                       Question format
                     </label>
-                    <div className="grid grid-cols-1 gap-2">
+                    <div className="grid grid-cols-1 gap-2.5">
                       {[
-                        { id: 'kanji-to-meaning', title: 'Kanji ➔ English Meaning', desc: 'Given a Kanji character, guess its English meaning.' },
+                        { id: 'kanji-to-meaning', title: 'Kanji ➔ English Meaning', desc: 'Given a Kanji character, guess its English translation.' },
                         { id: 'meaning-to-kanji', title: 'Meaning ➔ Kanji Character', desc: 'Given an English meaning, pick the correct Kanji character.' },
-                        { id: 'kanji-to-reading', title: 'Kanji ➔ Reading (Kana)', desc: 'Given a Kanji character, guess its Onyomi/Kunyomi pronunciation.' }
+                        { id: 'kanji-to-reading', title: 'Kanji ➔ Pronunciation (Onyomi/Kunyomi)', desc: 'Given a Kanji, guess its correct kana readings.' }
                       ].map(item => (
                         <button
                           key={item.id}
                           onClick={() => setQuizConfig(prev => ({ ...prev, type: item.id }))}
-                          className={`p-3 rounded-2xl border text-left transition-all cursor-pointer flex items-center justify-between ${
+                          className={`p-3.5 rounded-2xl border text-left transition-all cursor-pointer flex items-center justify-between ${
                             quizConfig.type === item.id 
-                              ? `${themeColors.border} bg-claude-sidebar text-claude-coral shadow-sm`
+                              ? `${themeColors.border} bg-claude-sidebar/40 text-claude-coral shadow-sm border-2`
                               : 'border-claude-border bg-claude-card hover:bg-claude-sidebar/20 text-claude-text-muted'
                           }`}
                         >
@@ -634,24 +665,24 @@ export default function KanjiBoard({ themeRegion, themeMode, vocabList = [] }) {
                             <div className="text-xs font-black text-claude-text-heading">{item.title}</div>
                             <div className="text-[9px] text-claude-text-muted mt-0.5">{item.desc}</div>
                           </div>
-                          {quizConfig.type === item.id && <span className="text-xs">✔️</span>}
+                          {quizConfig.type === item.id && <span className="text-xs text-claude-coral">✔️</span>}
                         </button>
                       ))}
                     </div>
                   </div>
 
                   {/* Action row */}
-                  <div className="flex gap-3 pt-3">
+                  <div className="flex gap-3 pt-4 border-t border-claude-border/50">
                     <button
                       onClick={startQuiz}
                       disabled={quizConfig.categories.length === 0}
-                      className={`flex-1 py-3 rounded-xl text-xs font-black text-white ${themeColors.accent} hover:opacity-95 cursor-pointer shadow-md disabled:opacity-50 disabled:cursor-not-allowed`}
+                      className={`flex-1 py-3.5 rounded-2xl text-xs font-black text-white ${themeColors.accent} hover:opacity-95 cursor-pointer shadow-md disabled:opacity-50 disabled:cursor-not-allowed active:translate-y-0.5`}
                     >
                       🚀 Start Quiz Session
                     </button>
                     <button
                       onClick={() => setQuizActive(false)}
-                      className="px-5 py-3 rounded-xl text-xs font-black bg-claude-sidebar border border-claude-border text-claude-text-heading hover:bg-claude-card cursor-pointer"
+                      className="px-5 py-3.5 rounded-2xl text-xs font-black bg-claude-sidebar border border-claude-border text-claude-text-heading hover:bg-claude-card cursor-pointer active:translate-y-0.5"
                     >
                       Cancel
                     </button>
@@ -660,20 +691,19 @@ export default function KanjiBoard({ themeRegion, themeMode, vocabList = [] }) {
               )}
             </div>
           ) : (
-            // Active Quiz Arena
+            // Active Quiz Game Arena
             <div className="space-y-6">
-              {/* Header stats bar */}
-              <div className="flex items-center justify-between border-b border-claude-border/50 pb-3">
-                <span className="text-xs font-black text-claude-text-heading">
+              <div className="flex items-center justify-between border-b border-claude-border/50 pb-3.5">
+                <span className="text-xs font-black text-claude-text-heading uppercase tracking-wide">
                   Question {currentIdx + 1} of {quizQueue.length}
                 </span>
-                <span className="text-xs font-black text-green-500">
+                <span className="text-xs font-black text-green-500 bg-green-500/10 px-2.5 py-0.5 rounded-full border border-green-500/20">
                   Score: {quizScore}
                 </span>
               </div>
 
               {/* Progress bar */}
-              <div className="w-full bg-claude-sidebar h-2 rounded-full overflow-hidden">
+              <div className="w-full bg-claude-sidebar h-2.5 rounded-full overflow-hidden shadow-inner border border-claude-border/40">
                 <div 
                   className={`h-full transition-all duration-300 ${themeColors.accent}`}
                   style={{ width: `${((currentIdx + 1) / quizQueue.length) * 100}%` }}
@@ -681,22 +711,22 @@ export default function KanjiBoard({ themeRegion, themeMode, vocabList = [] }) {
               </div>
 
               {/* Question card container */}
-              <div className="flex flex-col items-center justify-center py-6 text-center">
+              <div className="flex flex-col items-center justify-center py-8 text-center">
                 {quizConfig.type === 'meaning-to-kanji' ? (
-                  <div className="space-y-2">
-                    <div className="text-xs font-bold text-claude-text-muted uppercase tracking-wider">
-                      Which kanji character means:
+                  <div className="space-y-3">
+                    <div className="text-[10px] font-black text-claude-text-muted uppercase tracking-widest">
+                      Select the correct character for:
                     </div>
-                    <div className="text-3xl font-black text-claude-coral claude-serif">
+                    <div className="text-4xl font-black text-claude-coral claude-serif leading-none">
                       "{quizQueue[currentIdx]?.meaning}"
                     </div>
                   </div>
                 ) : (
-                  <div className="space-y-2">
-                    <div className="text-xs font-bold text-claude-text-muted uppercase tracking-wider">
-                      {quizConfig.type === 'kanji-to-reading' ? 'Guess the pronunciation for:' : 'What does this kanji mean?'}
+                  <div className="space-y-3">
+                    <div className="text-[10px] font-black text-claude-text-muted uppercase tracking-widest">
+                      {quizConfig.type === 'kanji-to-reading' ? 'Guess the readings for:' : 'What does this kanji represent?'}
                     </div>
-                    <div className="text-7xl font-black text-claude-text-heading leading-tight bg-claude-sidebar border border-claude-border p-6 rounded-3xl w-32 h-32 flex items-center justify-center shadow-inner claude-serif">
+                    <div className="text-8xl font-black text-claude-text-heading leading-none bg-claude-sidebar border border-claude-border p-7 rounded-3xl w-36 h-36 flex items-center justify-center shadow-inner claude-serif">
                       {quizQueue[currentIdx]?.character}
                     </div>
                   </div>
@@ -704,7 +734,7 @@ export default function KanjiBoard({ themeRegion, themeMode, vocabList = [] }) {
               </div>
 
               {/* MCQ Options grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-w-xl mx-auto">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 max-w-2xl mx-auto">
                 {options.map((opt, i) => {
                   const currentQuestion = quizQueue[currentIdx];
                   const quizType = quizConfig.type;
@@ -713,17 +743,17 @@ export default function KanjiBoard({ themeRegion, themeMode, vocabList = [] }) {
                     quizType === 'meaning-to-kanji' ? currentQuestion.character :
                     currentQuestion.onyomi + ' / ' + currentQuestion.kunyomi;
 
-                  let cardStyle = 'border-claude-border bg-claude-card hover:bg-claude-sidebar/20 text-claude-text-heading';
+                  let cardStyle = 'border-claude-border bg-claude-card hover:bg-claude-sidebar/25 text-claude-text-heading border shadow-sm hover:scale-[1.01]';
                   if (selectedAnswer === opt) {
                     if (isChecking) {
                       cardStyle = opt === correctVal 
-                        ? 'border-green-500 bg-green-500/10 text-green-600 scale-[1.02]' 
-                        : 'border-red-500 bg-red-500/10 text-red-500 animate-shake';
+                        ? 'border-green-500 bg-green-500/15 text-green-600 scale-[1.02] border-2 shadow-md' 
+                        : 'border-red-500 bg-red-500/15 text-red-500 animate-shake border-2';
                     } else {
-                      cardStyle = `${themeColors.border} bg-claude-sidebar text-claude-coral shadow-sm scale-[1.02]`;
+                      cardStyle = `${themeColors.border} bg-claude-sidebar text-claude-coral shadow-md scale-[1.02] border-2`;
                     }
                   } else if (isChecking && opt === correctVal) {
-                    cardStyle = 'border-green-500 bg-green-500/10 text-green-600';
+                    cardStyle = 'border-green-500 bg-green-500/15 text-green-600 border-2';
                   }
 
                   return (
@@ -731,7 +761,7 @@ export default function KanjiBoard({ themeRegion, themeMode, vocabList = [] }) {
                       key={i}
                       onClick={() => handleSelectOption(opt)}
                       disabled={isChecking}
-                      className={`p-4 rounded-2xl border text-center transition-all duration-200 cursor-pointer font-bold text-sm ${cardStyle}`}
+                      className={`p-4.5 rounded-2xl text-center transition-all duration-200 cursor-pointer font-bold text-sm select-none active:translate-y-0.5 ${cardStyle}`}
                     >
                       {opt}
                     </button>
@@ -739,21 +769,21 @@ export default function KanjiBoard({ themeRegion, themeMode, vocabList = [] }) {
                 })}
               </div>
 
-              {/* Check submit action row */}
-              <div className="pt-4 flex justify-center gap-3">
+              {/* Submit panel */}
+              <div className="pt-6 flex justify-center gap-3.5 border-t border-claude-border/50">
                 <button
                   onClick={handleCheckAnswer}
                   disabled={!selectedAnswer || isChecking}
-                  className={`px-8 py-3 rounded-xl text-xs font-black text-white ${themeColors.accent} hover:opacity-95 cursor-pointer shadow-md disabled:opacity-50 disabled:cursor-not-allowed`}
+                  className={`px-10 py-3.5 rounded-2xl text-xs font-black text-white ${themeColors.accent} hover:opacity-95 cursor-pointer shadow-md disabled:opacity-50 disabled:cursor-not-allowed active:translate-y-0.5`}
                 >
-                  {isChecking ? 'Checking...' : 'Check Answer'}
+                  {isChecking ? 'Verifying...' : 'Check Answer'}
                 </button>
                 <button
                   onClick={() => {
                     setQuizActive(false);
                     setQuizQueue([]);
                   }}
-                  className="px-6 py-3 rounded-xl text-xs font-black bg-claude-sidebar border border-claude-border text-claude-text-heading hover:bg-claude-card cursor-pointer"
+                  className="px-6 py-3.5 rounded-2xl text-xs font-black bg-claude-sidebar border border-claude-border text-claude-text-heading hover:bg-claude-card cursor-pointer active:translate-y-0.5"
                 >
                   Quit Quiz
                 </button>
@@ -762,25 +792,25 @@ export default function KanjiBoard({ themeRegion, themeMode, vocabList = [] }) {
           )}
         </div>
       ) : (
-        // MAIN BOARD BROWSER
+        // MAIN BOARD VIEW
         <div className="space-y-6">
           {/* Level categories tabs & Search */}
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             
             {/* Filter Tabs */}
-            <div className="flex bg-claude-card border border-claude-border rounded-xl p-1 shrink-0 self-start">
+            <div className="flex bg-claude-card border border-claude-border rounded-2xl p-1.5 shrink-0 self-start shadow-sm">
               {[
                 { id: 'all', label: 'All 🏮' },
-                { id: 'n5', label: 'N5 💮' },
-                { id: 'n4', label: 'N4 🌸' },
-                { id: 'daily', label: 'Daily 🏠' }
+                { id: 'n5', label: 'JLPT N5 💮' },
+                { id: 'n4', label: 'JLPT N4 🌸' },
+                { id: 'daily', label: 'Daily Life 🏠' }
               ].map(tab => (
                 <button
                   key={tab.id}
                   onClick={() => setActiveLevel(tab.id)}
-                  className={`px-4 py-1.5 rounded-lg text-xs font-black capitalize transition-all cursor-pointer ${
+                  className={`px-4.5 py-2 rounded-xl text-xs font-black capitalize transition-all cursor-pointer ${
                     activeLevel === tab.id
-                      ? `bg-claude-sidebar text-claude-coral border border-claude-border shadow-xs`
+                      ? `bg-claude-sidebar text-claude-coral border border-claude-border shadow-md`
                       : 'text-claude-text-muted hover:text-claude-text-heading'
                   }`}
                 >
@@ -795,13 +825,13 @@ export default function KanjiBoard({ themeRegion, themeMode, vocabList = [] }) {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search kanji, meaning, readings, or tricks..."
-                className="w-full px-4 py-2.5 bg-claude-card border border-claude-border rounded-2xl text-xs text-claude-text-heading placeholder-claude-text-muted/65 focus:outline-hidden focus:border-claude-coral focus:ring-1 focus:ring-claude-coral shadow-inner"
+                placeholder="Search kanji character, meaning, readings..."
+                className="w-full px-4 py-3 bg-claude-card border border-claude-border rounded-2xl text-xs text-claude-text-heading placeholder-claude-text-muted/60 focus:outline-hidden focus:border-claude-coral focus:ring-1 focus:ring-claude-coral shadow-inner"
               />
               {searchQuery && (
                 <button
                   onClick={() => setSearchQuery('')}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-claude-text-muted hover:text-claude-text-heading"
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs text-claude-text-muted hover:text-claude-text-heading cursor-pointer"
                 >
                   ❌
                 </button>
@@ -810,18 +840,18 @@ export default function KanjiBoard({ themeRegion, themeMode, vocabList = [] }) {
           </div>
 
           {/* Cards count tracker */}
-          <div className="text-[10px] font-extrabold uppercase tracking-widest text-claude-text-muted flex justify-between">
+          <div className="text-[10px] font-black uppercase tracking-wider text-claude-text-muted flex justify-between px-1">
             <span>Showing {filteredKanji.length} Kanji characters</span>
             {activeLevel !== 'all' && <span className="capitalize">{activeLevel} level</span>}
           </div>
 
           {/* Grid Layout of Kanji Cards */}
-          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3">
+          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3.5">
             {filteredKanji.map((item, index) => (
               <button
                 key={index}
                 onClick={() => setSelectedKanji(item)}
-                className="bg-claude-card border border-claude-border hover:border-claude-coral rounded-2xl p-4 flex flex-col items-center justify-center gap-2 transition-all duration-300 hover:shadow-md hover:scale-[1.02] cursor-pointer"
+                className="relative bg-claude-card border border-claude-border hover:border-[var(--glow-border)] rounded-2xl p-4.5 flex flex-col items-center justify-center gap-2 transition-all duration-300 hover:shadow-[0_0_15px_var(--glow-color)] hover:scale-[1.03] cursor-pointer"
               >
                 {/* Large Kanji symbol */}
                 <span className="text-3xl font-black text-claude-text-heading leading-tight claude-serif">
@@ -834,7 +864,7 @@ export default function KanjiBoard({ themeRegion, themeMode, vocabList = [] }) {
                 </span>
 
                 {/* Level badge indicator */}
-                <span className={`text-[8px] font-black uppercase px-2 py-0.5 rounded-full ${
+                <span className={`text-[7px] font-black uppercase px-2 py-0.5 rounded-full ${
                   item.level === 'n5' ? 'bg-emerald-500/10 text-emerald-600' :
                   item.level === 'n4' ? 'bg-purple-500/10 text-purple-600' :
                   'bg-orange-500/10 text-orange-600'
@@ -847,8 +877,8 @@ export default function KanjiBoard({ themeRegion, themeMode, vocabList = [] }) {
 
           {/* Fallback empty view */}
           {filteredKanji.length === 0 && (
-            <div className="text-center py-12 border border-dashed border-claude-border rounded-3xl bg-claude-card/40">
-              <span className="text-3xl">🏜️</span>
+            <div className="text-center py-16 border border-dashed border-claude-border rounded-3xl bg-claude-card/30">
+              <span className="text-4xl">🏜️</span>
               <h3 className="text-xs font-black text-claude-text-heading mt-2">No Kanji matched your criteria</h3>
               <p className="text-[10px] text-claude-text-muted mt-1">Try resetting the level filter or adjust your search.</p>
             </div>
@@ -858,7 +888,7 @@ export default function KanjiBoard({ themeRegion, themeMode, vocabList = [] }) {
 
       {/* DETAILS LIGHTBOX DRAWER */}
       {selectedKanji && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-xs flex items-center justify-center z-50 p-4 animate-fade-in">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-xs flex items-center justify-center z-50 p-4 animate-fade-in">
           {/* Backdrop Click */}
           <div className="absolute inset-0" onClick={() => setSelectedKanji(null)} />
 
@@ -866,13 +896,13 @@ export default function KanjiBoard({ themeRegion, themeMode, vocabList = [] }) {
           <div className="relative bg-claude-card border border-claude-border rounded-3xl w-full max-w-3xl overflow-hidden shadow-2xl z-10 flex flex-col md:flex-row h-full max-h-[90vh] md:max-h-[580px] animate-scale-up">
             
             {/* Left Column: Visual display, TTS, Practice Canvas */}
-            <div className="w-full md:w-2/5 bg-claude-sidebar border-b md:border-b-0 md:border-r border-claude-border p-5 flex flex-col items-center justify-between gap-4 shrink-0">
+            <div className="w-full md:w-2/5 bg-claude-sidebar border-b md:border-b-0 md:border-r border-claude-border p-6 flex flex-col items-center justify-between gap-4 shrink-0">
               
               {/* Calligraphy guideline grid */}
-              <div className="relative w-full aspect-square max-w-[200px] border border-claude-border bg-claude-card rounded-2xl overflow-hidden flex items-center justify-center shadow-inner group">
+              <div className="relative w-full aspect-square max-w-[210px] border border-claude-border bg-claude-card rounded-2xl overflow-hidden flex items-center justify-center shadow-inner group">
                 
                 {/* Large Kanji symbol underneath */}
-                <div className="absolute inset-0 flex items-center justify-center text-8xl font-black text-claude-text-heading/15 pointer-events-none select-none font-serif">
+                <div className="absolute inset-0 flex items-center justify-center text-8xl font-black text-claude-text-heading/10 pointer-events-none select-none font-serif">
                   {selectedKanji.character}
                 </div>
 
@@ -886,28 +916,28 @@ export default function KanjiBoard({ themeRegion, themeMode, vocabList = [] }) {
                   onTouchStart={startDrawing}
                   onTouchMove={draw}
                   onTouchEnd={stopDrawing}
-                  className="absolute inset-0 cursor-crosshair touch-none"
+                  className="absolute inset-0 cursor-crosshair touch-none z-10"
                 />
 
                 {/* Grid toggle helper label */}
-                <div className="absolute bottom-1 right-2 text-[8px] font-black uppercase text-claude-text-muted opacity-50 select-none pointer-events-none">
-                  Practice Canvas
+                <div className="absolute bottom-1 right-2 text-[8px] font-black uppercase text-claude-text-muted opacity-40 select-none pointer-events-none">
+                  Calligraphy Board
                 </div>
               </div>
 
               {/* Canvas controls */}
-              <div className="flex gap-2 w-full justify-center">
+              <div className="flex gap-2.5 w-full justify-center">
                 <button
                   onClick={clearCanvas}
-                  className="px-3 py-1 bg-claude-card hover:bg-claude-sidebar/20 border border-claude-border rounded-lg text-[9px] font-extrabold text-claude-text-heading cursor-pointer active:scale-95 transition-all"
+                  className="px-3.5 py-1.5 bg-claude-card hover:bg-claude-sidebar/20 border border-claude-border rounded-lg text-[9px] font-extrabold text-claude-text-heading cursor-pointer active:scale-95 transition-all shadow-xs"
                 >
                   🧹 Clear Board
                 </button>
                 <button
                   onClick={() => setCanvasGridVisible(prev => !prev)}
-                  className={`px-3 py-1 border rounded-lg text-[9px] font-extrabold cursor-pointer active:scale-95 transition-all ${
+                  className={`px-3.5 py-1.5 border rounded-lg text-[9px] font-extrabold cursor-pointer active:scale-95 transition-all shadow-xs ${
                     canvasGridVisible 
-                      ? `${themeColors.border} bg-claude-sidebar text-claude-coral` 
+                      ? `${themeColors.border} bg-claude-sidebar/40 text-claude-coral border-2` 
                       : 'border-claude-border bg-claude-card text-claude-text-muted'
                   }`}
                 >
@@ -919,13 +949,13 @@ export default function KanjiBoard({ themeRegion, themeMode, vocabList = [] }) {
               <div className="flex flex-col items-center gap-2">
                 <button
                   onClick={() => speakKanji(selectedKanji.character)}
-                  className={`w-12 h-12 rounded-full border border-claude-border bg-claude-card hover:bg-claude-sidebar flex items-center justify-center shadow-md active:scale-95 transition-all cursor-pointer`}
-                  title="Listen to pronunciation"
+                  className={`w-12 h-12 rounded-full border border-claude-border bg-claude-card hover:bg-claude-sidebar hover:border-[var(--glow-border)] hover:shadow-[0_0_12px_var(--glow-color)] flex items-center justify-center shadow-md active:scale-90 transition-all cursor-pointer`}
+                  title="Pronounce character"
                 >
                   <span className="text-xl">🔊</span>
                 </button>
-                <span className="text-[9px] font-extrabold text-claude-text-muted uppercase">
-                  Level {selectedKanji.level} • {selectedKanji.character}
+                <span className="text-[9px] font-black text-claude-text-muted uppercase tracking-wider">
+                  Level {selectedKanji.level.toUpperCase()} • {selectedKanji.character}
                 </span>
               </div>
             </div>
@@ -936,10 +966,10 @@ export default function KanjiBoard({ themeRegion, themeMode, vocabList = [] }) {
               {/* Top Row: Character Meaning & Close */}
               <div className="flex justify-between items-start">
                 <div>
-                  <h2 className="text-3xl font-black text-claude-text-heading claude-serif leading-none">
+                  <h2 className="text-4xl font-black text-claude-text-heading claude-serif leading-none">
                     {selectedKanji.character}
                   </h2>
-                  <p className="text-xs font-bold text-claude-coral uppercase tracking-wide mt-1">
+                  <p className="text-xs font-black text-claude-coral uppercase tracking-wider mt-1.5">
                     {selectedKanji.meaning}
                   </p>
                 </div>
@@ -952,27 +982,27 @@ export default function KanjiBoard({ themeRegion, themeMode, vocabList = [] }) {
               </div>
 
               {/* Readings Info Card */}
-              <div className="bg-claude-sidebar border border-claude-border rounded-2xl p-4 grid grid-cols-2 gap-4 text-xs font-bold">
+              <div className="bg-claude-sidebar border border-claude-border rounded-2xl p-4.5 grid grid-cols-2 gap-4 text-xs font-bold shadow-inner">
                 <div>
-                  <span className="text-[8px] font-black uppercase text-claude-text-muted block mb-1">Onyomi (Chinese)</span>
+                  <span className="text-[8px] font-black uppercase text-claude-text-muted block mb-1 tracking-wider">Onyomi (Chinese)</span>
                   <span className="text-claude-text-heading text-sm font-extrabold">{selectedKanji.onyomi}</span>
                 </div>
                 <div>
-                  <span className="text-[8px] font-black uppercase text-claude-text-muted block mb-1">Kunyomi (Japanese)</span>
+                  <span className="text-[8px] font-black uppercase text-claude-text-muted block mb-1 tracking-wider">Kunyomi (Japanese)</span>
                   <span className="text-claude-text-heading text-sm font-extrabold">{selectedKanji.kunyomi}</span>
                 </div>
               </div>
 
               {/* Mnemonic / Memory Story card */}
               <div className="space-y-2">
-                <span className="text-[8px] font-black uppercase tracking-wider text-claude-text-muted block">
-                  Memory Mnemonic Association
+                <span className="text-[8px] font-black uppercase tracking-wider text-claude-text-muted block px-0.5">
+                  Memory Association Trick
                 </span>
-                <div className="bg-claude-sidebar/40 border border-claude-border rounded-2xl p-4 flex gap-4 items-center">
-                  <div className="text-4xl bg-claude-card border border-claude-border p-2 rounded-2xl shadow-sm shrink-0">
+                <div className="bg-claude-sidebar/30 border border-claude-border rounded-2xl p-4 flex gap-4 items-center">
+                  <div className="text-4xl bg-claude-card border border-claude-border p-2.5 rounded-2xl shadow-md shrink-0 select-none">
                     {selectedKanji.illustration}
                   </div>
-                  <div className="text-xs text-claude-text-heading leading-relaxed font-semibold">
+                  <div className="text-xs text-claude-text-heading leading-relaxed font-bold">
                     {selectedKanji.mnemonic}
                   </div>
                 </div>
@@ -980,33 +1010,33 @@ export default function KanjiBoard({ themeRegion, themeMode, vocabList = [] }) {
 
               {/* example words containing this kanji */}
               <div className="space-y-2 flex-grow">
-                <span className="text-[8px] font-black uppercase tracking-wider text-claude-text-muted block">
+                <span className="text-[8px] font-black uppercase tracking-wider text-claude-text-muted block px-0.5">
                   Example Vocabulary Words
                 </span>
                 {exampleWords.length > 0 ? (
-                  <div className="border border-claude-border rounded-2xl bg-claude-card overflow-hidden text-xs divide-y divide-claude-border">
+                  <div className="border border-claude-border rounded-2xl bg-claude-card overflow-hidden text-xs divide-y divide-claude-border shadow-sm">
                     {exampleWords.map((v, i) => (
-                      <div key={i} className="p-2.5 flex justify-between items-center gap-3">
+                      <div key={i} className="p-3 flex justify-between items-center gap-3 hover:bg-claude-sidebar/20 transition-colors">
                         <div>
-                          <span className="font-extrabold text-claude-text-heading mr-2 text-sm">{v.kanji}</span>
-                          <span className="text-[10px] text-claude-text-muted">({v.hiragana})</span>
+                          <span className="font-black text-claude-text-heading mr-2 text-sm">{v.kanji}</span>
+                          <span className="text-[10px] text-claude-text-muted font-bold">({v.hiragana})</span>
                         </div>
-                        <span className="text-[10px] font-bold text-claude-coral">{v.english}</span>
+                        <span className="text-[10px] font-black text-claude-coral">{v.english}</span>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <div className="text-center py-4 border border-dashed border-claude-border/50 rounded-2xl bg-claude-sidebar/20 text-[10px] text-claude-text-muted font-bold">
-                    No words in Library Manager contain this Kanji yet.
+                  <div className="text-center py-5 border border-dashed border-claude-border/55 rounded-2xl bg-claude-sidebar/10 text-[10px] text-claude-text-muted font-black tracking-tight shadow-inner">
+                    No words in Library Manager contain this character yet.
                   </div>
                 )}
               </div>
 
               {/* Action Close row */}
-              <div className="pt-2 flex justify-end">
+              <div className="pt-2 flex justify-end border-t border-claude-border/30">
                 <button
                   onClick={() => setSelectedKanji(null)}
-                  className={`px-4 py-2 rounded-xl text-xs font-black text-white ${themeColors.accent} hover:opacity-90 shadow cursor-pointer transition-all active:scale-95`}
+                  className={`px-5 py-2.5 rounded-2xl text-xs font-black text-white ${themeColors.accent} hover:opacity-90 shadow cursor-pointer transition-all active:translate-y-0.5`}
                 >
                   Close Details
                 </button>

@@ -3,7 +3,7 @@ import { kanjiList } from './kanjiData';
 
 describe('Kanji Data Validation', () => {
   test('should load correct number of kanji entries', () => {
-    expect(kanjiList.length).toBeGreaterThanOrEqual(180);
+    expect(kanjiList.length).toBeGreaterThanOrEqual(300);
   });
 
   test('each kanji should contain all required attributes', () => {
@@ -36,8 +36,8 @@ describe('Kanji Data Validation', () => {
     const n4Count = kanjiList.filter(k => k.level === 'n4').length;
     const dailyCount = kanjiList.filter(k => k.level === 'daily').length;
 
-    expect(n5Count).toBe(80);
-    expect(n4Count).toBe(80);
+    expect(n5Count).toBe(103);
+    expect(n4Count).toBe(167);
     expect(dailyCount).toBe(30);
   });
 });

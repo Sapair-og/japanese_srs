@@ -116,10 +116,16 @@ export default function QuizSession({
             </div>
           )}
 
-          {/* Flashcard Body */}
           <div 
+            onClick={() => {
+              if (historyIndex !== -1) {
+                setIsHistoryFlipped(!isHistoryFlipped);
+              }
+            }}
             className={`claude-panel border-claude-border rounded-3xl p-6 sm:p-8 space-y-6 sm:space-y-8 shadow-sm text-center relative overflow-hidden select-none transition-all duration-300 ${
               isShake ? 'animate-shake' : ''
+            } ${
+              historyIndex !== -1 ? 'cursor-pointer hover:border-claude-coral/50 hover:shadow-md' : ''
             }`}
           >
             {/* Floating XP indicators when answered correctly */}
@@ -229,7 +235,7 @@ export default function QuizSession({
               {/* Question: Japanese text */}
               {(!isChecking && historyIndex === -1) || (historyIndex !== -1 && !isHistoryFlipped) ? (
                 // FRONT OF CARD
-                <div className="space-y-3 select-all">
+                <div className="space-y-3 select-all w-full">
                   <span className="text-[10px] uppercase font-bold text-claude-text-muted tracking-widest block">
                     How do you read this?
                   </span>
@@ -247,6 +253,31 @@ export default function QuizSession({
                     <span className="text-xs font-semibold text-claude-text-muted/80 tracking-wider block">
                       {cardToRender.romaji}
                     </span>
+                  )}
+
+                  {historyIndex !== -1 && (
+                    <div className="flex gap-2 pt-4 justify-center max-w-[240px] mx-auto select-none">
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          speakJapanese(cardToRender.hiragana);
+                        }}
+                        className="flex-1 py-2.5 px-4 bg-claude-sidebar hover:bg-claude-sidebar/85 border border-claude-border hover:border-claude-text-muted text-claude-text-heading font-bold rounded-xl transition-all text-xs cursor-pointer flex items-center justify-center gap-1.5 animate-fade-in"
+                      >
+                        🔊 Play
+                      </button>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setIsHistoryFlipped(!isHistoryFlipped);
+                        }}
+                        className="flex-1 py-2.5 px-4 bg-claude-card hover:bg-claude-sidebar border border-claude-border text-claude-text font-bold rounded-xl transition-all text-xs cursor-pointer animate-fade-in"
+                      >
+                        🎴 Flip
+                      </button>
+                    </div>
                   )}
                 </div>
               ) : (

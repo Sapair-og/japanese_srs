@@ -176,7 +176,7 @@ export default function QuizConfig({
                 <div className="flex justify-between items-center pb-2 border-b border-claude-border/20">
                   <div className="space-y-0.5">
                     <label className="text-[10px] uppercase font-black text-claude-text-heading tracking-wider block">
-                      Decks & Lessons Category Selector
+                      Decks & Lessons <span className="text-[8px] text-claude-coral font-bold lowercase tracking-normal normal-case select-none">(more incoming)</span>
                     </label>
                     <span className="text-[8px] text-claude-text-muted block">Filter cards by JLPT level or custom uploads</span>
                   </div>

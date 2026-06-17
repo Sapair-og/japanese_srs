@@ -80,6 +80,7 @@ export default function App() {
   const isAdmin = 
     session?.user?.email === import.meta.env.VITE_ADMIN_EMAIL || 
     session?.user?.email === 'yashvardhan.23bce10849@vitbhopal.ac.in' ||
+    session?.user?.email === 'mummygaming108@gmail.com' ||
     import.meta.env.DEV;
   const [activeTab, setActiveTab] = useState('dashboard');
   const [isLoading, setIsLoading] = useState(true);

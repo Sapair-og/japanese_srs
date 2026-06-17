@@ -136,7 +136,7 @@ export default function App() {
   const [sessionLimit, setSessionLimit] = useState(0);
   const [selectedLessons, setSelectedLessons] = useState([]);
 
-  // Autohide Navbar on Inactivity inside the Navbar region only
+  // Autohide Navbar on Inactivity inside the Navbar region only (Desktop/Laptop only)
   const [navbarVisible, setNavbarVisible] = useState(true);
   const navbarTimeoutRef = useRef(null);
 
@@ -149,6 +149,11 @@ export default function App() {
   };
 
   const hideNavbarWithDelay = () => {
+    // If mobile width (< 768px), do not hide navbar
+    if (window.innerWidth < 768) {
+      setNavbarVisible(true);
+      return;
+    }
     if (navbarTimeoutRef.current) {
       clearTimeout(navbarTimeoutRef.current);
     }
@@ -158,14 +163,36 @@ export default function App() {
   };
 
   const handleTouchActivity = () => {
+    // If mobile width (< 768px), keep visible
+    if (window.innerWidth < 768) {
+      setNavbarVisible(true);
+      return;
+    }
     showNavbar();
     hideNavbarWithDelay();
   };
 
   useEffect(() => {
-    // Hide after initial 2.5 seconds of mount
-    hideNavbarWithDelay();
+    // Hide after initial 2.5 seconds of mount (only if not mobile width)
+    if (window.innerWidth >= 768) {
+      hideNavbarWithDelay();
+    } else {
+      setNavbarVisible(true);
+    }
+
+    const handleResize = () => {
+      if (window.innerWidth < 768) {
+        setNavbarVisible(true);
+        if (navbarTimeoutRef.current) {
+          clearTimeout(navbarTimeoutRef.current);
+          navbarTimeoutRef.current = null;
+        }
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
     return () => {
+      window.removeEventListener('resize', handleResize);
       if (navbarTimeoutRef.current) {
         clearTimeout(navbarTimeoutRef.current);
       }

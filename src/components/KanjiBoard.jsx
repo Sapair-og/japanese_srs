@@ -74,6 +74,43 @@ export default function KanjiBoard({ themeRegion, themeMode, vocabList = [] }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedKanji, setSelectedKanji] = useState(null);
   
+  // Stroke SVG state
+  const [svgContent, setSvgContent] = useState('');
+  const [svgLoading, setSvgLoading] = useState(false);
+
+  // Fetch stroke order diagram when selected kanji changes
+  useEffect(() => {
+    if (!selectedKanji) {
+      setSvgContent('');
+      return;
+    }
+    setSvgLoading(true);
+    setSvgContent('');
+    try {
+      const codePoint = selectedKanji.character.codePointAt(0).toString(16).toLowerCase().padStart(5, '0');
+      const url = `https://cdn.jsdelivr.net/gh/KanjiVG/kanjivg@latest/kanji/${codePoint}.svg`;
+      fetch(url)
+        .then(res => {
+          if (!res.ok) throw new Error('Network error');
+          return res.text();
+        })
+        .then(text => {
+          const cleanSvg = text.replace(/<\?xml.*?\?>/g, '').replace(/<!--.*?-->/g, '');
+          setSvgContent(cleanSvg);
+          setSvgLoading(false);
+        })
+        .catch(err => {
+          console.warn('KanjiVG SVG fetch failed, using fallback:', err);
+          setSvgContent('');
+          setSvgLoading(false);
+        });
+    } catch (e) {
+      console.warn('Failed to calculate codePoint:', e);
+      setSvgContent('');
+      setSvgLoading(false);
+    }
+  }, [selectedKanji]);
+
   // Pagination State
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 24;
@@ -142,10 +179,14 @@ export default function KanjiBoard({ themeRegion, themeMode, vocabList = [] }) {
   // Find example words from vocabList for the selected Kanji
   const exampleWords = React.useMemo(() => {
     if (!selectedKanji) return [];
+    if (selectedKanji.examples && selectedKanji.examples.length > 0) {
+      return selectedKanji.examples;
+    }
     const char = selectedKanji.character;
     return vocabList
       .filter(v => v.kanji && v.kanji.includes(char))
-      .slice(0, 5); // Show top 5 examples
+      .map(v => ({ kanji: v.kanji, reading: v.hiragana, meaning: v.english }))
+      .slice(0, 3);
   }, [selectedKanji, vocabList]);
 
   // Color theme helpers based on App's active region
@@ -862,28 +903,31 @@ export default function KanjiBoard({ themeRegion, themeMode, vocabList = [] }) {
           </div>
 
           {/* Grid Layout of Kanji Cards */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
+          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-4">
             {paginatedKanji.map((item, index) => (
               <button
                 key={index}
                 onClick={() => setSelectedKanji(item)}
-                className="relative bg-claude-card border border-claude-border hover:border-[var(--glow-border)] rounded-2xl pt-5 pb-4 px-4 flex flex-col items-center justify-center gap-2.5 transition-all duration-300 hover:shadow-[0_0_15px_var(--glow-color)] hover:scale-[1.03] cursor-pointer"
+                className="relative group bg-gradient-to-br from-pink-500 to-rose-600 hover:from-pink-400 hover:to-rose-500 text-white rounded-2xl pt-5 pb-4 px-3 flex flex-col items-center justify-center gap-1.5 transition-all duration-300 hover:scale-[1.05] cursor-pointer shadow-md hover:shadow-pink-500/20 hover:shadow-xl border border-pink-400/20 overflow-hidden"
               >
+                {/* Visual glow overlay */}
+                <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+
                 {/* Large Kanji symbol */}
-                <span className="text-4xl font-black text-claude-text-heading leading-none japanese-serif">
+                <span className="text-4xl font-black leading-none drop-shadow-sm select-none japanese-serif">
                   {item.character}
                 </span>
 
                 {/* Primary Meaning */}
-                <span className="text-[11px] font-extrabold text-claude-text-muted text-center truncate w-full">
+                <span className="text-[10px] font-extrabold text-pink-100 text-center truncate w-full group-hover:text-white transition-colors">
                   {item.meaning}
                 </span>
 
                 {/* Level badge indicator */}
-                <span className={`text-[7px] font-black uppercase px-2.5 py-0.5 rounded-full ${
-                  item.level === 'n5' ? 'bg-emerald-500/10 text-emerald-600' :
-                  item.level === 'n4' ? 'bg-purple-500/10 text-purple-600' :
-                  'bg-orange-500/10 text-orange-600'
+                <span className={`text-[7px] font-black uppercase px-2.5 py-0.5 rounded-md ${
+                  item.level === 'n5' ? 'bg-emerald-400/30 text-emerald-100' :
+                  item.level === 'n4' ? 'bg-purple-400/30 text-purple-100' :
+                  'bg-orange-400/30 text-orange-100'
                 }`}>
                   {item.level}
                 </span>
@@ -957,160 +1001,232 @@ export default function KanjiBoard({ themeRegion, themeMode, vocabList = [] }) {
 
       {/* DETAILS LIGHTBOX DRAWER */}
       {selectedKanji && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-xs flex items-center justify-center z-50 p-4 animate-fade-in">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center z-50 p-4 animate-fade-in">
           {/* Backdrop Click */}
           <div className="absolute inset-0" onClick={() => setSelectedKanji(null)} />
 
           {/* Modal Content */}
-          <div className="relative bg-claude-card border border-claude-border rounded-3xl w-full max-w-3xl overflow-hidden shadow-2xl z-10 flex flex-col md:flex-row h-full max-h-[90vh] md:max-h-[580px] animate-scale-up">
+          <div className="relative bg-claude-card border border-claude-border rounded-3xl w-full max-w-3xl overflow-hidden shadow-2xl z-10 flex flex-col h-full max-h-[90vh] md:max-h-[660px] animate-scale-up">
             
-            {/* Left Column: Visual display, TTS, Practice Canvas */}
-            <div className="w-full md:w-2/5 bg-claude-sidebar border-b md:border-b-0 md:border-r border-claude-border p-6 flex flex-col items-center justify-between gap-4 shrink-0">
+            {/* Custom stylesheet for KanjiVG rendering */}
+            <style>{`
+              .kanjivg-svg svg {
+                width: 100% !important;
+                height: 100% !important;
+                display: block;
+              }
+              .kanjivg-svg svg path {
+                stroke: ${themeMode === 'dark' ? '#f1f5f9' : '#0f172a'} !important;
+                stroke-width: 3.2px !important;
+              }
+              .kanjivg-svg svg text {
+                fill: #ec4899 !important;
+                font-size: 6px !important;
+                font-weight: 800 !important;
+                font-family: ui-sans-serif, system-ui, sans-serif !important;
+              }
+            `}</style>
+
+            {/* 1. Header Banner: Rose Pink Gradient */}
+            <div className="relative bg-gradient-to-r from-rose-500 to-pink-600 text-white p-6 md:p-8 flex items-center justify-between shrink-0 border-b border-pink-400/20">
+              {/* Pattern Background overlay */}
+              <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:16px_16px] pointer-events-none" />
               
-              {/* Calligraphy guideline grid */}
-              <div className="relative w-full aspect-square max-w-[210px] border border-claude-border bg-claude-card rounded-2xl overflow-hidden flex items-center justify-center shadow-inner group">
-                
-                {/* Large Kanji symbol underneath */}
-                <div className="absolute inset-0 flex items-center justify-center text-8xl font-black text-claude-text-heading/10 pointer-events-none select-none japanese-serif">
+              <div className="flex items-center gap-6 z-10">
+                <span className="text-6xl md:text-7xl font-black drop-shadow-md select-none japanese-serif">
                   {selectedKanji.character}
-                </div>
-
-                {/* Canvas element for practice sketches */}
-                <canvas
-                  ref={canvasRef}
-                  onMouseDown={startDrawing}
-                  onMouseMove={draw}
-                  onMouseUp={stopDrawing}
-                  onMouseLeave={stopDrawing}
-                  onTouchStart={startDrawing}
-                  onTouchMove={draw}
-                  onTouchEnd={stopDrawing}
-                  className="absolute inset-0 cursor-crosshair touch-none z-10"
-                />
-
-                {/* Grid toggle helper label */}
-                <div className="absolute bottom-1 right-2 text-[8px] font-black uppercase text-claude-text-muted opacity-40 select-none pointer-events-none">
-                  Calligraphy Board
+                </span>
+                <div className="space-y-1">
+                  <span className="text-[9px] font-black uppercase tracking-widest text-pink-100 bg-pink-700/30 px-2.5 py-1 rounded-md">
+                    Level {selectedKanji.level.toUpperCase()} Kanji
+                  </span>
+                  <h2 className="text-2xl md:text-3xl font-black tracking-tight leading-tight">
+                    {selectedKanji.meaning}
+                  </h2>
                 </div>
               </div>
 
-              {/* Canvas controls */}
-              <div className="flex gap-2.5 w-full justify-center">
-                <button
-                  onClick={clearCanvas}
-                  className="px-3.5 py-1.5 bg-claude-card hover:bg-claude-sidebar/20 border border-claude-border rounded-lg text-[9px] font-extrabold text-claude-text-heading cursor-pointer active:scale-95 transition-all shadow-xs"
-                >
-                  🧹 Clear Board
-                </button>
-                <button
-                  onClick={() => setCanvasGridVisible(prev => !prev)}
-                  className={`px-3.5 py-1.5 border rounded-lg text-[9px] font-extrabold cursor-pointer active:scale-95 transition-all shadow-xs ${
-                    canvasGridVisible 
-                      ? `${themeColors.border} bg-claude-sidebar/40 text-claude-coral border-2` 
-                      : 'border-claude-border bg-claude-card text-claude-text-muted'
-                  }`}
-                >
-                  🔲 {canvasGridVisible ? 'Hide Grid' : 'Show Grid'}
-                </button>
-              </div>
-
-              {/* TTS Audio Button & level badge */}
-              <div className="flex flex-col items-center gap-2">
+              <div className="flex items-center gap-3 z-10">
+                {/* TTS Speaker */}
                 <button
                   onClick={() => speakKanji(selectedKanji.character)}
-                  className={`w-12 h-12 rounded-full border border-claude-border bg-claude-card hover:bg-claude-sidebar hover:border-[var(--glow-border)] hover:shadow-[0_0_12px_var(--glow-color)] flex items-center justify-center shadow-md active:scale-90 transition-all cursor-pointer`}
+                  className="w-12 h-12 rounded-2xl bg-white/10 hover:bg-white/20 border border-white/15 flex items-center justify-center shadow transition-all cursor-pointer hover:scale-105 active:scale-95"
                   title="Pronounce character"
                 >
                   <span className="text-xl">🔊</span>
                 </button>
-                <span className="text-[9px] font-black text-claude-text-muted uppercase tracking-wider">
-                  Level {selectedKanji.level.toUpperCase()} • {selectedKanji.character}
-                </span>
+                {/* Close Button */}
+                <button
+                  onClick={() => setSelectedKanji(null)}
+                  className="w-12 h-12 rounded-2xl bg-black/15 hover:bg-black/25 border border-white/10 flex items-center justify-center cursor-pointer transition-colors"
+                >
+                  <span className="text-lg">✕</span>
+                </button>
               </div>
             </div>
 
-            {/* Right Column: Readings, Mnemonics, Examples */}
-            <div className="flex-1 p-6 flex flex-col justify-between overflow-y-auto space-y-5">
+            {/* Scrollable Container */}
+            <div className="flex-1 overflow-y-auto p-6 space-y-6">
               
-              {/* Top Row: Character Meaning & Close */}
-              <div className="flex justify-between items-start">
-                <div>
-                  <h2 className="text-4xl font-black text-claude-text-heading japanese-serif leading-none">
-                    {selectedKanji.character}
-                  </h2>
-                  <p className="text-xs font-black text-claude-coral uppercase tracking-wider mt-1.5">
-                    {selectedKanji.meaning}
-                  </p>
-                </div>
-                <button
-                  onClick={() => setSelectedKanji(null)}
-                  className="w-8 h-8 rounded-full bg-claude-sidebar border border-claude-border hover:bg-claude-border/50 flex items-center justify-center cursor-pointer text-xs transition-colors"
-                >
-                  ✕
-                </button>
-              </div>
-
-              {/* Readings Info Card */}
-              <div className="bg-claude-sidebar border border-claude-border rounded-2xl p-4.5 grid grid-cols-2 gap-4 text-xs font-bold shadow-inner">
-                <div>
-                  <span className="text-[8px] font-black uppercase text-claude-text-muted block mb-1 tracking-wider">Onyomi (Chinese)</span>
-                  <span className="text-claude-text-heading text-sm font-extrabold">{selectedKanji.onyomi}</span>
-                </div>
-                <div>
-                  <span className="text-[8px] font-black uppercase text-claude-text-muted block mb-1 tracking-wider">Kunyomi (Japanese)</span>
-                  <span className="text-claude-text-heading text-sm font-extrabold">{selectedKanji.kunyomi}</span>
-                </div>
-              </div>
-
-              {/* Mnemonic / Memory Story card */}
+              {/* 2. Look-and-Write Practice Area */}
               <div className="space-y-2">
-                <span className="text-[8px] font-black uppercase tracking-wider text-claude-text-muted block px-0.5">
-                  Memory Association Trick
+                <span className="text-[10px] font-black uppercase tracking-wider text-claude-text-muted px-0.5 block">
+                  Look & Write Calligraphy Practice
                 </span>
-                <div className="bg-claude-sidebar/30 border border-claude-border rounded-2xl p-4 flex gap-4 items-center">
-                  <div className="text-4xl bg-claude-card border border-claude-border p-2.5 rounded-2xl shadow-md shrink-0 select-none">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Left: Stroke Order Diagram */}
+                  <div className="bg-claude-sidebar border border-claude-border rounded-2xl p-4 flex flex-col items-center justify-center min-h-[220px]">
+                    <span className="text-[9px] font-extrabold text-claude-text-muted mb-2 uppercase tracking-wide">
+                      Stroke Order Guide
+                    </span>
+                    <div className="relative w-full max-w-[160px] aspect-square flex items-center justify-center bg-claude-card border border-claude-border/50 rounded-xl p-2.5 shadow-inner">
+                      {svgLoading ? (
+                        <div className="flex flex-col items-center gap-2">
+                          <span className="animate-spin text-xl text-rose-500">⏳</span>
+                          <span className="text-[9px] font-extrabold text-claude-text-muted">Loading Guide...</span>
+                        </div>
+                      ) : svgContent ? (
+                        <div 
+                          className="w-full h-full kanjivg-svg flex items-center justify-center"
+                          dangerouslySetInnerHTML={{ __html: svgContent }}
+                        />
+                      ) : (
+                        // Fallback to stylized text character
+                        <span className="text-8xl font-black text-rose-500/25 select-none japanese-serif">
+                          {selectedKanji.character}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Right: Handwriting Canvas */}
+                  <div className="bg-claude-sidebar border border-claude-border rounded-2xl p-4 flex flex-col items-center justify-between min-h-[220px]">
+                    <span className="text-[9px] font-extrabold text-claude-text-muted uppercase tracking-wide flex justify-between w-full">
+                      <span>Practice Writing Area</span>
+                      <button
+                        onClick={clearCanvas}
+                        className="text-rose-500 hover:text-rose-600 transition-colors text-[9px] font-black cursor-pointer"
+                      >
+                        🧹 Clear
+                      </button>
+                    </span>
+                    
+                    <div className="relative w-full max-w-[160px] aspect-square border border-claude-border/70 bg-claude-card rounded-xl overflow-hidden shadow-inner mt-2">
+                      <div className="absolute inset-0 flex items-center justify-center text-7xl font-black text-claude-text-heading/[0.03] pointer-events-none select-none japanese-serif">
+                        {selectedKanji.character}
+                      </div>
+                      <canvas
+                        ref={canvasRef}
+                        onMouseDown={startDrawing}
+                        onMouseMove={draw}
+                        onMouseUp={stopDrawing}
+                        onMouseLeave={stopDrawing}
+                        onTouchStart={startDrawing}
+                        onTouchMove={draw}
+                        onTouchEnd={stopDrawing}
+                        className="absolute inset-0 cursor-crosshair touch-none z-10"
+                      />
+                    </div>
+
+                    <div className="flex gap-4 mt-2 justify-center w-full">
+                      <button
+                        onClick={() => setCanvasGridVisible(prev => !prev)}
+                        className={`text-[8px] font-black uppercase tracking-wider px-2 py-0.5 rounded border transition-colors cursor-pointer ${
+                          canvasGridVisible 
+                            ? 'border-rose-500/30 text-rose-600 dark:text-rose-400 bg-rose-500/5' 
+                            : 'border-claude-border text-claude-text-muted hover:text-claude-text-heading'
+                        }`}
+                      >
+                        {canvasGridVisible ? 'Hide Grid lines' : 'Show Grid lines'}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* 3. Readings Grid */}
+              <div className="space-y-2">
+                <span className="text-[10px] font-black uppercase tracking-wider text-claude-text-muted px-0.5 block">
+                  Pronunciation Readings
+                </span>
+                <div className="bg-claude-sidebar border border-claude-border rounded-2xl p-4.5 grid grid-cols-2 gap-6 shadow-inner text-xs font-bold">
+                  <div className="space-y-1">
+                    <span className="text-[8px] font-black uppercase text-pink-500 dark:text-pink-400 tracking-wider block">
+                      Onyomi (Chinese Reading)
+                    </span>
+                    <span className="text-claude-text-heading text-sm font-black block tracking-wide">
+                      {selectedKanji.onyomi || '—'}
+                    </span>
+                  </div>
+                  <div className="space-y-1">
+                    <span className="text-[8px] font-black uppercase text-emerald-500 dark:text-emerald-400 tracking-wider block">
+                      Kunyomi (Japanese Reading)
+                    </span>
+                    <span className="text-claude-text-heading text-sm font-black block tracking-wide">
+                      {selectedKanji.kunyomi || '—'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* 4. Memory Association Story */}
+              <div className="space-y-2">
+                <span className="text-[10px] font-black uppercase tracking-wider text-claude-text-muted px-0.5 block">
+                  Mnemonic Memory Story
+                </span>
+                <div className="bg-claude-sidebar/35 border border-claude-border rounded-2xl p-4 flex gap-4 items-center">
+                  <div className="text-4xl bg-gradient-to-br from-pink-100 to-rose-200 dark:from-pink-900/40 dark:to-rose-800/40 border border-rose-200/50 dark:border-rose-800/35 p-3 rounded-2xl shadow shrink-0 select-none">
                     {selectedKanji.illustration}
                   </div>
-                  <div className="text-xs text-claude-text-heading leading-relaxed font-bold">
+                  <div className="text-xs text-claude-text-heading leading-relaxed font-semibold">
                     {selectedKanji.mnemonic}
                   </div>
                 </div>
               </div>
 
-              {/* example words containing this kanji */}
-              <div className="space-y-2 flex-grow">
-                <span className="text-[8px] font-black uppercase tracking-wider text-claude-text-muted block px-0.5">
-                  Example Vocabulary Words
+              {/* 5. Vocabulary Examples */}
+              <div className="space-y-2">
+                <span className="text-[10px] font-black uppercase tracking-wider text-claude-text-muted px-0.5 block">
+                  High-Frequency Vocabulary Examples
                 </span>
                 {exampleWords.length > 0 ? (
-                  <div className="border border-claude-border rounded-2xl bg-claude-card overflow-hidden text-xs divide-y divide-claude-border shadow-sm">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                     {exampleWords.map((v, i) => (
-                      <div key={i} className="p-3 flex justify-between items-center gap-3 hover:bg-claude-sidebar/20 transition-colors">
-                        <div>
-                          <span className="font-black text-claude-text-heading mr-2 text-sm">{v.kanji}</span>
-                          <span className="text-[10px] text-claude-text-muted font-bold">({v.hiragana})</span>
-                        </div>
-                        <span className="text-[10px] font-black text-claude-coral">{v.english}</span>
+                      <div 
+                        key={i} 
+                        className="bg-purple-500/5 dark:bg-purple-950/15 border border-purple-500/20 hover:border-purple-500/40 rounded-2xl p-4 flex flex-col items-center justify-center text-center transition-all duration-300 hover:scale-[1.02] shadow-xs group"
+                      >
+                        <span className="font-black text-purple-700 dark:text-purple-300 text-lg tracking-wide group-hover:text-purple-600 dark:group-hover:text-purple-200 transition-colors">
+                          {v.kanji}
+                        </span>
+                        <span className="text-[10px] text-purple-500 dark:text-purple-400 font-extrabold mt-0.5 mb-1.5">
+                          {v.reading}
+                        </span>
+                        <span className="text-[9px] font-bold text-claude-text-muted leading-tight border-t border-purple-500/10 pt-1.5 w-full">
+                          {v.meaning}
+                        </span>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <div className="text-center py-5 border border-dashed border-claude-border/55 rounded-2xl bg-claude-sidebar/10 text-[10px] text-claude-text-muted font-black tracking-tight shadow-inner">
-                    No words in Library Manager contain this character yet.
+                  <div className="text-center py-6 border border-dashed border-claude-border rounded-2xl bg-claude-sidebar/10 text-[10px] text-claude-text-muted font-black tracking-tight shadow-inner">
+                    No vocabulary items available.
                   </div>
                 )}
               </div>
 
-              {/* Action Close row */}
-              <div className="pt-2 flex justify-end border-t border-claude-border/30">
-                <button
-                  onClick={() => setSelectedKanji(null)}
-                  className={`px-5 py-2.5 rounded-2xl text-xs font-black text-white ${themeColors.accent} hover:opacity-90 shadow cursor-pointer transition-all active:translate-y-0.5`}
-                >
-                  Close Details
-                </button>
-              </div>
             </div>
+
+            {/* 6. Footer Button row */}
+            <div className="p-4 bg-claude-sidebar border-t border-claude-border flex justify-end shrink-0">
+              <button
+                onClick={() => setSelectedKanji(null)}
+                className="px-6 py-2.5 rounded-2xl text-xs font-black text-white bg-gradient-to-r from-rose-500 to-pink-600 hover:from-rose-400 hover:to-pink-500 shadow cursor-pointer transition-all active:translate-y-0.5"
+              >
+                Done Studying
+              </button>
+            </div>
+
           </div>
         </div>
       )}

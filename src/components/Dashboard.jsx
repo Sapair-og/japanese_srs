@@ -1,6 +1,7 @@
 /* eslint-disable */
 import React, { useState, useEffect } from 'react';
 import { kanjiList } from '../utils/kanjiData';
+import Footer from './Footer';
 
 const calculateLevelInfo = (totalCorrect) => {
   const xp = (totalCorrect || 0) * 10;
@@ -27,18 +28,19 @@ const calculateLevelInfo = (totalCorrect) => {
 };
 
 // Mascot SVGs
+// Mascot SVGs
 const BookMascot = () => (
-  <svg viewBox="0 0 100 100" className="w-20 h-20 text-white/20 dark:text-zinc-700 absolute right-4 bottom-2 pointer-events-none transition-transform group-hover:scale-110">
+  <svg viewBox="0 0 100 100" className="w-20 h-20 text-claude-text-muted/15 absolute right-4 bottom-2 pointer-events-none transition-transform group-hover:scale-110">
     <path fill="currentColor" d="M12 25 Q12 18 20 18 H50 V82 H20 Q12 82 12 75 Z" />
     <path fill="currentColor" d="M88 25 Q88 18 80 18 H50 V82 H80 Q88 82 88 75 Z" opacity="0.8" />
     <path stroke="currentColor" strokeWidth="3" strokeLinecap="round" d="M22 30 H42 M22 42 H42 M22 54 H42" opacity="0.6" />
     <path stroke="currentColor" strokeWidth="3" strokeLinecap="round" d="M78 30 H58 M78 42 H58 M78 54 H58" opacity="0.6" />
-    <circle cx="50" cy="50" r="8" className="text-pink-500 fill-current animate-pulse" />
+    <circle cx="50" cy="50" r="8" className="text-claude-coral fill-current animate-pulse" />
   </svg>
 );
 
 const GateMascot = () => (
-  <svg viewBox="0 0 100 100" className="w-20 h-20 text-white/20 dark:text-zinc-700 absolute right-4 bottom-2 pointer-events-none transition-transform group-hover:scale-110">
+  <svg viewBox="0 0 100 100" className="w-20 h-20 text-claude-text-muted/15 absolute right-4 bottom-2 pointer-events-none transition-transform group-hover:scale-110">
     <path fill="currentColor" d="M10 25 Q50 35 90 25 L90 35 Q50 45 10 35 Z" />
     <path fill="currentColor" d="M20 50 H80 V58 H20 Z" />
     <path fill="currentColor" d="M30 35 L33 90 H43 L40 35 Z" />
@@ -49,8 +51,8 @@ const GateMascot = () => (
 );
 
 const WelcomeMascot = () => (
-  <svg viewBox="0 0 100 100" className="w-24 h-24 text-pink-500 fill-current shrink-0">
-    <circle cx="50" cy="45" r="30" className="text-pink-100 dark:text-pink-950/40" />
+  <svg viewBox="0 0 100 100" className="w-24 h-24 text-claude-coral fill-current shrink-0">
+    <circle cx="50" cy="45" r="30" className="text-claude-coral/10 fill-current" />
     {/* Turtle Shell shape */}
     <path d="M50 15 C30 15 20 30 20 45 C20 48 30 52 50 52 C70 52 80 48 80 45 C80 30 70 15 50 15 Z" fill="#22c55e" />
     {/* Shell patterns */}
@@ -66,8 +68,8 @@ const WelcomeMascot = () => (
     {/* Smile */}
     <path d="M47 70 Q50 73 53 70" stroke="#000" strokeWidth="1.5" fill="none" />
     {/* Cute cheeks */}
-    <circle cx="41" cy="67" r="1.5" fill="#f03e93" />
-    <circle cx="59" cy="67" r="1.5" fill="#f03e93" />
+    <circle cx="41" cy="67" r="1.5" className="text-claude-coral fill-current" />
+    <circle cx="59" cy="67" r="1.5" className="text-claude-coral fill-current" />
   </svg>
 );
 
@@ -169,39 +171,39 @@ export default function Dashboard({
     <div className="max-w-6xl mx-auto w-full px-4 py-6 md:py-10 animate-fade-in space-y-8 select-none">
       
       {/* Top Banner Greeting (WaniKani Style) */}
-      <div className="relative overflow-hidden bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-3xl p-6 md:p-8 flex flex-col md:flex-row justify-between items-center gap-6 shadow-xs">
+      <div className="relative overflow-hidden bg-claude-card border border-claude-border rounded-3xl p-6 md:p-8 flex flex-col md:flex-row justify-between items-center gap-6 shadow-xs">
         <div className="flex items-center gap-6 text-center md:text-left z-10 flex-1 flex-col md:flex-row">
           <WelcomeMascot />
           <div className="space-y-1">
-            <h1 className="text-3xl font-black tracking-tight text-zinc-800 dark:text-zinc-100">
+            <h1 className="text-3xl font-black tracking-tight text-claude-text-heading">
               Konnichiwa, {profile?.name || 'Learner'}! 👋
             </h1>
-            <p className="text-xs md:text-sm text-zinc-400 font-bold max-w-xl">
+            <p className="text-xs md:text-sm text-claude-text-muted font-bold max-w-xl">
               Level {level} • {profile?.title || 'Chibi Student'}
             </p>
-            <p className="text-xs text-zinc-500 max-w-xl pt-1.5">
+            <p className="text-xs text-claude-text-muted/80 max-w-xl pt-1.5">
               Welcome back to your personalized Japanese spaced-repetition study panel.
             </p>
           </div>
         </div>
 
         {/* Level Widget */}
-        <div className="z-10 bg-zinc-50 dark:bg-zinc-900 border border-zinc-200/80 dark:border-zinc-700/80 p-4 rounded-2xl flex items-center gap-3.5 min-w-[240px] w-full sm:w-auto shadow-inner shrink-0">
-          <div className="w-12 h-12 rounded-xl bg-pink-500 text-white flex items-center justify-center text-xl font-black shadow shrink-0 select-none">
+        <div className="z-10 bg-claude-bg border border-claude-border p-4 rounded-2xl flex items-center gap-3.5 min-w-[240px] w-full sm:w-auto shadow-inner shrink-0">
+          <div className="w-12 h-12 rounded-xl bg-claude-coral text-white flex items-center justify-center text-xl font-black shadow shrink-0 select-none">
             {level}
           </div>
           <div className="flex-1 space-y-1 min-w-0">
             <div className="flex justify-between items-baseline gap-2">
-              <span className="text-[9px] font-black text-pink-500 uppercase tracking-widest truncate">Level Progress</span>
-              <span className="text-[9px] font-bold text-zinc-400 shrink-0">{xpInCurrentLevel}/{xpForNextLevel} XP</span>
+              <span className="text-[9px] font-black text-claude-coral uppercase tracking-widest truncate">Level Progress</span>
+              <span className="text-[9px] font-bold text-claude-text-muted shrink-0">{xpInCurrentLevel}/{xpForNextLevel} XP</span>
             </div>
-            <div className="w-full h-2.5 bg-zinc-200 dark:bg-zinc-800 rounded-full overflow-hidden border border-zinc-300 dark:border-zinc-700">
+            <div className="w-full h-2.5 bg-claude-card rounded-full overflow-hidden border border-claude-border">
               <div 
-                className="h-full bg-pink-500 rounded-full transition-all duration-500 shadow-xs" 
+                className="h-full bg-claude-coral rounded-full transition-all duration-500 shadow-xs" 
                 style={{ width: `${progressPercent}%` }}
               />
             </div>
-            <span className="text-[8px] text-zinc-400 font-bold block select-none">
+            <span className="text-[8px] text-claude-text-muted font-bold block select-none">
               {xpForNextLevel - xpInCurrentLevel} XP to Level {level + 1}
             </span>
           </div>
@@ -210,7 +212,7 @@ export default function Dashboard({
         {/* Settings Gear Button inside Banner */}
         <button
           onClick={() => setShowSettings(true)}
-          className="absolute top-4 right-4 w-8 h-8 rounded-xl bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-900 dark:hover:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 flex items-center justify-center text-xs hover:text-pink-500 transition-colors cursor-pointer shadow-xs z-20"
+          className="absolute top-4 right-4 w-8 h-8 rounded-xl bg-claude-bg hover:bg-claude-border/50 border border-claude-border flex items-center justify-center text-xs hover:text-claude-coral transition-colors cursor-pointer shadow-xs z-20"
           title="Database Actions"
         >
           ⚙️
@@ -222,35 +224,35 @@ export default function Dashboard({
         
         {/* Lessons Panel */}
         {lessonsCount > 0 ? (
-          <div className="group relative bg-zinc-800 dark:bg-zinc-850 text-white rounded-3xl p-6 flex flex-col justify-between min-h-[160px] shadow hover:shadow-lg transition-all border border-zinc-700 overflow-hidden">
+          <div className="group relative bg-claude-card text-claude-text-heading rounded-3xl p-6 flex flex-col justify-between min-h-[160px] shadow hover:shadow-lg transition-all border border-claude-border/80 overflow-hidden">
             <BookMascot />
             <div className="z-10">
-              <span className="text-5xl font-black block tracking-tight">{lessonsCount}</span>
+              <span className="text-5xl font-black block tracking-tight text-sky-500">{lessonsCount}</span>
               <h2 className="text-lg font-black tracking-tight mt-1">Lessons</h2>
-              <p className="text-[10px] text-zinc-400 font-bold max-w-[200px] mt-0.5">
+              <p className="text-[10px] text-claude-text-muted font-bold max-w-[200px] mt-0.5">
                 New vocabulary items waiting to be learned.
               </p>
             </div>
             <button
               onClick={() => onStartSession(null, false, true)}
-              className="z-10 w-full sm:w-auto px-5 py-2.5 bg-zinc-700 hover:bg-zinc-650 text-white font-extrabold text-[11px] uppercase tracking-wider rounded-xl cursor-pointer border border-zinc-600 transition-colors text-center mt-4 self-start"
+              className="z-10 w-full sm:w-auto px-5 py-2.5 bg-sky-500 hover:bg-sky-655 text-white font-extrabold text-[11px] uppercase tracking-wider rounded-xl cursor-pointer border border-sky-400/50 transition-colors text-center mt-4 self-start shadow"
             >
               Start Lessons ✒️
             </button>
           </div>
         ) : (
-          <div className="relative bg-zinc-100 dark:bg-zinc-900/40 text-zinc-400 dark:text-zinc-500 rounded-3xl p-6 flex flex-col justify-between min-h-[160px] border border-zinc-200 dark:border-zinc-800 overflow-hidden">
+          <div className="relative bg-claude-card text-claude-text-muted rounded-3xl p-6 flex flex-col justify-between min-h-[160px] border border-claude-border/80 overflow-hidden opacity-60">
             <BookMascot />
             <div>
-              <span className="text-5xl font-black block tracking-tight text-zinc-300 dark:text-zinc-700">0</span>
-              <h2 className="text-lg font-black tracking-tight mt-1 text-zinc-400 dark:text-zinc-550">Lessons</h2>
-              <p className="text-[10px] font-bold max-w-[240px] mt-0.5 text-zinc-450 dark:text-zinc-500">
+              <span className="text-5xl font-black block tracking-tight text-claude-text-muted/40">0</span>
+              <h2 className="text-lg font-black tracking-tight mt-1 text-claude-text-muted">Lessons</h2>
+              <p className="text-[10px] font-bold max-w-[240px] mt-0.5 text-claude-text-muted/70">
                 You are completely caught up! No new items to learn.
               </p>
             </div>
             <button
               disabled
-              className="w-full sm:w-auto px-5 py-2.5 bg-zinc-200 dark:bg-zinc-800/40 text-zinc-400 dark:text-zinc-600 font-extrabold text-[11px] uppercase tracking-wider rounded-xl border border-zinc-300 dark:border-zinc-800/80 text-center mt-4 self-start cursor-not-allowed opacity-60"
+              className="w-full sm:w-auto px-5 py-2.5 bg-claude-bg text-claude-text-muted/50 font-extrabold text-[11px] uppercase tracking-wider rounded-xl border border-claude-border text-center mt-4 self-start cursor-not-allowed"
             >
               No Lessons
             </button>
@@ -259,53 +261,51 @@ export default function Dashboard({
 
         {/* Reviews Panel */}
         {dueReviewsCount > 0 ? (
-          <div className="group relative bg-pink-500 text-white rounded-3xl p-6 flex flex-col justify-between min-h-[160px] shadow hover:shadow-lg transition-all border border-pink-400/20 overflow-hidden">
+          <div className="group relative bg-claude-card text-claude-text-heading rounded-3xl p-6 flex flex-col justify-between min-h-[160px] shadow hover:shadow-lg transition-all border border-claude-border/80 overflow-hidden">
             <GateMascot />
             <div className="z-10">
-              <span className="text-5xl font-black block tracking-tight">{dueReviewsCount}</span>
+              <span className="text-5xl font-black block tracking-tight text-claude-coral">{dueReviewsCount}</span>
               <h2 className="text-lg font-black tracking-tight mt-1">Reviews</h2>
-              <p className="text-[10px] text-pink-100 font-bold max-w-[200px] mt-0.5">
+              <p className="text-[10px] text-claude-text-muted font-bold max-w-[200px] mt-0.5">
                 SRS learning cards due for memory retrieval.
               </p>
             </div>
             <button
               onClick={() => onStartSession(null, true, false)}
-              className="z-10 w-full sm:w-auto px-5 py-2.5 bg-pink-600 hover:bg-pink-700 text-white font-extrabold text-[11px] uppercase tracking-wider rounded-xl cursor-pointer border border-pink-400/50 transition-colors text-center mt-4 self-start shadow"
+              className="z-10 w-full sm:w-auto px-5 py-2.5 bg-claude-coral hover:opacity-90 text-white font-extrabold text-[11px] uppercase tracking-wider rounded-xl cursor-pointer border border-claude-coral/45 transition-colors text-center mt-4 self-start shadow"
             >
               Start Reviews ⏱️
             </button>
           </div>
         ) : (
-          <div className="relative bg-zinc-100 dark:bg-zinc-900/40 text-zinc-400 dark:text-zinc-500 rounded-3xl p-6 flex flex-col justify-between min-h-[160px] border border-zinc-200 dark:border-zinc-800 overflow-hidden">
+          <div className="relative bg-claude-card text-claude-text-muted rounded-3xl p-6 flex flex-col justify-between min-h-[160px] border border-claude-border/80 overflow-hidden opacity-60">
             <GateMascot />
             <div>
-              <span className="text-5xl font-black block tracking-tight text-zinc-300 dark:text-zinc-700">0</span>
-              <h2 className="text-lg font-black tracking-tight mt-1 text-zinc-400 dark:text-zinc-550">Reviews</h2>
-              <p className="text-[10px] font-bold max-w-[240px] mt-0.5 text-zinc-450 dark:text-zinc-500">
+              <span className="text-5xl font-black block tracking-tight text-claude-text-muted/40">0</span>
+              <h2 className="text-lg font-black tracking-tight mt-1 text-claude-text-muted">Reviews</h2>
+              <p className="text-[10px] font-bold max-w-[240px] mt-0.5 text-claude-text-muted/70">
                 Nice job! You have cleared all reviews currently due.
               </p>
             </div>
             <button
               disabled
-              className="w-full sm:w-auto px-5 py-2.5 bg-zinc-200 dark:bg-zinc-800/40 text-zinc-400 dark:text-zinc-600 font-extrabold text-[11px] uppercase tracking-wider rounded-xl border border-zinc-300 dark:border-zinc-800/80 text-center mt-4 self-start cursor-not-allowed opacity-60"
+              className="w-full sm:w-auto px-5 py-2.5 bg-claude-bg text-claude-text-muted/50 font-extrabold text-[11px] uppercase tracking-wider rounded-xl border border-claude-border text-center mt-4 self-start cursor-not-allowed"
             >
               All Caught Up 🎉
             </button>
           </div>
         )}
-
       </div>
-
-      {/* Grid: Streak Consistency & Reviews Completed Today */}
+           {/* Grid: Streak Consistency & Reviews Completed Today */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         
         {/* Weekly Consistency Streaks with Turtle icons */}
-        <div className="bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 p-5 rounded-3xl shadow-xs space-y-4 md:col-span-2">
-          <div className="flex justify-between items-center border-b border-zinc-100 dark:border-zinc-700/50 pb-2">
-            <span className="text-[9px] font-extrabold uppercase tracking-widest text-pink-500 block">
+        <div className="bg-claude-card border border-claude-border p-5 rounded-3xl shadow-xs space-y-4 md:col-span-2">
+          <div className="flex justify-between items-center border-b border-claude-border pb-2">
+            <span className="text-[9px] font-extrabold uppercase tracking-widest text-claude-coral block">
               Consistency Streak
             </span>
-            <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest">
+            <span className="text-[9px] font-black text-claude-text-muted uppercase tracking-widest">
               🐢 weekly consistency
             </span>
           </div>
@@ -329,12 +329,12 @@ export default function Dashboard({
                   className="flex flex-col items-center gap-1.5"
                   title={day.isStudied ? `Studied on ${day.dateString}` : `No reviews on ${day.dateString}`}
                 >
-                  <span className="text-[8px] font-extrabold text-zinc-400 uppercase">{day.dayName}</span>
+                  <span className="text-[8px] font-extrabold text-claude-text-muted uppercase">{day.dayName}</span>
                   <div 
                     className={`w-full aspect-square rounded-xl border flex flex-col items-center justify-center transition-all duration-300 relative ${
                       day.isStudied
-                        ? 'bg-emerald-50 dark:bg-emerald-950/20 border-emerald-500 text-emerald-600 dark:text-emerald-400 font-black shadow-xs scale-105'
-                        : 'bg-zinc-50 dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 text-zinc-400 dark:text-zinc-650'
+                        ? 'bg-emerald-500/10 border-emerald-500/35 text-emerald-600 dark:text-emerald-450 font-black shadow-xs scale-105'
+                        : 'bg-claude-bg border-claude-border text-claude-text-muted'
                     }`}
                   >
                     <span className="text-xs font-bold leading-none">{day.dayNum}</span>
@@ -348,7 +348,7 @@ export default function Dashboard({
               ));
             })()}
           </div>
-          <p className="text-[10px] text-zinc-400 font-bold text-center">
+          <p className="text-[10px] text-claude-text-muted font-bold text-center">
             {stats.streak > 0 
               ? `🔥 Current Streak: ${stats.streak} Days! Keep it up!` 
               : `📅 Study today to start your weekly consistency map!`}
@@ -356,22 +356,22 @@ export default function Dashboard({
         </div>
 
         {/* Reviews Completed Today */}
-        <div className="bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 p-5 rounded-3xl shadow-xs flex flex-col justify-between min-h-[140px]">
-          <div className="flex justify-between items-center border-b border-zinc-100 dark:border-zinc-700/50 pb-2">
-            <span className="text-[9px] font-extrabold uppercase tracking-widest text-pink-500 block">
+        <div className="bg-claude-card border border-claude-border p-5 rounded-3xl shadow-xs flex flex-col justify-between min-h-[140px]">
+          <div className="flex justify-between items-center border-b border-claude-border pb-2">
+            <span className="text-[9px] font-extrabold uppercase tracking-widest text-claude-coral block">
               Today's Volume
             </span>
-            <span className="text-[8px] font-black text-zinc-400 uppercase">accuracy: {stats.totalAttempts > 0 ? Math.round((stats.totalCorrect / stats.totalAttempts) * 100) : 0}%</span>
+            <span className="text-[8px] font-black text-claude-text-muted uppercase">accuracy: {stats.totalAttempts > 0 ? Math.round((stats.totalCorrect / stats.totalAttempts) * 100) : 0}%</span>
           </div>
 
           <div className="py-2 text-center">
-            <span className="text-4xl font-black text-zinc-850 dark:text-zinc-100 block">{reviewsToday}</span>
-            <span className="text-[10px] font-black text-zinc-400 uppercase tracking-wide block mt-1">
+            <span className="text-4xl font-black text-claude-text-heading block">{reviewsToday}</span>
+            <span className="text-[10px] font-black text-claude-text-muted uppercase tracking-wide block mt-1">
               Reviews completed today
             </span>
           </div>
 
-          <p className="text-[9px] text-zinc-500 leading-relaxed text-center pt-2 border-t border-zinc-100 dark:border-zinc-700/50">
+          <p className="text-[9px] text-claude-text-muted leading-relaxed text-center pt-2 border-t border-claude-border">
             Every correct session builds stable recall paths!
           </p>
         </div>
@@ -382,24 +382,23 @@ export default function Dashboard({
       <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
 
         {/* Level Progress Bars (Radicals/Kanji/Vocabulary) (5 columns) */}
-        <div className="md:col-span-5 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 p-5 sm:p-6 rounded-3xl shadow-xs flex flex-col justify-between space-y-5">
+        <div className="md:col-span-5 bg-claude-card border border-claude-border p-5 sm:p-6 rounded-3xl shadow-xs flex flex-col justify-between space-y-5">
           <div>
-            <span className="text-[9px] font-extrabold uppercase tracking-widest text-pink-500 block">
+            <span className="text-[9px] font-extrabold uppercase tracking-widest text-claude-coral block">
               Current Level Progress
             </span>
-            <h3 className="text-sm font-black text-zinc-800 dark:text-zinc-100 mt-0.5">
+            <h3 className="text-sm font-black text-claude-text-heading mt-0.5">
               Guru Completion Rate
             </h3>
           </div>
 
           <div className="space-y-3.5">
-            {/* Radicals (Blue) */}
-            <div className="space-y-1">
+             <div className="space-y-1">
               <div className="flex justify-between text-[10px] font-bold">
                 <span className="text-sky-500 uppercase tracking-wider">🔷 Radicals</span>
-                <span className="text-zinc-400">12 / 12 (100%)</span>
+                <span className="text-claude-text-muted">12 / 12 (100%)</span>
               </div>
-              <div className="w-full h-3 bg-zinc-100 dark:bg-zinc-900 rounded-full overflow-hidden border border-zinc-200 dark:border-zinc-700 shadow-inner">
+              <div className="w-full h-3 bg-claude-bg rounded-full overflow-hidden border border-claude-border shadow-inner">
                 <div className="bg-[#00a1f1] h-full rounded-full transition-all" style={{ width: '100%' }} />
               </div>
             </div>
@@ -408,10 +407,10 @@ export default function Dashboard({
             <div className="space-y-1">
               <div className="flex justify-between text-[10px] font-bold">
                 <span className="text-pink-500 uppercase tracking-wider">🌸 Kanji</span>
-                <span className="text-zinc-400">{guruKanji} / {kanjiTarget} ({kanjiProgress}%)</span>
+                <span className="text-claude-text-muted">{guruKanji} / {kanjiTarget} ({kanjiProgress}%)</span>
               </div>
-              <div className="w-full h-3 bg-zinc-100 dark:bg-zinc-900 rounded-full overflow-hidden border border-zinc-200 dark:border-zinc-700 shadow-inner">
-                <div className="bg-[#f03e93] h-full rounded-full transition-all" style={{ width: `${kanjiProgress}%` }} />
+              <div className="w-full h-3 bg-claude-bg rounded-full overflow-hidden border border-claude-border shadow-inner">
+                <div className="bg-claude-coral h-full rounded-full transition-all" style={{ width: `${kanjiProgress}%` }} />
               </div>
             </div>
 
@@ -419,26 +418,26 @@ export default function Dashboard({
             <div className="space-y-1">
               <div className="flex justify-between text-[10px] font-bold">
                 <span className="text-purple-500 uppercase tracking-wider">🍆 Vocabulary</span>
-                <span className="text-zinc-400">{guruVocab} / {vocabTarget} ({vocabProgress}%)</span>
+                <span className="text-claude-text-muted">{guruVocab} / {vocabTarget} ({vocabProgress}%)</span>
               </div>
-              <div className="w-full h-3 bg-zinc-100 dark:bg-zinc-900 rounded-full overflow-hidden border border-zinc-200 dark:border-zinc-700 shadow-inner">
+              <div className="w-full h-3 bg-claude-bg rounded-full overflow-hidden border border-claude-border shadow-inner">
                 <div className="bg-[#a100f1] h-full rounded-full transition-all" style={{ width: `${vocabProgress}%` }} />
               </div>
             </div>
           </div>
 
-          <p className="text-[8px] text-zinc-400 font-bold border-t border-zinc-100 dark:border-zinc-700/50 pt-3 text-center">
+          <p className="text-[8px] text-claude-text-muted font-bold border-t border-claude-border pt-3 text-center">
             Promote Kanji and Vocabulary to Guru stage to advance level!
           </p>
         </div>
 
         {/* Active SRS Spread Stage Chart (7 columns) */}
-        <div className="md:col-span-7 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 p-5 sm:p-6 rounded-3xl shadow-xs flex flex-col justify-between space-y-5">
+        <div className="md:col-span-7 bg-claude-card border border-claude-border p-5 sm:p-6 rounded-3xl shadow-xs flex flex-col justify-between space-y-5">
           <div>
-            <span className="text-[9px] font-extrabold uppercase tracking-widest text-pink-500 block">
+            <span className="text-[9px] font-extrabold uppercase tracking-widest text-claude-coral block">
               SRS Stage Spread
             </span>
-            <h3 className="text-sm font-black text-zinc-800 dark:text-zinc-100 mt-0.5">
+            <h3 className="text-sm font-black text-claude-text-heading mt-0.5">
               Active Item Distribution
             </h3>
           </div>
@@ -446,59 +445,59 @@ export default function Dashboard({
           {/* Spread Bar Widget */}
           <div className="grid grid-cols-5 gap-2 select-none text-center">
             {/* Apprentice */}
-            <div className="bg-pink-50 dark:bg-pink-950/15 border border-pink-200 dark:border-pink-900/50 p-2.5 rounded-2xl flex flex-col justify-between hover:scale-[1.01] transition-transform">
+            <div className="bg-pink-500/10 border border-pink-500/25 p-2.5 rounded-2xl flex flex-col justify-between hover:scale-[1.01] transition-transform">
               <span className="text-lg font-black text-[#f03e93] block">{srsSpread.apprentice}</span>
-              <span className="text-[8px] font-black uppercase text-zinc-400 tracking-wide mt-1 block">Apprentice</span>
+              <span className="text-[8px] font-black uppercase text-claude-text-muted tracking-wide mt-1 block">Apprentice</span>
               <div className="w-full h-1 bg-[#f03e93] rounded-full mt-2" />
             </div>
 
             {/* Guru */}
-            <div className="bg-purple-50 dark:bg-purple-950/15 border border-purple-200 dark:border-purple-900/50 p-2.5 rounded-2xl flex flex-col justify-between hover:scale-[1.01] transition-transform">
+            <div className="bg-purple-500/10 border border-purple-500/25 p-2.5 rounded-2xl flex flex-col justify-between hover:scale-[1.01] transition-transform">
               <span className="text-lg font-black text-[#9834e2] block">{srsSpread.guru}</span>
-              <span className="text-[8px] font-black uppercase text-zinc-400 tracking-wide mt-1 block">Guru</span>
+              <span className="text-[8px] font-black uppercase text-claude-text-muted tracking-wide mt-1 block">Guru</span>
               <div className="w-full h-1 bg-[#9834e2] rounded-full mt-2" />
             </div>
 
             {/* Master */}
-            <div className="bg-blue-50 dark:bg-blue-950/15 border border-blue-200 dark:border-blue-900/50 p-2.5 rounded-2xl flex flex-col justify-between hover:scale-[1.01] transition-transform">
-              <span className="text-lg font-black text-[#294a6b] dark:text-sky-300 block">{srsSpread.master}</span>
-              <span className="text-[8px] font-black uppercase text-zinc-400 tracking-wide mt-1 block">Master</span>
+            <div className="bg-blue-500/10 border border-blue-500/25 p-2.5 rounded-2xl flex flex-col justify-between hover:scale-[1.01] transition-transform">
+              <span className="text-lg font-black text-[#294a6b] dark:text-sky-350 block">{srsSpread.master}</span>
+              <span className="text-[8px] font-black uppercase text-claude-text-muted tracking-wide mt-1 block">Master</span>
               <div className="w-full h-1 bg-[#294a6b] dark:bg-sky-400 rounded-full mt-2" />
             </div>
 
             {/* Enlightened */}
-            <div className="bg-sky-50 dark:bg-sky-950/15 border border-sky-200 dark:border-sky-900/50 p-2.5 rounded-2xl flex flex-col justify-between hover:scale-[1.01] transition-transform">
+            <div className="bg-sky-500/10 border border-sky-500/25 p-2.5 rounded-2xl flex flex-col justify-between hover:scale-[1.01] transition-transform">
               <span className="text-lg font-black text-[#0093dd] block">{srsSpread.enlightened}</span>
-              <span className="text-[8px] font-black uppercase text-zinc-400 tracking-wide mt-1 block">Enlightened</span>
+              <span className="text-[8px] font-black uppercase text-claude-text-muted tracking-wide mt-1 block">Enlightened</span>
               <div className="w-full h-1 bg-[#0093dd] rounded-full mt-2" />
             </div>
 
             {/* Burned */}
-            <div className="bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-2.5 rounded-2xl flex flex-col justify-between hover:scale-[1.01] transition-transform">
-              <span className="text-lg font-black text-[#434343] dark:text-zinc-300 block">{srsSpread.burned}</span>
-              <span className="text-[8px] font-black uppercase text-zinc-400 tracking-wide mt-1 block">Burned</span>
+            <div className="bg-claude-bg border border-claude-border p-2.5 rounded-2xl flex flex-col justify-between hover:scale-[1.01] transition-transform">
+              <span className="text-lg font-black text-claude-text-heading block">{srsSpread.burned}</span>
+              <span className="text-[8px] font-black uppercase text-claude-text-muted tracking-wide mt-1 block">Burned</span>
               <div className="w-full h-1 bg-[#434343] dark:bg-zinc-500 rounded-full mt-2" />
             </div>
           </div>
 
-          <p className="text-[8px] text-zinc-400 font-bold border-t border-zinc-100 dark:border-zinc-700/50 pt-3 text-center italic">
-            Locked / unstudied library items: <span className="text-zinc-650 dark:text-zinc-300 font-black">{srsSpread.locked} items</span>
+          <p className="text-[8px] text-claude-text-muted font-bold border-t border-claude-border pt-3 text-center italic">
+            Locked / unstudied library items: <span className="text-claude-text-heading font-black">{srsSpread.locked} items</span>
           </p>
         </div>
 
       </div>
 
       {/* Recent Study Sessions Logs Panel */}
-      <div className="bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-3xl p-5 sm:p-8 space-y-4 shadow-xs">
-        <div className="flex justify-between items-center border-b border-zinc-100 dark:border-zinc-700/50 pb-2.5">
+      <div className="bg-claude-card border border-claude-border rounded-3xl p-5 sm:p-8 space-y-4 shadow-xs">
+        <div className="flex justify-between items-center border-b border-claude-border pb-2.5">
           <div>
-            <span className="text-[9px] font-extrabold uppercase tracking-widest text-pink-500">Performance History</span>
-            <h3 className="text-lg font-black text-zinc-800 dark:text-zinc-100 mt-0.5">Recent Study Sessions</h3>
+            <span className="text-[9px] font-extrabold uppercase tracking-widest text-claude-coral">Performance History</span>
+            <h3 className="text-lg font-black text-claude-text-heading mt-0.5">Recent Study Sessions</h3>
           </div>
           {sessionHistory.length > 0 && (
             <button
               onClick={handleClearHistory}
-              className="text-[9px] font-extrabold text-zinc-400 hover:text-red-500 bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 px-3.5 py-1.5 rounded-xl transition-all cursor-pointer"
+              className="text-[9px] font-extrabold text-claude-text-muted hover:text-red-500 bg-claude-bg border border-claude-border px-3.5 py-1.5 rounded-xl transition-all cursor-pointer"
             >
               Clear Logs 🗑️
             </button>
@@ -523,15 +522,15 @@ export default function Dashboard({
               return (
                 <div
                   key={session.id}
-                  className="p-4 bg-zinc-50 dark:bg-zinc-900/60 border border-zinc-100 dark:border-zinc-800/80 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:border-zinc-200 transition-colors"
+                  className="p-4 bg-claude-bg border border-claude-border rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:opacity-95 transition-all"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-xl bg-pink-50 dark:bg-pink-950/20 border border-pink-200 dark:border-pink-900/40 flex items-center justify-center text-sm shadow-xs shrink-0">
+                    <div className="w-9 h-9 rounded-xl bg-claude-coral/10 border border-claude-coral/25 flex items-center justify-center text-sm shadow-xs shrink-0">
                       ⏱️
                     </div>
                     <div>
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className="text-xs font-black text-zinc-800 dark:text-zinc-100">
+                        <span className="text-xs font-black text-claude-text-heading">
                           Reviewed {session.totalCards} Words
                         </span>
                         <span className={`text-[8px] font-black uppercase px-2 py-0.5 rounded border ${
@@ -542,24 +541,24 @@ export default function Dashboard({
                           {session.difficulty === 'hard' ? 'Hard' : 'Easy'}
                         </span>
                       </div>
-                      <span className="text-[9px] text-zinc-400 font-bold block mt-0.5">
+                      <span className="text-[9px] text-claude-text-muted font-bold block mt-0.5">
                         {dateString} at {timeString} • {commentText}
                       </span>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-6 text-right justify-between sm:justify-end border-t sm:border-t-0 border-zinc-200 dark:border-zinc-700/30 pt-2 sm:pt-0">
+                  <div className="flex items-center gap-6 text-right justify-between sm:justify-end border-t sm:border-t-0 border-claude-border pt-2 sm:pt-0">
                     <div>
-                      <span className="text-[8px] uppercase font-black text-zinc-400 block">Duration</span>
-                      <span className="text-xs font-black text-zinc-750 dark:text-zinc-250">{session.duration}s</span>
+                      <span className="text-[8px] uppercase font-black text-claude-text-muted block">Duration</span>
+                      <span className="text-xs font-black text-claude-text-heading">{session.duration}s</span>
                     </div>
                     <div>
-                      <span className="text-[8px] uppercase font-black text-zinc-400 block">Avg Speed</span>
-                      <span className="text-xs font-black text-zinc-750 dark:text-zinc-250">{session.avgSpeed}s</span>
+                      <span className="text-[8px] uppercase font-black text-claude-text-muted block">Avg Speed</span>
+                      <span className="text-xs font-black text-claude-text-heading">{session.avgSpeed}s</span>
                     </div>
                     <div>
-                      <span className="text-[8px] uppercase font-black text-zinc-400 block">Timeouts</span>
-                      <span className={`text-xs font-black ${session.timeouts > 0 ? 'text-red-500' : 'text-zinc-750 dark:text-zinc-250'}`}>
+                      <span className="text-[8px] uppercase font-black text-claude-text-muted block">Timeouts</span>
+                      <span className={`text-xs font-black ${session.timeouts > 0 ? 'text-red-500' : 'text-claude-text-heading'}`}>
                         {session.timeouts}
                       </span>
                     </div>
@@ -569,10 +568,10 @@ export default function Dashboard({
             })}
           </div>
         ) : (
-          <div className="p-8 text-center text-zinc-400 border border-dashed border-zinc-200 dark:border-zinc-700 rounded-2xl select-none space-y-2">
+          <div className="p-8 text-center text-claude-text-muted border border-dashed border-claude-border rounded-2xl select-none space-y-2">
             <span className="text-2xl block">📊</span>
-            <p className="text-xs font-black text-zinc-800 dark:text-zinc-200">No Study Logs Yet</p>
-            <p className="text-[10px] text-zinc-500 leading-relaxed max-w-xs mx-auto">
+            <p className="text-xs font-black text-claude-text-heading">No Study Logs Yet</p>
+            <p className="text-[10px] text-claude-text-muted/80 leading-relaxed max-w-xs mx-auto">
               Finish your first vocabulary review session in the Study Arena to track your duration, average speed, and timeout stats.
             </p>
           </div>
@@ -583,21 +582,21 @@ export default function Dashboard({
       {showSettings && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-xs z-[100] flex items-center justify-center p-4 animate-fade-in">
           <div className="absolute inset-0" onClick={() => setShowSettings(false)} />
-          <div className="bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 w-full max-w-sm rounded-3xl p-6 relative z-10 flex flex-col gap-4 animate-fade-in shadow-2xl">
-            <div className="flex justify-between items-center border-b border-zinc-150 dark:border-zinc-700 pb-2.5">
-              <h3 className="font-black text-xs uppercase tracking-wider text-zinc-800 dark:text-zinc-100">
+          <div className="bg-claude-card border border-claude-border w-full max-w-sm rounded-3xl p-6 relative z-10 flex flex-col gap-4 animate-fade-in shadow-2xl">
+            <div className="flex justify-between items-center border-b border-claude-border pb-2.5">
+              <h3 className="font-black text-xs uppercase tracking-wider text-claude-text-heading">
                 Database Settings
               </h3>
               <button 
                 onClick={() => setShowSettings(false)}
-                className="text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 text-xs font-bold p-1 cursor-pointer"
+                className="text-claude-text-muted hover:text-claude-text-heading text-xs font-bold p-1 cursor-pointer"
               >
                 ✕
               </button>
             </div>
 
             <div className="space-y-4">
-              <p className="text-[9px] text-zinc-400 leading-relaxed uppercase tracking-wider font-black">
+              <p className="text-[9px] text-claude-text-muted leading-relaxed uppercase tracking-wider font-black">
                 Vocabulary Database Actions
               </p>
               
@@ -609,11 +608,11 @@ export default function Dashboard({
                         onLoadDemo();
                         setShowSettings(false);
                       }}
-                      className="w-full text-left px-4 py-3 bg-zinc-50 dark:bg-zinc-900/50 hover:bg-zinc-100 rounded-xl border border-zinc-200 dark:border-zinc-700 transition-colors flex items-center justify-between cursor-pointer group"
+                      className="w-full text-left px-4 py-3 bg-claude-bg hover:opacity-90 rounded-xl border border-claude-border transition-colors flex items-center justify-between cursor-pointer group"
                     >
                       <div>
-                        <span className="text-xs font-black text-zinc-750 dark:text-zinc-200 block">Load Demo Vocabulary</span>
-                        <span className="text-[9px] text-zinc-400 block mt-0.5">Populate database with 20 JLPT cards</span>
+                        <span className="text-xs font-black text-claude-text-heading block">Load Demo Vocabulary</span>
+                        <span className="text-[9px] text-claude-text-muted block mt-0.5">Populate database with 20 JLPT cards</span>
                       </div>
                       <span className="text-sm group-hover:translate-x-0.5 transition-transform">📚</span>
                     </button>
@@ -644,7 +643,7 @@ export default function Dashboard({
                 >
                   <div>
                     <span className="text-xs font-black text-amber-600 dark:text-amber-500 block">Reset My Study Progress & Heatmap</span>
-                    <span className="text-[9px] text-amber-500/80 block mt-0.5">Resets your personal score stats and learning dates to zero</span>
+                    <span className="text-[9px] text-amber-500/70 block mt-0.5">Resets your personal score stats and learning dates to zero</span>
                   </div>
                   <span className="text-sm group-hover:scale-110 transition-transform">🔄</span>
                 </button>
@@ -658,14 +657,14 @@ export default function Dashboard({
                 >
                   <div>
                     <span className="text-xs font-black text-red-400 block">Clear Study Logs</span>
-                    <span className="text-[9px] text-red-400/80 block mt-0.5">Deletes all previous study performance history records</span>
+                    <span className="text-[9px] text-red-400/70 block mt-0.5">Deletes all previous study performance history records</span>
                   </div>
                   <span className="text-sm group-hover:scale-110 transition-transform">🗑️</span>
                 </button>
 
                 {isAdmin && (
                   <>
-                    <p className="text-[9px] text-zinc-400 leading-relaxed uppercase tracking-wider font-black mt-3 border-t border-zinc-150 dark:border-zinc-700 pt-3">
+                    <p className="text-[9px] text-claude-text-muted leading-relaxed uppercase tracking-wider font-black mt-3 border-t border-claude-border pt-3">
                       Error Page Previews 💀
                     </p>
                     
@@ -675,7 +674,7 @@ export default function Dashboard({
                           onTriggerPreview('404');
                           setShowSettings(false);
                         }}
-                        className="py-2 bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-xl text-[9px] font-black hover:border-pink-500 transition-colors cursor-pointer text-center text-zinc-700 dark:text-zinc-350"
+                        className="py-2 bg-claude-bg border border-claude-border rounded-xl text-[9px] font-black hover:border-claude-coral transition-colors cursor-pointer text-center text-claude-text-heading"
                       >
                         🪦 404
                       </button>
@@ -684,7 +683,7 @@ export default function Dashboard({
                           onTriggerPreview('offline');
                           setShowSettings(false);
                         }}
-                        className="py-2 bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-xl text-[9px] font-black hover:border-pink-500 transition-colors cursor-pointer text-center text-zinc-700 dark:text-zinc-350"
+                        className="py-2 bg-claude-bg border border-claude-border rounded-xl text-[9px] font-black hover:border-claude-coral transition-colors cursor-pointer text-center text-claude-text-heading"
                       >
                         🦖 Offline
                       </button>
@@ -693,7 +692,7 @@ export default function Dashboard({
                           onTriggerPreview('database');
                           setShowSettings(false);
                         }}
-                        className="py-2 bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-xl text-[9px] font-black hover:border-pink-500 transition-colors cursor-pointer text-center text-zinc-700 dark:text-zinc-350"
+                        className="py-2 bg-claude-bg border border-claude-border rounded-xl text-[9px] font-black hover:border-claude-coral transition-colors cursor-pointer text-center text-claude-text-heading"
                       >
                         👻 DB Error
                       </button>
@@ -703,10 +702,10 @@ export default function Dashboard({
               </div>
             </div>
 
-            <div className="pt-2 border-t border-zinc-150 dark:border-zinc-700">
+            <div className="pt-2 border-t border-claude-border">
               <button
                 onClick={() => setShowSettings(false)}
-                className="w-full px-4 py-2 bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-100 rounded-xl text-[10px] font-black text-zinc-800 dark:text-zinc-200 transition-colors cursor-pointer text-center"
+                className="w-full px-4 py-2 bg-claude-bg border border-claude-border hover:opacity-90 rounded-xl text-[10px] font-black text-claude-text-heading transition-colors cursor-pointer text-center"
               >
                 Close Settings
               </button>
@@ -714,6 +713,8 @@ export default function Dashboard({
           </div>
         </div>
       )}
+
+      <Footer />
     </div>
   );
 }

@@ -157,19 +157,19 @@ export default function Navbar({
   return (
     <>
       {/* Top sticky WaniKani horizontal Header */}
-      <header className="fixed top-0 left-0 right-0 h-16 bg-white dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 z-50 flex items-center justify-between px-4 md:px-8 select-none shadow-xs">
+      <header className="fixed top-0 left-0 right-0 h-16 bg-claude-sidebar border-b border-claude-border z-50 flex items-center justify-between px-4 md:px-8 select-none shadow-xs">
         
         {/* Left: Branding */}
         <div 
           onClick={() => setActiveTab('dashboard')}
           className="flex items-center gap-2.5 cursor-pointer hover:scale-[1.01] transition-transform"
         >
-          <div className="w-8 h-8 rounded-lg bg-pink-500 text-white flex items-center justify-center shadow-xs shrink-0">
+          <div className="w-8 h-8 rounded-lg bg-claude-coral/10 border border-claude-coral/25 text-claude-coral flex items-center justify-center shadow-xs shrink-0">
             <ToriiGateLogo className="w-5 h-5" />
           </div>
           <div>
-            <span className="text-sm font-black tracking-tight text-zinc-800 dark:text-zinc-100 uppercase">
-              WaniKani
+            <span className="text-sm font-black tracking-tight text-claude-text-heading uppercase font-serif">
+              Kyōto-Slate
             </span>
           </div>
         </div>
@@ -180,13 +180,13 @@ export default function Navbar({
           <button 
             onClick={() => onStartSession(null, false, true)}
             disabled={lessonsCount === 0}
-            className="flex items-center rounded-lg overflow-hidden border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-850 hover:scale-[1.02] transition-transform select-none cursor-pointer disabled:opacity-45 disabled:cursor-not-allowed shadow-xs"
+            className="flex items-center rounded-lg overflow-hidden border border-claude-border bg-claude-card hover:scale-[1.02] transition-transform select-none cursor-pointer disabled:opacity-45 disabled:cursor-not-allowed shadow-xs"
             title="Start Lessons"
           >
-            <span className="bg-zinc-805 dark:bg-zinc-900 text-white font-extrabold px-3 py-1 text-xs">
+            <span className={`${lessonsCount > 0 ? 'bg-sky-500' : 'bg-claude-border'} text-white font-extrabold px-3 py-1 text-xs`}>
               {lessonsCount}
             </span>
-            <span className="text-zinc-600 dark:text-zinc-300 font-extrabold px-2.5 py-1 text-[10px] uppercase tracking-wider">
+            <span className="text-claude-text-muted font-extrabold px-2.5 py-1 text-[10px] uppercase tracking-wider">
               Lessons
             </span>
           </button>
@@ -195,13 +195,13 @@ export default function Navbar({
           <button 
             onClick={() => onStartSession(null, true, false)}
             disabled={dueReviewsCount === 0}
-            className="flex items-center rounded-lg overflow-hidden border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-850 hover:scale-[1.02] transition-transform select-none cursor-pointer disabled:opacity-45 disabled:cursor-not-allowed shadow-xs"
+            className="flex items-center rounded-lg overflow-hidden border border-claude-border bg-claude-card hover:scale-[1.02] transition-transform select-none cursor-pointer disabled:opacity-45 disabled:cursor-not-allowed shadow-xs"
             title="Start Reviews"
           >
-            <span className={`${dueReviewsCount > 0 ? 'bg-pink-500' : 'bg-zinc-500'} text-white font-extrabold px-3 py-1 text-xs`}>
+            <span className={`${dueReviewsCount > 0 ? 'bg-claude-coral' : 'bg-claude-border'} text-white font-extrabold px-3 py-1 text-xs`}>
               {dueReviewsCount}
             </span>
-            <span className="text-zinc-600 dark:text-zinc-300 font-extrabold px-2.5 py-1 text-[10px] uppercase tracking-wider">
+            <span className="text-claude-text-muted font-extrabold px-2.5 py-1 text-[10px] uppercase tracking-wider">
               Reviews
             </span>
           </button>
@@ -211,13 +211,13 @@ export default function Navbar({
         <div className="flex items-center gap-4">
           
           {/* Desktop Nav Items */}
-          <nav className="hidden lg:flex items-center gap-5 text-xs font-black text-zinc-600 dark:text-zinc-400">
+          <nav className="hidden lg:flex items-center gap-5 text-xs font-black text-claude-text-muted">
             {navItems.map(item => (
               <button
                 key={item.id}
                 onClick={() => setActiveTab(item.id)}
-                className={`hover:text-zinc-900 dark:hover:text-white transition-colors cursor-pointer ${
-                  activeTab === item.id ? 'text-pink-500 dark:text-pink-400 font-black border-b-2 border-pink-500 dark:border-pink-400 pb-1 mt-1' : 'pb-1'
+                className={`hover:text-claude-text-heading transition-colors cursor-pointer ${
+                  activeTab === item.id ? 'text-claude-coral font-black border-b-2 border-claude-coral pb-1 mt-1' : 'pb-1'
                 }`}
               >
                 {item.name}
@@ -225,13 +225,13 @@ export default function Navbar({
             ))}
           </nav>
 
-          <div className="flex items-center gap-2 border-l border-zinc-200 dark:border-zinc-800 pl-4">
+          <div className="flex items-center gap-2 border-l border-claude-border pl-4">
             
             {/* Quick settings dropdown toggler */}
             <div className="relative">
               <button
                 onClick={() => setSettingsDropdownOpen(!settingsDropdownOpen)}
-                className="w-8 h-8 rounded-xl bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 flex items-center justify-center text-xs text-zinc-600 dark:text-zinc-300 cursor-pointer shadow-xs"
+                className="w-8 h-8 rounded-xl bg-claude-bg hover:bg-claude-border/50 flex items-center justify-center text-xs text-claude-text-muted hover:text-claude-text-heading cursor-pointer shadow-xs"
                 title="Settings & Themes"
               >
                 ⚙️
@@ -240,20 +240,20 @@ export default function Navbar({
               {settingsDropdownOpen && (
                 <>
                   <div className="fixed inset-0 z-40 bg-transparent" onClick={() => setSettingsDropdownOpen(false)} />
-                  <div className="absolute right-0 mt-2.5 w-60 rounded-2xl bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 shadow-xl p-4 z-50 flex flex-col gap-3.5 text-zinc-700 dark:text-zinc-300 animate-fade-in">
+                  <div className="absolute right-0 mt-2.5 w-60 rounded-2xl bg-claude-card border border-claude-border shadow-xl p-4 z-50 flex flex-col gap-3.5 text-claude-text animate-fade-in">
                     
-                    <div className="flex items-center justify-between border-b border-zinc-200 dark:border-zinc-700 pb-2.5">
-                      <span className="text-[9px] font-black uppercase tracking-wider text-zinc-400">Theme Mode</span>
+                    <div className="flex items-center justify-between border-b border-claude-border pb-2.5">
+                      <span className="text-[9px] font-black uppercase tracking-wider text-claude-text-muted">Theme Mode</span>
                       <button
                         onClick={handleModeToggle}
-                        className="px-3 py-1 rounded-xl bg-zinc-100 dark:bg-zinc-700 hover:bg-zinc-200 dark:hover:bg-zinc-600 text-[10px] font-extrabold flex items-center gap-1.5 cursor-pointer shadow-xs"
+                        className="px-3 py-1 rounded-xl bg-claude-bg hover:bg-claude-border/55 text-[10px] font-extrabold flex items-center gap-1.5 cursor-pointer shadow-xs"
                       >
                         {themeMode === 'light' ? '☀️ Light' : '🌙 Dark'}
                       </button>
                     </div>
 
-                    <div className="space-y-1.5 border-b border-zinc-200 dark:border-zinc-700 pb-3">
-                      <span className="text-[9px] font-black uppercase tracking-wider text-zinc-400 block">Accent Themes</span>
+                    <div className="space-y-1.5 border-b border-claude-border pb-3">
+                      <span className="text-[9px] font-black uppercase tracking-wider text-claude-text-muted block">Accent Themes</span>
                       <div className="grid grid-cols-3 gap-1.5">
                         {regionsList.map(r => (
                           <button
@@ -264,8 +264,8 @@ export default function Navbar({
                             }}
                             className={`p-1.5 rounded-lg border text-center flex flex-col items-center justify-center gap-1 cursor-pointer transition-all ${
                               themeRegion === r.id
-                                ? 'bg-pink-500/10 border-pink-500 text-pink-500 dark:text-pink-400'
-                                : 'bg-transparent border-transparent hover:bg-zinc-100 dark:hover:bg-zinc-700/50'
+                                ? 'bg-claude-coral/10 border-claude-coral text-claude-coral'
+                                : 'bg-transparent border-transparent hover:bg-claude-bg'
                             }`}
                           >
                             <span className="text-sm select-none">{r.icon}</span>
@@ -275,17 +275,17 @@ export default function Navbar({
                       </div>
                     </div>
 
-                    <div className="space-y-2 border-b border-zinc-200 dark:border-zinc-700 pb-3 text-left">
-                      <span className="text-[9px] font-black uppercase tracking-wider text-zinc-400 block">Furigana Mode</span>
-                      <div className="flex bg-zinc-100 dark:bg-zinc-700/60 p-0.5 rounded-xl border border-zinc-200/50 dark:border-zinc-700">
+                    <div className="space-y-2 border-b border-claude-border pb-3 text-left">
+                      <span className="text-[9px] font-black uppercase tracking-wider text-claude-text-muted block">Furigana Mode</span>
+                      <div className="flex bg-claude-bg p-0.5 rounded-xl border border-claude-border">
                         {['both', 'kanji', 'kana'].map(mode => (
                           <button
                             key={mode}
                             onClick={() => onChangeFuriganaMode(mode)}
                             className={`flex-1 py-1.5 rounded-lg text-[9px] font-black capitalize transition-all cursor-pointer text-center ${
                               furiganaMode === mode
-                                ? 'bg-white dark:bg-zinc-800 text-pink-500 dark:text-pink-400 shadow-xs'
-                                : 'text-zinc-500 hover:text-zinc-805 dark:text-zinc-400 dark:hover:text-zinc-200'
+                                ? 'bg-claude-card text-claude-coral shadow-xs'
+                                : 'text-claude-text-muted hover:text-claude-text-heading'
                             }`}
                           >
                             {mode === 'both' ? 'Both' : mode === 'kanji' ? 'Kanji' : 'Kana'}
@@ -295,10 +295,10 @@ export default function Navbar({
                     </div>
 
                     <div className="flex items-center justify-between">
-                      <span className="text-[9px] font-black uppercase tracking-wider text-zinc-400">Background Music</span>
+                      <span className="text-[9px] font-black uppercase tracking-wider text-claude-text-muted">Background Music</span>
                       <button
                         onClick={onToggleMusic}
-                        className="px-2.5 py-1.5 rounded-lg bg-zinc-100 dark:bg-zinc-700 hover:bg-zinc-200 dark:hover:bg-zinc-600 text-xs cursor-pointer shadow-xs"
+                        className="px-2.5 py-1.5 rounded-lg bg-claude-bg hover:bg-claude-border/55 text-xs cursor-pointer shadow-xs text-claude-text-heading"
                       >
                         {bgMusicEnabled ? '🔊 Playing' : '🔇 Muted'}
                       </button>
@@ -312,7 +312,7 @@ export default function Navbar({
             {/* Profile Avatar Trigger */}
             <button
               onClick={handleOpenModal}
-              className="w-8 h-8 rounded-full border border-zinc-200 dark:border-zinc-700 overflow-hidden cursor-pointer active:scale-95 transition-transform shrink-0 flex items-center justify-center bg-zinc-50 dark:bg-zinc-850"
+              className="w-8 h-8 rounded-full border border-claude-border overflow-hidden cursor-pointer active:scale-95 transition-transform shrink-0 flex items-center justify-center bg-claude-bg"
               title="Student Profile"
             >
               <img 
@@ -325,22 +325,21 @@ export default function Navbar({
             {/* Mobile Hamburger menu */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="w-8 h-8 rounded-xl bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-850 dark:hover:bg-zinc-700 flex items-center justify-center lg:hidden text-zinc-600 dark:text-zinc-300 cursor-pointer shadow-xs ml-1"
+              className="w-8 h-8 rounded-xl bg-claude-bg hover:bg-claude-border/55 flex items-center justify-center lg:hidden text-claude-text-muted hover:text-claude-text-heading cursor-pointer shadow-xs ml-1"
             >
               ☰
             </button>
 
           </div>
         </div>
-
       </header>
 
       {/* Mobile Slide-down Menu Drawer */}
       {mobileMenuOpen && (
         <>
           <div className="fixed inset-0 z-30 bg-black/40 backdrop-blur-xs lg:hidden" onClick={() => setMobileMenuOpen(false)} />
-          <div className="fixed top-16 left-0 right-0 bg-white dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 z-30 p-5 flex flex-col gap-4 animate-fade-in lg:hidden text-zinc-700 dark:text-zinc-300">
-            <span className="text-[9px] font-black uppercase tracking-wider text-zinc-400 pl-0.5">Navigation</span>
+          <div className="fixed top-16 left-0 right-0 bg-claude-card border-b border-claude-border z-30 p-5 flex flex-col gap-4 animate-fade-in lg:hidden text-claude-text">
+            <span className="text-[9px] font-black uppercase tracking-wider text-claude-text-muted pl-0.5">Navigation</span>
             <div className="grid grid-cols-2 gap-2">
               {navItems.map(item => (
                 <button
@@ -351,8 +350,8 @@ export default function Navbar({
                   }}
                   className={`p-3 rounded-xl border text-center font-extrabold text-xs cursor-pointer transition-all ${
                     activeTab === item.id
-                      ? 'bg-pink-500/10 border-pink-500 text-pink-500 dark:text-pink-400 shadow-xs'
-                      : 'bg-zinc-50 dark:bg-zinc-800 border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100'
+                      ? 'bg-claude-coral/10 border-claude-coral text-claude-coral shadow-xs'
+                      : 'bg-claude-bg border-claude-border text-claude-text-muted hover:bg-claude-border/30 hover:text-claude-text-heading'
                   }`}
                 >
                   {item.name}
@@ -378,14 +377,14 @@ export default function Navbar({
         <div className="fixed inset-0 bg-black/60 backdrop-blur-xs z-[100] flex items-center justify-center p-4 animate-fade-in">
           <div className="absolute inset-0" onClick={() => setIsModalOpen(false)} />
           
-          <div className="bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 w-full max-w-sm rounded-3xl p-6 relative z-10 flex flex-col gap-4 animate-scale-up shadow-2xl">
-            <div className="flex justify-between items-center border-b border-zinc-200 dark:border-zinc-700 pb-2.5">
-              <h3 className="font-extrabold text-xs uppercase tracking-wider text-zinc-800 dark:text-zinc-200">
+          <div className="bg-claude-card border border-claude-border w-full max-w-sm rounded-3xl p-6 relative z-10 flex flex-col gap-4 animate-scale-up shadow-2xl">
+            <div className="flex justify-between items-center border-b border-claude-border pb-2.5">
+              <h3 className="font-extrabold text-xs uppercase tracking-wider text-claude-text-heading">
                 Edit Student Profile
               </h3>
               <button 
                 onClick={() => setIsModalOpen(false)}
-                className="text-zinc-405 hover:text-zinc-800 dark:hover:text-white text-xs font-bold p-1 cursor-pointer"
+                className="text-claude-text-muted hover:text-claude-text-heading text-xs font-bold p-1 cursor-pointer"
               >
                 ✕
               </button>
@@ -393,35 +392,35 @@ export default function Navbar({
 
             <div className="space-y-4">
               <div className="space-y-1">
-                <label className="text-[9px] font-extrabold text-zinc-400 uppercase tracking-widest block">
+                <label className="text-[9px] font-extrabold text-claude-text-muted uppercase tracking-widest block">
                   Student Username
                 </label>
                 <input 
                   type="text"
                   value={tempName}
                   onChange={(e) => setTempName(e.target.value)}
-                  className="w-full bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-xl px-3.5 py-2 text-xs font-bold text-zinc-800 dark:text-zinc-100 focus:outline-hidden focus:border-pink-500 transition-colors shadow-inner"
+                  className="w-full bg-claude-bg border border-claude-border rounded-xl px-3.5 py-2 text-xs font-bold text-claude-text-heading focus:outline-hidden focus:border-claude-coral transition-colors shadow-inner"
                   maxLength={18}
                   placeholder="Enter nickname..."
                 />
               </div>
 
               <div className="space-y-1">
-                <label className="text-[9px] font-extrabold text-zinc-400 uppercase tracking-widest block">
+                <label className="text-[9px] font-extrabold text-claude-text-muted uppercase tracking-widest block">
                   Custom Title
                 </label>
                 <input 
                   type="text"
                   value={tempTitle}
                   onChange={(e) => setTempTitle(e.target.value)}
-                  className="w-full bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-xl px-3.5 py-2 text-xs font-bold text-zinc-805 dark:text-zinc-100 focus:outline-hidden focus:border-pink-500 transition-colors shadow-inner"
+                  className="w-full bg-claude-bg border border-claude-border rounded-xl px-3.5 py-2 text-xs font-bold text-claude-text-heading focus:outline-hidden focus:border-claude-coral transition-colors shadow-inner"
                   maxLength={22}
                   placeholder="e.g. Chibi Student..."
                 />
               </div>
 
               <div className="space-y-1">
-                <label className="text-[9px] font-extrabold text-zinc-400 uppercase tracking-widest block">
+                <label className="text-[9px] font-extrabold text-claude-text-muted uppercase tracking-widest block">
                   Select Chibi & Anime Avatar
                 </label>
                 <div className="grid grid-cols-4 gap-2 pt-1 max-h-40 overflow-y-auto pr-1">
@@ -435,14 +434,14 @@ export default function Navbar({
                         onClick={() => setTempAvatar({ seed: preset.seed, style: preset.style })}
                         className={`relative aspect-square rounded-xl border flex items-center justify-center p-1 transition-all cursor-pointer overflow-hidden ${
                           isSelected 
-                            ? 'bg-zinc-100 dark:bg-zinc-700 border-pink-500 ring-2 ring-pink-500/20' 
-                            : 'bg-white dark:bg-zinc-800 border-zinc-205 dark:border-zinc-705/80'
+                            ? 'bg-claude-bg border-claude-coral ring-2 ring-claude-coral/20' 
+                            : 'bg-claude-card border-claude-border'
                         }`}
                         title={preset.name}
                       >
                         <img src={avatarUrl} alt={preset.name} className="w-8 h-8 object-contain scale-115" />
                         {isSelected && (
-                          <span className="absolute bottom-0 right-0 bg-pink-500 text-white w-3 h-3 rounded-tl-lg flex items-center justify-center text-[7px] font-black select-none">
+                          <span className="absolute bottom-0 right-0 bg-claude-coral text-white w-3 h-3 rounded-tl-lg flex items-center justify-center text-[7px] font-black select-none">
                             ✓
                           </span>
                         )}
@@ -453,24 +452,24 @@ export default function Navbar({
               </div>
             </div>
 
-            <div className="flex gap-2.5 pt-2 border-t border-zinc-200 dark:border-zinc-700">
+            <div className="flex gap-2.5 pt-2 border-t border-claude-border">
               <button
                 onClick={() => setIsModalOpen(false)}
-                className="flex-1 px-4 py-2 border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-50 dark:hover:bg-zinc-700 rounded-xl text-[10px] font-bold text-zinc-400 transition-colors cursor-pointer"
+                className="flex-1 px-4 py-2 border border-claude-border hover:bg-claude-bg rounded-xl text-[10px] font-bold text-claude-text-muted transition-colors cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 onClick={handleSave}
-                className="flex-1 px-4 py-2 bg-pink-500 hover:bg-pink-600 text-white rounded-xl text-[10px] font-extrabold transition-colors cursor-pointer shadow"
+                className="flex-1 px-4 py-2 bg-claude-coral hover:opacity-95 text-white rounded-xl text-[10px] font-extrabold transition-colors cursor-pointer shadow"
               >
                 Save Changes
               </button>
             </div>
 
-            <div className="pt-2.5 border-t border-zinc-200 dark:border-zinc-700/50 flex flex-col gap-2">
-              <div className="text-[8px] font-bold text-zinc-400 text-center truncate">
-                Authenticated as: <span className="text-zinc-600 dark:text-zinc-450">{userEmail}</span>
+            <div className="pt-2.5 border-t border-claude-border flex flex-col gap-2">
+              <div className="text-[8px] font-bold text-claude-text-muted text-center truncate">
+                Authenticated as: <span className="text-claude-text-heading">{userEmail}</span>
               </div>
               <button
                 onClick={() => {

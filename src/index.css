@@ -32,47 +32,46 @@
 }
 
 :root {
-  /* Default: Claude.ai Light Mode Theme */
-  --bg-primary: #f9f8f6;
+  /* Default: WaniKani Light Mode Theme */
+  --bg-primary: #f4f4f4;
   --bg-card: #ffffff;
-  --bg-sidebar: #f3f0e9;
-  --border-color: #e5e0d8;
-  --text-primary: #191919;
-  --text-secondary: #6b6a65;
-  --text-heading: #191919;
-  --accent-coral: #cc5a37;
-  --success-color: #166534;
-  --error-color: #991b1b;
-  --glass-shadow: rgba(25, 25, 25, 0.04);
+  --bg-sidebar: #ffffff;
+  --border-color: #e5e5e5;
+  --text-primary: #333333;
+  --text-secondary: #777777;
+  --text-heading: #333333;
+  --accent-coral: #f03e93; /* WaniKani Pink */
+  --success-color: #22c55e;
+  --error-color: #ef4444;
+  --glass-shadow: rgba(0, 0, 0, 0.02);
   
   /* Accent buttons styling variables */
-  --accent-glow: rgba(204, 90, 55, 0.2);
-  --accent-glow-hover: rgba(204, 90, 55, 0.35);
-  --accent-gradient-end: rgba(204, 90, 55, 0.85);
-  --accent-gradient-end-hover: rgba(204, 90, 55, 0.95);
+  --accent-glow: rgba(240, 62, 147, 0.1);
+  --accent-glow-hover: rgba(240, 62, 147, 0.2);
+  --accent-gradient-end: #f03e93;
+  --accent-gradient-end-hover: #e02d82;
   
   font-family: 'Outfit', 'Noto Sans JP', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
   color-scheme: light;
 }
 
-/* Claude Dark Mode */
-/* 1. LIYUE (Default / Geo) */
+/* WaniKani Dark Mode */
 .dark {
-  --bg-primary: #181816;
-  --bg-card: #222220;
-  --bg-sidebar: #1e1e1c;
-  --border-color: #2d2d2a;
-  --text-primary: #f2f0ea;
-  --text-secondary: #92918b;
+  --bg-primary: #121212;
+  --bg-card: #1e1e1e;
+  --bg-sidebar: #1e1e1e;
+  --border-color: #2e2e2e;
+  --text-primary: #e0e0e0;
+  --text-secondary: #aaaaaa;
   --text-heading: #ffffff;
-  --accent-coral: #e06847;
+  --accent-coral: #f03e93;
   --success-color: #22c55e;
   --error-color: #ef4444;
-  --glass-shadow: rgba(0, 0, 0, 0.35);
-  --accent-glow: rgba(224, 104, 71, 0.2);
-  --accent-glow-hover: rgba(224, 104, 71, 0.35);
-  --accent-gradient-end: rgba(224, 104, 71, 0.85);
-  --accent-gradient-end-hover: rgba(224, 104, 71, 0.95);
+  --glass-shadow: rgba(0, 0, 0, 0.4);
+  --accent-glow: rgba(240, 62, 147, 0.15);
+  --accent-glow-hover: rgba(240, 62, 147, 0.3);
+  --accent-gradient-end: #f03e93;
+  --accent-gradient-end-hover: #e02d82;
   color-scheme: dark;
 }
 

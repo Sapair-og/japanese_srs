@@ -823,7 +823,7 @@ export default function App() {
   };
 
   // Start study session
-  const handleStartSession = (lessons, srsOnly = false) => {
+  const handleStartSession = (lessons, srsOnly = false, lessonsOnly = false) => {
     if (vocabList.length === 0) return;
     
     const filterLessons = Array.isArray(lessons) ? lessons : selectedLessons;
@@ -835,7 +835,11 @@ export default function App() {
     
     if (srsOnly) {
       const now = new Date();
-      pool = pool.filter(c => !c.nextReview || new Date(c.nextReview) <= now);
+      // Reviews: only cards that have been studied before (nextReview exists) and are due
+      pool = pool.filter(c => c.nextReview && new Date(c.nextReview) <= now);
+    } else if (lessonsOnly) {
+      // Lessons: only cards that have NEVER been studied before (no nextReview)
+      pool = pool.filter(c => !c.nextReview);
     }
 
     if (pool.length === 0) {
@@ -1265,7 +1269,7 @@ export default function App() {
   }
 
   return (
-    <div className="flex-grow flex flex-col md:flex-row min-h-screen">
+    <div className="flex-grow flex flex-col min-h-screen">
       <CursorTrail />
       {/* Background Music player */}
       <audio ref={audioRef} src="/bg_music.mp3" loop />
@@ -1274,6 +1278,8 @@ export default function App() {
         activeTab={activeTab} 
         setActiveTab={handleNavTabClick} 
         hasCards={vocabList.length > 0}
+        vocabList={vocabList}
+        onStartSession={handleStartSession}
         themeRegion={themeRegion}
         themeMode={themeMode}
         onChangeTheme={handleUpdateTheme}
@@ -1294,9 +1300,7 @@ export default function App() {
       />
 
       {/* Main Content Area */}
-      <main className={`flex-1 flex flex-col overflow-y-auto w-full transition-all duration-500 ease-in-out ${
-        navbarVisible ? 'pt-16 md:pt-0 md:pl-64' : 'pt-0 md:pt-0 md:pl-0'
-      } ${
+      <main className={`flex-1 flex flex-col overflow-y-auto w-full pt-16 ${
         activeTab === 'grammar' 
           ? 'h-full justify-start items-stretch' 
           : ['kanji', 'kana', 'study', 'vocab', 'dashboard'].includes(activeTab)

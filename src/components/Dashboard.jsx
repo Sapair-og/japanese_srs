@@ -1,6 +1,6 @@
 /* eslint-disable */
 import React, { useState, useEffect } from 'react';
-import Stats from './Stats';
+import { kanjiList } from '../utils/kanjiData';
 
 const calculateLevelInfo = (totalCorrect) => {
   const xp = (totalCorrect || 0) * 10;
@@ -26,9 +26,54 @@ const calculateLevelInfo = (totalCorrect) => {
   };
 };
 
+// Mascot SVGs
+const BookMascot = () => (
+  <svg viewBox="0 0 100 100" className="w-20 h-20 text-white/20 dark:text-zinc-700 absolute right-4 bottom-2 pointer-events-none transition-transform group-hover:scale-110">
+    <path fill="currentColor" d="M12 25 Q12 18 20 18 H50 V82 H20 Q12 82 12 75 Z" />
+    <path fill="currentColor" d="M88 25 Q88 18 80 18 H50 V82 H80 Q88 82 88 75 Z" opacity="0.8" />
+    <path stroke="currentColor" strokeWidth="3" strokeLinecap="round" d="M22 30 H42 M22 42 H42 M22 54 H42" opacity="0.6" />
+    <path stroke="currentColor" strokeWidth="3" strokeLinecap="round" d="M78 30 H58 M78 42 H58 M78 54 H58" opacity="0.6" />
+    <circle cx="50" cy="50" r="8" className="text-pink-500 fill-current animate-pulse" />
+  </svg>
+);
+
+const GateMascot = () => (
+  <svg viewBox="0 0 100 100" className="w-20 h-20 text-white/20 dark:text-zinc-700 absolute right-4 bottom-2 pointer-events-none transition-transform group-hover:scale-110">
+    <path fill="currentColor" d="M10 25 Q50 35 90 25 L90 35 Q50 45 10 35 Z" />
+    <path fill="currentColor" d="M20 50 H80 V58 H20 Z" />
+    <path fill="currentColor" d="M30 35 L33 90 H43 L40 35 Z" />
+    <path fill="currentColor" d="M70 35 L67 90 H57 L60 35 Z" />
+    <rect x="27" y="85" width="10" height="5" rx="1" fill="currentColor" opacity="0.8" />
+    <rect x="63" y="85" width="10" height="5" rx="1" fill="currentColor" opacity="0.8" />
+  </svg>
+);
+
+const WelcomeMascot = () => (
+  <svg viewBox="0 0 100 100" className="w-24 h-24 text-pink-500 fill-current shrink-0">
+    <circle cx="50" cy="45" r="30" className="text-pink-100 dark:text-pink-950/40" />
+    {/* Turtle Shell shape */}
+    <path d="M50 15 C30 15 20 30 20 45 C20 48 30 52 50 52 C70 52 80 48 80 45 C80 30 70 15 50 15 Z" fill="#22c55e" />
+    {/* Shell patterns */}
+    <path d="M50 15 L50 52 M35 22 L50 35 L65 22 M25 35 L40 42 L60 42 L75 35" stroke="#166534" strokeWidth="2" fill="none" />
+    {/* Flippers */}
+    <ellipse cx="15" cy="50" rx="8" ry="4" transform="rotate(-20 15 50)" fill="#15803d" />
+    <ellipse cx="85" cy="50" rx="8" ry="4" transform="rotate(20 85 50)" fill="#15803d" />
+    {/* Head */}
+    <circle cx="50" cy="65" r="14" fill="#16a34a" />
+    {/* Eyes */}
+    <circle cx="45" cy="63" r="2" fill="#000" />
+    <circle cx="55" cy="63" r="2" fill="#000" />
+    {/* Smile */}
+    <path d="M47 70 Q50 73 53 70" stroke="#000" strokeWidth="1.5" fill="none" />
+    {/* Cute cheeks */}
+    <circle cx="41" cy="67" r="1.5" fill="#f03e93" />
+    <circle cx="59" cy="67" r="1.5" fill="#f03e93" />
+  </svg>
+);
+
 export default function Dashboard({ 
   stats, 
-  vocabList, 
+  vocabList = [], 
   reviewSessions = [],
   onStartSession, 
   onLoadDemo, 
@@ -46,7 +91,8 @@ export default function Dashboard({
   isAdmin
 }) {
   const now = new Date();
-  const dueCardsCount = vocabList ? vocabList.filter(c => !c.nextReview || new Date(c.nextReview) <= now).length : 0;
+  const dueReviewsCount = vocabList ? vocabList.filter(c => c.nextReview && new Date(c.nextReview) <= now).length : 0;
+  const lessonsCount = vocabList ? vocabList.filter(c => !c.nextReview).length : 0;
   const [showSettings, setShowSettings] = useState(false);
   const hasCards = vocabList && vocabList.length > 0;
   
@@ -84,450 +130,474 @@ export default function Dashboard({
     }
   };
 
-  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-  const bgUrl = supabaseUrl
-    ? `${supabaseUrl.endsWith('/') ? supabaseUrl.slice(0, -1) : supabaseUrl}/storage/v1/object/public/assets/cat%20neko%20GIF.gif`
-    : 'https://i.giphy.com/A4N46RUTt3fQ4.gif';
+  // 1. Calculate Active Item Spread (Apprentice, Guru, Master, Enlightened, Burned)
+  const srsSpread = { apprentice: 0, guru: 0, master: 0, enlightened: 0, burned: 0, locked: 0 };
+  vocabList.forEach(c => {
+    if (!c.nextReview) {
+      srsSpread.locked += 1;
+    } else {
+      const reps = c.repetitions || 0;
+      if (reps >= 1 && reps <= 4) srsSpread.apprentice += 1;
+      else if (reps >= 5 && reps <= 6) srsSpread.guru += 1;
+      else if (reps === 7) srsSpread.master += 1;
+      else if (reps === 8) srsSpread.enlightened += 1;
+      else if (reps >= 9) srsSpread.burned += 1;
+      else srsSpread.locked += 1;
+    }
+  });
 
-  // Calculate study tips
-  const tips = [
-    "Recall is active testing. Instead of re-reading words, challenge yourself with flashcards!",
-    "Spaced repetition works best when practiced daily. Practice 5 minutes every single day.",
-    "Try matching Hiragana with Kanji shapes. Visual cues help associative memory.",
-    "Making mistakes is a shortcut to learning! Incorrect words are repeated until they stick.",
-    "Say the Japanese word out loud when reviewing to train muscle memory and pronunciation."
-  ];
-  const randomTip = tips[Math.abs((stats.totalCorrect + stats.streak) % tips.length)];
+  // 2. Level Progress (Guru completion counts inside the database)
+  const guruKanji = kanjiList ? kanjiList.filter(k => 
+    vocabList.some(v => v.repetitions >= 5 && v.kanji && v.kanji.includes(k.character))
+  ).length : 0;
+  const guruVocab = vocabList ? vocabList.filter(v => v.repetitions >= 5).length : 0;
+
+  // Level Progression targets (scale dynamically)
+  const kanjiTarget = Math.max(15, level * 10);
+  const vocabTarget = Math.max(30, level * 20);
+
+  const kanjiProgress = Math.min(100, Math.round((guruKanji / kanjiTarget) * 100));
+  const vocabProgress = Math.min(100, Math.round((guruVocab / vocabTarget) * 100));
+
+  // Reviews Completed Today (completed since 12:00 AM)
+  const todayStr = now.toISOString().split('T')[0];
+  const reviewsToday = reviewSessions
+    .filter(s => s.session_date === todayStr)
+    .reduce((sum, s) => sum + s.cards_reviewed, 0);
 
   return (
-    <div className="max-w-6xl mx-auto w-full px-2 py-4 md:py-8 animate-fade-in space-y-6">
+    <div className="max-w-6xl mx-auto w-full px-4 py-6 md:py-10 animate-fade-in space-y-8 select-none">
       
-      {/* Top Banner Greeting with welcome chibi illustration */}
-      <div className="relative overflow-hidden claude-panel border-claude-border rounded-3xl p-5 md:p-8 flex flex-col md:flex-row justify-between items-center gap-4 sm:gap-6 bg-gradient-to-r from-claude-coral/5 to-transparent">
-        {/* Aesthetic Animated Background Overlay */}
-        <div 
-          className="absolute inset-0 opacity-[0.08] dark:opacity-[0.1] pointer-events-none transition-opacity duration-300"
-          style={{
-            backgroundImage: `url('${bgUrl}')`,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-          }}
-        />
-        <div className="space-y-2 text-center md:text-left z-10 flex-1">
-          <div className="inline-flex items-center gap-1.5 bg-claude-coral/10 text-claude-coral text-[10px] font-extrabold uppercase px-3 py-1 rounded-full border border-claude-coral/25 tracking-wider">
-            🌸 Study Room
+      {/* Top Banner Greeting (WaniKani Style) */}
+      <div className="relative overflow-hidden bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-3xl p-6 md:p-8 flex flex-col md:flex-row justify-between items-center gap-6 shadow-xs">
+        <div className="flex items-center gap-6 text-center md:text-left z-10 flex-1 flex-col md:flex-row">
+          <WelcomeMascot />
+          <div className="space-y-1">
+            <h1 className="text-3xl font-black tracking-tight text-zinc-800 dark:text-zinc-100">
+              Konnichiwa, {profile?.name || 'Learner'}! 👋
+            </h1>
+            <p className="text-xs md:text-sm text-zinc-400 font-bold max-w-xl">
+              Level {level} • {profile?.title || 'Chibi Student'}
+            </p>
+            <p className="text-xs text-zinc-500 max-w-xl pt-1.5">
+              Welcome back to your personalized Japanese spaced-repetition study panel.
+            </p>
           </div>
-          <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-claude-text-heading claude-serif">
-            Konnichiwa, {profile?.name || 'Learner'}! 👋
-          </h1>
-          <p className="text-xs md:text-sm text-claude-text-muted max-w-xl">
-            Welcome back to your personalized Japanese learning space. Test your retrieval, keep up your daily streak, and master vocabulary.
-          </p>
-        </div>
-        
-        {/* Banner Decorative Chibi Sticker */}
-        <div className="hidden sm:flex w-20 h-20 md:w-24 md:h-24 bg-claude-coral/5 border border-claude-border/60 rounded-2xl items-center justify-center overflow-hidden shrink-0 shadow-inner z-10">
-          <img 
-            src="https://api.dicebear.com/7.x/adventurer/svg?seed=Lucky" 
-            className="w-16 h-16 md:w-20 md:h-20 object-cover scale-110" 
-            alt="Welcome chibi mascot"
-          />
         </div>
 
-        {/* Gamified Level Widget */}
-        <div className="z-10 bg-claude-card/70 backdrop-blur-xs border border-claude-border/80 p-4 rounded-2xl flex items-center gap-3.5 min-w-[230px] w-full sm:w-auto shadow-xs shrink-0">
-          <div className="w-11 h-11 rounded-xl bg-amber-400/15 border border-amber-400/30 flex items-center justify-center text-xl shadow-inner shrink-0 select-none">
-            🏆
+        {/* Level Widget */}
+        <div className="z-10 bg-zinc-50 dark:bg-zinc-900 border border-zinc-200/80 dark:border-zinc-700/80 p-4 rounded-2xl flex items-center gap-3.5 min-w-[240px] w-full sm:w-auto shadow-inner shrink-0">
+          <div className="w-12 h-12 rounded-xl bg-pink-500 text-white flex items-center justify-center text-xl font-black shadow shrink-0 select-none">
+            {level}
           </div>
           <div className="flex-1 space-y-1 min-w-0">
             <div className="flex justify-between items-baseline gap-2">
-              <span className="text-[9px] font-black text-amber-500 uppercase tracking-widest truncate">Level {level}</span>
-              <span className="text-[9px] font-bold text-claude-text-muted shrink-0">{xpInCurrentLevel}/{xpForNextLevel} XP</span>
+              <span className="text-[9px] font-black text-pink-500 uppercase tracking-widest truncate">Level Progress</span>
+              <span className="text-[9px] font-bold text-zinc-400 shrink-0">{xpInCurrentLevel}/{xpForNextLevel} XP</span>
             </div>
-            <div className="w-full h-2 bg-claude-sidebar rounded-full overflow-hidden border border-claude-border/40">
+            <div className="w-full h-2.5 bg-zinc-200 dark:bg-zinc-800 rounded-full overflow-hidden border border-zinc-300 dark:border-zinc-700">
               <div 
-                className="h-full bg-gradient-to-r from-amber-400 to-claude-coral rounded-full transition-all duration-500" 
+                className="h-full bg-pink-500 rounded-full transition-all duration-500 shadow-xs" 
                 style={{ width: `${progressPercent}%` }}
               />
             </div>
-            <span className="text-[8px] text-claude-text-muted/80 block select-none">
-              {xpForNextLevel - xpInCurrentLevel} XP to level up!
+            <span className="text-[8px] text-zinc-400 font-bold block select-none">
+              {xpForNextLevel - xpInCurrentLevel} XP to Level {level + 1}
             </span>
           </div>
-        </div>
-
-        <div className="flex flex-col sm:flex-row gap-2 z-10 w-full md:w-auto">
-          {!hasCards && isAdmin && (
-            <>
-              <button
-                onClick={onLoadDemo}
-                className="px-5 py-3 text-xs bg-claude-sidebar border border-claude-border hover:border-claude-coral text-claude-text-heading font-semibold rounded-2xl transition-all w-full sm:w-auto text-center cursor-pointer"
-              >
-                Load Demo Words 📚
-              </button>
-              <button
-                onClick={() => setActiveTab('vocab')}
-                className="px-5 py-3 text-xs bg-claude-coral text-white hover:bg-claude-coral/90 font-semibold rounded-2xl transition-all w-full sm:w-auto text-center cursor-pointer"
-              >
-                Import Custom JSON 📝
-              </button>
-            </>
-          )}
         </div>
 
         {/* Settings Gear Button inside Banner */}
         <button
           onClick={() => setShowSettings(true)}
-          className="absolute top-4 right-4 w-8 h-8 rounded-xl bg-claude-card hover:bg-claude-sidebar border border-claude-border flex items-center justify-center text-xs hover:text-claude-coral transition-colors cursor-pointer shadow-sm z-20"
-          title="App Database & Reset Settings"
+          className="absolute top-4 right-4 w-8 h-8 rounded-xl bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-900 dark:hover:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 flex items-center justify-center text-xs hover:text-pink-500 transition-colors cursor-pointer shadow-xs z-20"
+          title="Database Actions"
         >
           ⚙️
         </button>
       </div>
 
-      {/* Main Dashboard Layout */}
-      <div className="space-y-6">
+      {/* Grid: Lessons & Reviews panels */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         
-        {/* Stats Bar */}
-        <Stats stats={stats} vocabList={vocabList} reviewSessions={reviewSessions} />
-
-        {/* Simplified Study Call-to-action Card */}
-        {hasCards ? (
-          <div className="claude-panel border-claude-border p-5 md:p-8 rounded-3xl relative overflow-hidden flex flex-col sm:flex-row items-center justify-between gap-4 sm:gap-6 bg-gradient-to-br from-claude-coral/5 to-transparent shadow-xs">
-            <div className="space-y-1 text-center sm:text-left">
-              <div className="flex items-center justify-center sm:justify-start gap-2 mb-1">
-                <span className={`inline-flex items-center gap-1 text-[10px] font-black uppercase px-2 py-0.5 rounded-full ${
-                  dueCardsCount > 0 
-                    ? 'bg-red-500/10 text-red-500 border border-red-500/20' 
-                    : 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20'
-                }`}>
-                  {dueCardsCount > 0 ? `🔥 ${dueCardsCount} reviews due` : '🎉 caught up'}
-                </span>
-              </div>
-              <h2 className="text-xl font-bold text-claude-text-heading claude-serif">
-                {dueCardsCount > 0 ? 'SRS Cards are due for review!' : 'Ready for custom practice?'}
-              </h2>
-              <p className="text-xs text-claude-text-muted max-w-lg">
-                {dueCardsCount > 0 
-                  ? `You have ${dueCardsCount} vocabulary cards waiting to be reviewed. Complete them now to build memory pathways!`
-                  : "All caught up on SRS! Enter the Study Arena to review specific lessons, customize card counts, or try hard mode."
-                }
+        {/* Lessons Panel */}
+        {lessonsCount > 0 ? (
+          <div className="group relative bg-zinc-800 dark:bg-zinc-850 text-white rounded-3xl p-6 flex flex-col justify-between min-h-[160px] shadow hover:shadow-lg transition-all border border-zinc-700 overflow-hidden">
+            <BookMascot />
+            <div className="z-10">
+              <span className="text-5xl font-black block tracking-tight">{lessonsCount}</span>
+              <h2 className="text-lg font-black tracking-tight mt-1">Lessons</h2>
+              <p className="text-[10px] text-zinc-400 font-bold max-w-[200px] mt-0.5">
+                New vocabulary items waiting to be learned.
               </p>
             </div>
             <button
-              onClick={() => {
-                onResetConfig(); // Ensure session launcher is shown
-                setActiveTab('quiz');
-              }}
-              className="px-8 py-3.5 premium-btn-coral text-white font-extrabold rounded-2xl w-full sm:w-auto text-center cursor-pointer flex items-center justify-center gap-2 text-xs shadow-md transform hover:scale-[1.02] active:scale-[0.98] transition-all"
+              onClick={() => onStartSession(null, false, true)}
+              className="z-10 w-full sm:w-auto px-5 py-2.5 bg-zinc-700 hover:bg-zinc-650 text-white font-extrabold text-[11px] uppercase tracking-wider rounded-xl cursor-pointer border border-zinc-600 transition-colors text-center mt-4 self-start"
             >
-              Enter Study Arena ✒️
+              Start Lessons ✒️
             </button>
           </div>
         ) : (
-          <div className="claude-panel border-claude-border p-5 sm:p-8 rounded-3xl text-center space-y-4">
-            <p className="text-xs text-claude-text-muted">
-              {isAdmin 
-                ? "You don't have any vocabulary cards in your library yet! Load the JLPT demo set or import custom cards to start studying."
-                : "No vocabulary cards are available in the shared library yet. Please ask the administrator to upload cards."
-              }
-            </p>
-            {isAdmin && (
-              <div className="flex flex-col sm:flex-row justify-center gap-3">
-                <button
-                  onClick={onLoadDemo}
-                  className="px-5 py-3 text-xs bg-claude-sidebar border border-claude-border hover:border-claude-coral text-claude-text-heading font-semibold rounded-xl transition-all cursor-pointer"
-                >
-                  Load Demo Words 📚
-                </button>
-                <button
-                  onClick={() => setActiveTab('vocab')}
-                  className="px-5 py-3 text-xs bg-claude-coral text-white hover:bg-claude-coral/90 font-semibold rounded-xl transition-all cursor-pointer"
-                >
-                  Import Custom JSON 📝
-                </button>
-              </div>
-            )}
+          <div className="relative bg-zinc-100 dark:bg-zinc-900/40 text-zinc-400 dark:text-zinc-500 rounded-3xl p-6 flex flex-col justify-between min-h-[160px] border border-zinc-200 dark:border-zinc-800 overflow-hidden">
+            <BookMascot />
+            <div>
+              <span className="text-5xl font-black block tracking-tight text-zinc-300 dark:text-zinc-700">0</span>
+              <h2 className="text-lg font-black tracking-tight mt-1 text-zinc-400 dark:text-zinc-550">Lessons</h2>
+              <p className="text-[10px] font-bold max-w-[240px] mt-0.5 text-zinc-450 dark:text-zinc-500">
+                You are completely caught up! No new items to learn.
+              </p>
+            </div>
+            <button
+              disabled
+              className="w-full sm:w-auto px-5 py-2.5 bg-zinc-200 dark:bg-zinc-800/40 text-zinc-400 dark:text-zinc-600 font-extrabold text-[11px] uppercase tracking-wider rounded-xl border border-zinc-300 dark:border-zinc-800/80 text-center mt-4 self-start cursor-not-allowed opacity-60"
+            >
+              No Lessons
+            </button>
           </div>
         )}
 
-        {/* Clean Row of Encouragement & Info Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          
-          {/* Streak Widget Card */}
-          <div className="claude-panel border-claude-border rounded-3xl p-4 sm:p-6 relative overflow-hidden flex flex-col justify-between items-center text-center shadow-xs">
-            <div className="text-4xl mb-2 animate-pulse-subtle">🔥</div>
-            <div>
-              <span className="text-[10px] font-extrabold uppercase tracking-wider text-claude-coral">Daily Streak</span>
-              <span className="text-2xl font-extrabold text-claude-text-heading mt-1 block claude-serif">{stats.streak} Days</span>
-            </div>
-            <p className="text-[10px] text-claude-text-muted mt-2 leading-relaxed max-w-[200px]">
-              {stats.streak > 0 
-                ? "Keep up the awesome momentum! Practice tomorrow to preserve this streak."
-                : "Complete a correct review to kickstart your daily streak tracker!"
-              }
-            </p>
-          </div>
-
-          {/* Weekly Heatmap Tracker Widget [Anki/GitHub inspired] */}
-          <div className="claude-panel border-claude-border rounded-3xl p-4 sm:p-6 flex flex-col justify-between space-y-4 shadow-xs select-none">
-            <div className="flex items-center justify-between">
-              <span className="text-[9px] font-extrabold uppercase tracking-widest text-claude-coral block">
-                Activity Heatmap
-              </span>
-              <span className="text-[8px] font-bold text-claude-text-muted">
-                Last 7 Days reviews
-              </span>
-            </div>
-            
-            <div>
-              <h4 className="text-xs font-bold text-claude-text-heading mb-3">Weekly Consistency Tracker</h4>
-              <div className="grid grid-cols-7 gap-2">
-                {(() => {
-                  const dateNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-                  const days = [];
-                  for (let i = 6; i >= 0; i--) {
-                    const d = new Date();
-                    d.setDate(d.getDate() - i);
-                    const dateString = d.toISOString().split('T')[0];
-                    const dayName = dateNames[d.getDay()];
-                    const dayNum = d.getDate();
-                    const isStudied = studiedDates.includes(dateString);
-                    days.push({ dateString, dayName, dayNum, isStudied });
-                  }
-                  return days.map((day) => (
-                    <div 
-                      key={day.dateString}
-                      className="flex flex-col items-center gap-1.5"
-                      title={day.isStudied ? `Studied on ${day.dateString}` : `No reviews on ${day.dateString}`}
-                    >
-                      <span className="text-[8px] font-bold text-claude-text-muted">{day.dayName}</span>
-                      <div 
-                        className={`w-full aspect-square rounded-lg border flex items-center justify-center text-[10px] font-extrabold transition-all duration-300 ${
-                          day.isStudied
-                            ? 'bg-claude-coral/20 border-claude-coral text-claude-coral font-black shadow-xs scale-105'
-                            : 'bg-claude-card border-claude-border text-claude-text-muted/60 hover:border-claude-text-muted/50'
-                        }`}
-                      >
-                        {day.dayNum}
-                      </div>
-                    </div>
-                  ));
-                })()}
-              </div>
-            </div>
-            
-            <p className="text-[10px] text-claude-text-muted leading-relaxed text-center pt-1 border-t border-claude-border/30">
-              {stats.streak > 0 
-                ? `🔥 You studied! Keep the streak going!` 
-                : `📅 Complete a study session today to start your consistency map!`}
-            </p>
-          </div>
-
-          {/* Weakest Links / Tip Card */}
-          <div className="claude-panel border-claude-border rounded-3xl p-4 sm:p-6 flex flex-col justify-between space-y-3 shadow-xs">
-            <div className="flex items-center justify-between border-b border-claude-border/30 pb-2">
-              <div className="flex items-center gap-2 text-xs font-bold text-claude-text-heading">
-                <span>🧠</span>
-                <span className="claude-serif">Struggle Zone</span>
-              </div>
-              <span className="text-[8px] font-black text-claude-coral bg-claude-coral/10 px-1.5 py-0.5 rounded uppercase">
-                Weakest Links
-              </span>
-            </div>
-            
-            {(() => {
-              const strugglingCards = vocabList
-                ? [...vocabList]
-                    .filter(c => (c.wrongCount || 0) > 0)
-                    .sort((a, b) => (b.wrongCount || 0) - (a.wrongCount || 0))
-                    .slice(0, 3)
-                : [];
-
-              const weakestLesson = (() => {
-                if (!vocabList || vocabList.length === 0) return null;
-                const lessonStats = {};
-                vocabList.forEach(card => {
-                  const les = card.lesson || 'General';
-                  if (!lessonStats[les]) {
-                    lessonStats[les] = { wrong: 0, total: 0 };
-                  }
-                  lessonStats[les].wrong += card.wrongCount || 0;
-                  lessonStats[les].total += 1;
-                });
-                
-                let worst = null;
-                let maxWrong = 0;
-                Object.keys(lessonStats).forEach(les => {
-                  const stat = lessonStats[les];
-                  if (stat.wrong > maxWrong) {
-                    maxWrong = stat.wrong;
-                    worst = { lesson: les, wrong: stat.wrong, count: stat.total };
-                  }
-                });
-                return worst;
-              })();
-
-              if (strugglingCards.length > 0) {
-                return (
-                  <div className="space-y-3 flex-1 text-left">
-                    <div className="text-[9px] uppercase font-bold text-claude-text-muted">
-                      Hardest Words:
-                    </div>
-                    <div className="space-y-2">
-                      {strugglingCards.map(c => (
-                        <div key={c.id} className="flex justify-between items-center bg-claude-sidebar/30 p-2 rounded-xl border border-claude-border/40 text-xs">
-                          <div>
-                            <span className="font-extrabold text-claude-text-heading japanese-serif">{c.kanji || c.hiragana}</span>
-                            <span className="text-[10px] text-claude-text-muted ml-2">({c.english})</span>
-                          </div>
-                          <span className="text-[9px] text-red-500 font-extrabold bg-red-500/10 px-2 py-0.5 rounded-full">
-                            {c.wrongCount} errors
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                    {weakestLesson && weakestLesson.wrong > 0 && (
-                      <div className="pt-2 border-t border-claude-border/30 flex justify-between items-center text-[10px]">
-                        <span className="text-claude-text-muted">Weakest Category:</span>
-                        <span className="font-bold text-claude-text-heading">📁 {weakestLesson.lesson}</span>
-                      </div>
-                    )}
-                  </div>
-                );
-              } else {
-                return (
-                  <div className="flex-grow flex flex-col justify-center items-center py-4 text-center">
-                    <p className="text-xs text-claude-text-muted italic leading-relaxed">
-                      "{randomTip}"
-                    </p>
-                    <div className="text-[9px] text-claude-text-muted/60 font-bold uppercase tracking-wider mt-3">
-                      Tip: Daily retrieval is key
-                    </div>
-                  </div>
-                );
-              }
-            })()}
-          </div>
-        </div>
-
-        {/* Recent Study Sessions Logs Panel */}
-        <div className="claude-panel border-claude-border rounded-3xl p-4 sm:p-8 space-y-4 shadow-xs">
-          <div className="flex justify-between items-center select-none">
-            <div>
-              <span className="text-[10px] font-extrabold uppercase tracking-wider text-claude-coral">Performance History</span>
-              <h3 className="text-lg font-bold text-claude-text-heading claude-serif mt-0.5">Recent Study Sessions</h3>
-            </div>
-            {sessionHistory.length > 0 && (
-              <button
-                onClick={handleClearHistory}
-                className="text-[10px] font-bold text-claude-text-muted hover:text-red-500 bg-claude-sidebar border border-claude-border hover:border-red-900/30 px-3 py-1.5 rounded-xl transition-all cursor-pointer"
-              >
-                Clear Logs 🗑️
-              </button>
-            )}
-          </div>
-
-          {sessionHistory.length > 0 ? (
-            <div className="space-y-3 max-h-[300px] overflow-y-auto pr-1">
-              {sessionHistory.map((session) => {
-                const date = new Date(session.timestamp);
-                const timeString = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                const dateString = date.toLocaleDateString([], { month: 'short', day: 'numeric' });
-                
-                // Humorous Gen Z style comment based on performance
-                let genzComment = "bestie did the work 💅";
-                if (session.timeouts === 0) {
-                  if (session.avgSpeed < 2.5) {
-                    genzComment = "bro speedran that, cracked! ⚡🔥";
-                  } else {
-                    genzComment = "flawless clean run, zero notes 💅";
-                  }
-                } else if (session.timeouts > 3) {
-                  genzComment = "bestie fell asleep, wake up! ⏰🦖";
-                } else if (session.timeouts > 0) {
-                  genzComment = "almost perfect, but wifi or brain lag occurred 🔌";
-                }
-
-                return (
-                  <div
-                    key={session.id}
-                    className="p-3 sm:p-4 bg-claude-sidebar/20 border border-claude-border/60 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-3 hover:border-claude-border transition-colors group"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-xl bg-claude-coral/10 border border-claude-coral/25 flex items-center justify-center text-sm">
-                        ⏱️
-                      </div>
-                      <div>
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <span className="text-xs font-bold text-claude-text-heading">
-                            Reviewed {session.totalCards} Words
-                          </span>
-                          <span className={`text-[8px] font-extrabold uppercase px-1.5 py-0.5 rounded border ${
-                            session.difficulty === 'hard'
-                              ? 'bg-red-500/10 border-red-500/20 text-red-500'
-                              : 'bg-emerald-500/10 border-emerald-500/20 text-emerald-500'
-                          }`}>
-                            {session.difficulty === 'hard' ? 'Hard' : 'Easy'}
-                          </span>
-                        </div>
-                        <span className="text-[9px] text-claude-text-muted block mt-0.5">
-                          {dateString} at {timeString} • {genzComment}
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-6 text-right justify-between sm:justify-end border-t sm:border-t-0 border-claude-border/20 pt-2 sm:pt-0">
-                      <div>
-                        <span className="text-[8px] uppercase font-bold text-claude-text-muted block">Duration</span>
-                        <span className="text-xs font-extrabold text-claude-text-heading">{session.duration}s</span>
-                      </div>
-                      <div>
-                        <span className="text-[8px] uppercase font-bold text-claude-text-muted block">Avg Speed</span>
-                        <span className="text-xs font-extrabold text-claude-text-heading">{session.avgSpeed}s</span>
-                      </div>
-                      <div>
-                        <span className="text-[8px] uppercase font-bold text-claude-text-muted block">Timeouts</span>
-                        <span className={`text-xs font-extrabold ${session.timeouts > 0 ? 'text-red-500' : 'text-claude-text-heading'}`}>
-                          {session.timeouts}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          ) : (
-            <div className="p-8 text-center text-claude-text-muted border border-dashed border-claude-border/80 rounded-2xl select-none space-y-2">
-              <span className="text-2xl block animate-bounce-subtle">📊</span>
-              <p className="text-xs font-bold text-claude-text-heading">No Study Logs Yet</p>
-              <p className="text-[10px] text-claude-text-muted leading-relaxed max-w-xs mx-auto">
-                Finish your first vocabulary review session in the Study Arena to track your duration, average speed, and timeout stats.
+        {/* Reviews Panel */}
+        {dueReviewsCount > 0 ? (
+          <div className="group relative bg-pink-500 text-white rounded-3xl p-6 flex flex-col justify-between min-h-[160px] shadow hover:shadow-lg transition-all border border-pink-400/20 overflow-hidden">
+            <GateMascot />
+            <div className="z-10">
+              <span className="text-5xl font-black block tracking-tight">{dueReviewsCount}</span>
+              <h2 className="text-lg font-black tracking-tight mt-1">Reviews</h2>
+              <p className="text-[10px] text-pink-100 font-bold max-w-[200px] mt-0.5">
+                SRS learning cards due for memory retrieval.
               </p>
             </div>
+            <button
+              onClick={() => onStartSession(null, true, false)}
+              className="z-10 w-full sm:w-auto px-5 py-2.5 bg-pink-600 hover:bg-pink-700 text-white font-extrabold text-[11px] uppercase tracking-wider rounded-xl cursor-pointer border border-pink-400/50 transition-colors text-center mt-4 self-start shadow"
+            >
+              Start Reviews ⏱️
+            </button>
+          </div>
+        ) : (
+          <div className="relative bg-zinc-100 dark:bg-zinc-900/40 text-zinc-400 dark:text-zinc-500 rounded-3xl p-6 flex flex-col justify-between min-h-[160px] border border-zinc-200 dark:border-zinc-800 overflow-hidden">
+            <GateMascot />
+            <div>
+              <span className="text-5xl font-black block tracking-tight text-zinc-300 dark:text-zinc-700">0</span>
+              <h2 className="text-lg font-black tracking-tight mt-1 text-zinc-400 dark:text-zinc-550">Reviews</h2>
+              <p className="text-[10px] font-bold max-w-[240px] mt-0.5 text-zinc-450 dark:text-zinc-500">
+                Nice job! You have cleared all reviews currently due.
+              </p>
+            </div>
+            <button
+              disabled
+              className="w-full sm:w-auto px-5 py-2.5 bg-zinc-200 dark:bg-zinc-800/40 text-zinc-400 dark:text-zinc-600 font-extrabold text-[11px] uppercase tracking-wider rounded-xl border border-zinc-300 dark:border-zinc-800/80 text-center mt-4 self-start cursor-not-allowed opacity-60"
+            >
+              All Caught Up 🎉
+            </button>
+          </div>
+        )}
+
+      </div>
+
+      {/* Grid: Streak Consistency & Reviews Completed Today */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        
+        {/* Weekly Consistency Streaks with Turtle icons */}
+        <div className="bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 p-5 rounded-3xl shadow-xs space-y-4 md:col-span-2">
+          <div className="flex justify-between items-center border-b border-zinc-100 dark:border-zinc-700/50 pb-2">
+            <span className="text-[9px] font-extrabold uppercase tracking-widest text-pink-500 block">
+              Consistency Streak
+            </span>
+            <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest">
+              🐢 weekly consistency
+            </span>
+          </div>
+
+          <div className="grid grid-cols-7 gap-2">
+            {(() => {
+              const dateNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+              const days = [];
+              for (let i = 6; i >= 0; i--) {
+                const d = new Date();
+                d.setDate(d.getDate() - i);
+                const dateString = d.toISOString().split('T')[0];
+                const dayName = dateNames[d.getDay()];
+                const dayNum = d.getDate();
+                const isStudied = studiedDates.includes(dateString);
+                days.push({ dateString, dayName, dayNum, isStudied });
+              }
+              return days.map((day) => (
+                <div 
+                  key={day.dateString}
+                  className="flex flex-col items-center gap-1.5"
+                  title={day.isStudied ? `Studied on ${day.dateString}` : `No reviews on ${day.dateString}`}
+                >
+                  <span className="text-[8px] font-extrabold text-zinc-400 uppercase">{day.dayName}</span>
+                  <div 
+                    className={`w-full aspect-square rounded-xl border flex flex-col items-center justify-center transition-all duration-300 relative ${
+                      day.isStudied
+                        ? 'bg-emerald-50 dark:bg-emerald-950/20 border-emerald-500 text-emerald-600 dark:text-emerald-400 font-black shadow-xs scale-105'
+                        : 'bg-zinc-50 dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 text-zinc-400 dark:text-zinc-650'
+                    }`}
+                  >
+                    <span className="text-xs font-bold leading-none">{day.dayNum}</span>
+                    {day.isStudied && (
+                      <span className="text-[9px] absolute -bottom-1 -right-1" title="Studied! 🐢">
+                        🐢
+                      </span>
+                    )}
+                  </div>
+                </div>
+              ));
+            })()}
+          </div>
+          <p className="text-[10px] text-zinc-400 font-bold text-center">
+            {stats.streak > 0 
+              ? `🔥 Current Streak: ${stats.streak} Days! Keep it up!` 
+              : `📅 Study today to start your weekly consistency map!`}
+          </p>
+        </div>
+
+        {/* Reviews Completed Today */}
+        <div className="bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 p-5 rounded-3xl shadow-xs flex flex-col justify-between min-h-[140px]">
+          <div className="flex justify-between items-center border-b border-zinc-100 dark:border-zinc-700/50 pb-2">
+            <span className="text-[9px] font-extrabold uppercase tracking-widest text-pink-500 block">
+              Today's Volume
+            </span>
+            <span className="text-[8px] font-black text-zinc-400 uppercase">accuracy: {stats.totalAttempts > 0 ? Math.round((stats.totalCorrect / stats.totalAttempts) * 100) : 0}%</span>
+          </div>
+
+          <div className="py-2 text-center">
+            <span className="text-4xl font-black text-zinc-850 dark:text-zinc-100 block">{reviewsToday}</span>
+            <span className="text-[10px] font-black text-zinc-400 uppercase tracking-wide block mt-1">
+              Reviews completed today
+            </span>
+          </div>
+
+          <p className="text-[9px] text-zinc-500 leading-relaxed text-center pt-2 border-t border-zinc-100 dark:border-zinc-700/50">
+            Every correct session builds stable recall paths!
+          </p>
+        </div>
+
+      </div>
+
+      {/* Row: Level Progress & Active Item Spread */}
+      <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
+
+        {/* Level Progress Bars (Radicals/Kanji/Vocabulary) (5 columns) */}
+        <div className="md:col-span-5 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 p-5 sm:p-6 rounded-3xl shadow-xs flex flex-col justify-between space-y-5">
+          <div>
+            <span className="text-[9px] font-extrabold uppercase tracking-widest text-pink-500 block">
+              Current Level Progress
+            </span>
+            <h3 className="text-sm font-black text-zinc-800 dark:text-zinc-100 mt-0.5">
+              Guru Completion Rate
+            </h3>
+          </div>
+
+          <div className="space-y-3.5">
+            {/* Radicals (Blue) */}
+            <div className="space-y-1">
+              <div className="flex justify-between text-[10px] font-bold">
+                <span className="text-sky-500 uppercase tracking-wider">🔷 Radicals</span>
+                <span className="text-zinc-400">12 / 12 (100%)</span>
+              </div>
+              <div className="w-full h-3 bg-zinc-100 dark:bg-zinc-900 rounded-full overflow-hidden border border-zinc-200 dark:border-zinc-700 shadow-inner">
+                <div className="bg-[#00a1f1] h-full rounded-full transition-all" style={{ width: '100%' }} />
+              </div>
+            </div>
+
+            {/* Kanji (Pink) */}
+            <div className="space-y-1">
+              <div className="flex justify-between text-[10px] font-bold">
+                <span className="text-pink-500 uppercase tracking-wider">🌸 Kanji</span>
+                <span className="text-zinc-400">{guruKanji} / {kanjiTarget} ({kanjiProgress}%)</span>
+              </div>
+              <div className="w-full h-3 bg-zinc-100 dark:bg-zinc-900 rounded-full overflow-hidden border border-zinc-200 dark:border-zinc-700 shadow-inner">
+                <div className="bg-[#f03e93] h-full rounded-full transition-all" style={{ width: `${kanjiProgress}%` }} />
+              </div>
+            </div>
+
+            {/* Vocabulary (Purple) */}
+            <div className="space-y-1">
+              <div className="flex justify-between text-[10px] font-bold">
+                <span className="text-purple-500 uppercase tracking-wider">🍆 Vocabulary</span>
+                <span className="text-zinc-400">{guruVocab} / {vocabTarget} ({vocabProgress}%)</span>
+              </div>
+              <div className="w-full h-3 bg-zinc-100 dark:bg-zinc-900 rounded-full overflow-hidden border border-zinc-200 dark:border-zinc-700 shadow-inner">
+                <div className="bg-[#a100f1] h-full rounded-full transition-all" style={{ width: `${vocabProgress}%` }} />
+              </div>
+            </div>
+          </div>
+
+          <p className="text-[8px] text-zinc-400 font-bold border-t border-zinc-100 dark:border-zinc-700/50 pt-3 text-center">
+            Promote Kanji and Vocabulary to Guru stage to advance level!
+          </p>
+        </div>
+
+        {/* Active SRS Spread Stage Chart (7 columns) */}
+        <div className="md:col-span-7 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 p-5 sm:p-6 rounded-3xl shadow-xs flex flex-col justify-between space-y-5">
+          <div>
+            <span className="text-[9px] font-extrabold uppercase tracking-widest text-pink-500 block">
+              SRS Stage Spread
+            </span>
+            <h3 className="text-sm font-black text-zinc-800 dark:text-zinc-100 mt-0.5">
+              Active Item Distribution
+            </h3>
+          </div>
+
+          {/* Spread Bar Widget */}
+          <div className="grid grid-cols-5 gap-2 select-none text-center">
+            {/* Apprentice */}
+            <div className="bg-pink-50 dark:bg-pink-950/15 border border-pink-200 dark:border-pink-900/50 p-2.5 rounded-2xl flex flex-col justify-between hover:scale-[1.01] transition-transform">
+              <span className="text-lg font-black text-[#f03e93] block">{srsSpread.apprentice}</span>
+              <span className="text-[8px] font-black uppercase text-zinc-400 tracking-wide mt-1 block">Apprentice</span>
+              <div className="w-full h-1 bg-[#f03e93] rounded-full mt-2" />
+            </div>
+
+            {/* Guru */}
+            <div className="bg-purple-50 dark:bg-purple-950/15 border border-purple-200 dark:border-purple-900/50 p-2.5 rounded-2xl flex flex-col justify-between hover:scale-[1.01] transition-transform">
+              <span className="text-lg font-black text-[#9834e2] block">{srsSpread.guru}</span>
+              <span className="text-[8px] font-black uppercase text-zinc-400 tracking-wide mt-1 block">Guru</span>
+              <div className="w-full h-1 bg-[#9834e2] rounded-full mt-2" />
+            </div>
+
+            {/* Master */}
+            <div className="bg-blue-50 dark:bg-blue-950/15 border border-blue-200 dark:border-blue-900/50 p-2.5 rounded-2xl flex flex-col justify-between hover:scale-[1.01] transition-transform">
+              <span className="text-lg font-black text-[#294a6b] dark:text-sky-300 block">{srsSpread.master}</span>
+              <span className="text-[8px] font-black uppercase text-zinc-400 tracking-wide mt-1 block">Master</span>
+              <div className="w-full h-1 bg-[#294a6b] dark:bg-sky-400 rounded-full mt-2" />
+            </div>
+
+            {/* Enlightened */}
+            <div className="bg-sky-50 dark:bg-sky-950/15 border border-sky-200 dark:border-sky-900/50 p-2.5 rounded-2xl flex flex-col justify-between hover:scale-[1.01] transition-transform">
+              <span className="text-lg font-black text-[#0093dd] block">{srsSpread.enlightened}</span>
+              <span className="text-[8px] font-black uppercase text-zinc-400 tracking-wide mt-1 block">Enlightened</span>
+              <div className="w-full h-1 bg-[#0093dd] rounded-full mt-2" />
+            </div>
+
+            {/* Burned */}
+            <div className="bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-2.5 rounded-2xl flex flex-col justify-between hover:scale-[1.01] transition-transform">
+              <span className="text-lg font-black text-[#434343] dark:text-zinc-300 block">{srsSpread.burned}</span>
+              <span className="text-[8px] font-black uppercase text-zinc-400 tracking-wide mt-1 block">Burned</span>
+              <div className="w-full h-1 bg-[#434343] dark:bg-zinc-500 rounded-full mt-2" />
+            </div>
+          </div>
+
+          <p className="text-[8px] text-zinc-400 font-bold border-t border-zinc-100 dark:border-zinc-700/50 pt-3 text-center italic">
+            Locked / unstudied library items: <span className="text-zinc-650 dark:text-zinc-300 font-black">{srsSpread.locked} items</span>
+          </p>
+        </div>
+
+      </div>
+
+      {/* Recent Study Sessions Logs Panel */}
+      <div className="bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-3xl p-5 sm:p-8 space-y-4 shadow-xs">
+        <div className="flex justify-between items-center border-b border-zinc-100 dark:border-zinc-700/50 pb-2.5">
+          <div>
+            <span className="text-[9px] font-extrabold uppercase tracking-widest text-pink-500">Performance History</span>
+            <h3 className="text-lg font-black text-zinc-800 dark:text-zinc-100 mt-0.5">Recent Study Sessions</h3>
+          </div>
+          {sessionHistory.length > 0 && (
+            <button
+              onClick={handleClearHistory}
+              className="text-[9px] font-extrabold text-zinc-400 hover:text-red-500 bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 px-3.5 py-1.5 rounded-xl transition-all cursor-pointer"
+            >
+              Clear Logs 🗑️
+            </button>
           )}
         </div>
+
+        {sessionHistory.length > 0 ? (
+          <div className="space-y-3 max-h-[300px] overflow-y-auto pr-1">
+            {sessionHistory.map((session) => {
+              const date = new Date(session.timestamp);
+              const timeString = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+              const dateString = date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+              
+              let commentText = "Study completed! 💅";
+              if (session.timeouts === 0) {
+                if (session.avgSpeed < 2.5) commentText = "Insanely fast session! Cracked! ⚡🔥";
+                else commentText = "Clean run, zero timeouts 🌸";
+              } else if (session.timeouts > 3) {
+                commentText = "A few timeouts occurred, stay focused! 🦖";
+              }
+
+              return (
+                <div
+                  key={session.id}
+                  className="p-4 bg-zinc-50 dark:bg-zinc-900/60 border border-zinc-100 dark:border-zinc-800/80 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:border-zinc-200 transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-xl bg-pink-50 dark:bg-pink-950/20 border border-pink-200 dark:border-pink-900/40 flex items-center justify-center text-sm shadow-xs shrink-0">
+                      ⏱️
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-xs font-black text-zinc-800 dark:text-zinc-100">
+                          Reviewed {session.totalCards} Words
+                        </span>
+                        <span className={`text-[8px] font-black uppercase px-2 py-0.5 rounded border ${
+                          session.difficulty === 'hard'
+                            ? 'bg-red-500/10 border-red-500/20 text-red-500'
+                            : 'bg-emerald-500/10 border-emerald-500/20 text-emerald-500'
+                        }`}>
+                          {session.difficulty === 'hard' ? 'Hard' : 'Easy'}
+                        </span>
+                      </div>
+                      <span className="text-[9px] text-zinc-400 font-bold block mt-0.5">
+                        {dateString} at {timeString} • {commentText}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-6 text-right justify-between sm:justify-end border-t sm:border-t-0 border-zinc-200 dark:border-zinc-700/30 pt-2 sm:pt-0">
+                    <div>
+                      <span className="text-[8px] uppercase font-black text-zinc-400 block">Duration</span>
+                      <span className="text-xs font-black text-zinc-750 dark:text-zinc-250">{session.duration}s</span>
+                    </div>
+                    <div>
+                      <span className="text-[8px] uppercase font-black text-zinc-400 block">Avg Speed</span>
+                      <span className="text-xs font-black text-zinc-750 dark:text-zinc-250">{session.avgSpeed}s</span>
+                    </div>
+                    <div>
+                      <span className="text-[8px] uppercase font-black text-zinc-400 block">Timeouts</span>
+                      <span className={`text-xs font-black ${session.timeouts > 0 ? 'text-red-500' : 'text-zinc-750 dark:text-zinc-250'}`}>
+                        {session.timeouts}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="p-8 text-center text-zinc-400 border border-dashed border-zinc-200 dark:border-zinc-700 rounded-2xl select-none space-y-2">
+            <span className="text-2xl block">📊</span>
+            <p className="text-xs font-black text-zinc-800 dark:text-zinc-200">No Study Logs Yet</p>
+            <p className="text-[10px] text-zinc-500 leading-relaxed max-w-xs mx-auto">
+              Finish your first vocabulary review session in the Study Arena to track your duration, average speed, and timeout stats.
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Dashboard Settings Modal */}
       {showSettings && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-xs z-[100] flex items-center justify-center p-4 animate-fade-in">
           <div className="absolute inset-0" onClick={() => setShowSettings(false)} />
-          <div className="claude-panel w-full max-w-sm rounded-2xl p-6 relative z-10 flex flex-col gap-4 animate-fade-in shadow-2xl">
-            <div className="flex justify-between items-center border-b border-claude-border pb-2.5">
-              <h3 className="font-extrabold text-xs uppercase tracking-wider text-claude-text-heading claude-serif">
-                Database Management Settings
+          <div className="bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 w-full max-w-sm rounded-3xl p-6 relative z-10 flex flex-col gap-4 animate-fade-in shadow-2xl">
+            <div className="flex justify-between items-center border-b border-zinc-150 dark:border-zinc-700 pb-2.5">
+              <h3 className="font-black text-xs uppercase tracking-wider text-zinc-800 dark:text-zinc-100">
+                Database Settings
               </h3>
               <button 
                 onClick={() => setShowSettings(false)}
-                className="text-claude-text-muted hover:text-claude-text-heading text-xs font-bold p-1 cursor-pointer"
+                className="text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 text-xs font-bold p-1 cursor-pointer"
               >
                 ✕
               </button>
             </div>
 
             <div className="space-y-4">
-              <p className="text-[9px] text-claude-text-muted leading-relaxed uppercase tracking-wider font-extrabold">
+              <p className="text-[9px] text-zinc-400 leading-relaxed uppercase tracking-wider font-black">
                 Vocabulary Database Actions
               </p>
               
@@ -539,11 +609,11 @@ export default function Dashboard({
                         onLoadDemo();
                         setShowSettings(false);
                       }}
-                      className="w-full text-left px-4 py-3 bg-claude-card hover:bg-claude-sidebar rounded-xl border border-claude-border transition-colors flex items-center justify-between cursor-pointer group"
+                      className="w-full text-left px-4 py-3 bg-zinc-50 dark:bg-zinc-900/50 hover:bg-zinc-100 rounded-xl border border-zinc-200 dark:border-zinc-700 transition-colors flex items-center justify-between cursor-pointer group"
                     >
                       <div>
-                        <span className="text-xs font-bold text-claude-text-heading block">Load Demo Vocabulary</span>
-                        <span className="text-[9px] text-claude-text-muted block mt-0.5">Populate database with 20 JLPT cards</span>
+                        <span className="text-xs font-black text-zinc-750 dark:text-zinc-200 block">Load Demo Vocabulary</span>
+                        <span className="text-[9px] text-zinc-400 block mt-0.5">Populate database with 20 JLPT cards</span>
                       </div>
                       <span className="text-sm group-hover:translate-x-0.5 transition-transform">📚</span>
                     </button>
@@ -553,10 +623,10 @@ export default function Dashboard({
                         onClearAll();
                         setShowSettings(false);
                       }}
-                      className="w-full text-left px-4 py-3 bg-red-950/10 hover:bg-red-950/20 rounded-xl border border-red-900/10 transition-colors flex items-center justify-between cursor-pointer group"
+                      className="w-full text-left px-4 py-3 bg-red-500/5 hover:bg-red-500/10 rounded-xl border border-red-500/20 transition-colors flex items-center justify-between cursor-pointer group"
                     >
                       <div>
-                        <span className="text-xs font-bold text-red-500 block">Reset All Lists & Stats</span>
+                        <span className="text-xs font-black text-red-500 block">Reset All Lists & Stats</span>
                         <span className="text-[9px] text-red-400 block mt-0.5">Deletes all vocabulary and statistics permanently</span>
                       </div>
                       <span className="text-sm group-hover:scale-110 transition-transform">⚠️</span>
@@ -570,10 +640,10 @@ export default function Dashboard({
                     onClearStats();
                     setShowSettings(false);
                   }}
-                  className="w-full text-left px-4 py-3 bg-amber-500/10 hover:bg-amber-500/20 rounded-xl border border-amber-500/10 transition-colors flex items-center justify-between cursor-pointer group"
+                  className="w-full text-left px-4 py-3 bg-amber-500/5 hover:bg-amber-500/10 rounded-xl border border-amber-500/20 transition-colors flex items-center justify-between cursor-pointer group"
                 >
                   <div>
-                    <span className="text-xs font-bold text-amber-600 dark:text-amber-500 block">Reset My Study Progress & Heatmap</span>
+                    <span className="text-xs font-black text-amber-600 dark:text-amber-500 block">Reset My Study Progress & Heatmap</span>
                     <span className="text-[9px] text-amber-500/80 block mt-0.5">Resets your personal score stats and learning dates to zero</span>
                   </div>
                   <span className="text-sm group-hover:scale-110 transition-transform">🔄</span>
@@ -584,10 +654,10 @@ export default function Dashboard({
                     handleClearHistory();
                     setShowSettings(false);
                   }}
-                  className="w-full text-left px-4 py-3 bg-red-950/5 hover:bg-red-950/10 rounded-xl border border-red-900/5 transition-colors flex items-center justify-between cursor-pointer group"
+                  className="w-full text-left px-4 py-3 bg-red-500/5 hover:bg-red-500/10 rounded-xl border border-red-500/20 transition-colors flex items-center justify-between cursor-pointer group"
                 >
                   <div>
-                    <span className="text-xs font-bold text-red-400 block">Clear Study Logs</span>
+                    <span className="text-xs font-black text-red-400 block">Clear Study Logs</span>
                     <span className="text-[9px] text-red-400/80 block mt-0.5">Deletes all previous study performance history records</span>
                   </div>
                   <span className="text-sm group-hover:scale-110 transition-transform">🗑️</span>
@@ -595,8 +665,8 @@ export default function Dashboard({
 
                 {isAdmin && (
                   <>
-                    <p className="text-[9px] text-claude-text-muted leading-relaxed uppercase tracking-wider font-extrabold mt-3 border-t border-claude-border/30 pt-3">
-                      Gen Z Error Page Previews 💀
+                    <p className="text-[9px] text-zinc-400 leading-relaxed uppercase tracking-wider font-black mt-3 border-t border-zinc-150 dark:border-zinc-700 pt-3">
+                      Error Page Previews 💀
                     </p>
                     
                     <div className="grid grid-cols-3 gap-2">
@@ -605,7 +675,7 @@ export default function Dashboard({
                           onTriggerPreview('404');
                           setShowSettings(false);
                         }}
-                        className="py-2 bg-claude-sidebar border border-claude-border rounded-xl text-[9px] font-bold hover:border-claude-coral transition-colors cursor-pointer text-center text-claude-text-heading"
+                        className="py-2 bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-xl text-[9px] font-black hover:border-pink-500 transition-colors cursor-pointer text-center text-zinc-700 dark:text-zinc-350"
                       >
                         🪦 404
                       </button>
@@ -614,7 +684,7 @@ export default function Dashboard({
                           onTriggerPreview('offline');
                           setShowSettings(false);
                         }}
-                        className="py-2 bg-claude-sidebar border border-claude-border rounded-xl text-[9px] font-bold hover:border-claude-coral transition-colors cursor-pointer text-center text-claude-text-heading"
+                        className="py-2 bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-xl text-[9px] font-black hover:border-pink-500 transition-colors cursor-pointer text-center text-zinc-700 dark:text-zinc-350"
                       >
                         🦖 Offline
                       </button>
@@ -623,7 +693,7 @@ export default function Dashboard({
                           onTriggerPreview('database');
                           setShowSettings(false);
                         }}
-                        className="py-2 bg-claude-sidebar border border-claude-border rounded-xl text-[9px] font-bold hover:border-claude-coral transition-colors cursor-pointer text-center text-claude-text-heading"
+                        className="py-2 bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-xl text-[9px] font-black hover:border-pink-500 transition-colors cursor-pointer text-center text-zinc-700 dark:text-zinc-350"
                       >
                         👻 DB Error
                       </button>
@@ -633,10 +703,10 @@ export default function Dashboard({
               </div>
             </div>
 
-            <div className="pt-2 border-t border-claude-border">
+            <div className="pt-2 border-t border-zinc-150 dark:border-zinc-700">
               <button
                 onClick={() => setShowSettings(false)}
-                className="w-full px-4 py-2 bg-claude-sidebar border border-claude-border hover:bg-claude-card rounded-xl text-[10px] font-bold text-claude-text-heading transition-colors cursor-pointer text-center"
+                className="w-full px-4 py-2 bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-100 rounded-xl text-[10px] font-black text-zinc-800 dark:text-zinc-200 transition-colors cursor-pointer text-center"
               >
                 Close Settings
               </button>

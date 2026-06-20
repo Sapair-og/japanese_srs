@@ -3,6 +3,14 @@ import React, { useState, useEffect } from 'react';
 import { kanjiList } from '../utils/kanjiData';
 import Footer from './Footer';
 
+// Import hand-drawn mascot assets
+import lessonsMascotImg from '../assets/lessons_mascot.png';
+import reviewsMascotImg from '../assets/reviews_mascot.png';
+import forecastMascotImg from '../assets/forecast_mascot.png';
+import sleepingMascotImg from '../assets/sleeping_mascot.png';
+import communityMascotImg from '../assets/community_mascot.png';
+import spaceshipMascotImg from '../assets/spaceship_mascot.png';
+
 const calculateLevelInfo = (totalCorrect) => {
   const xp = (totalCorrect || 0) * 10;
   let level = 1;
@@ -27,122 +35,29 @@ const calculateLevelInfo = (totalCorrect) => {
   };
 };
 
-// Mascot SVGs - Premium theme-responsive inline graphics representing WaniKani handdrawn illustrations
+// Mascot Image wrappers
 const LessonsMascot = () => (
-  <svg viewBox="0 0 100 100" className="w-16 h-16 text-claude-coral fill-current shrink-0 select-none">
-    <circle cx="50" cy="50" r="45" className="text-sky-500/10 fill-current" />
-    {/* Girl head with black hair */}
-    <path d="M50 20 C38 20 32 28 32 38 C32 44 34 50 38 53 L38 58 H62 L62 53 C66 50 68 44 68 38 C68 28 62 20 50 20 Z" fill="#1e293b" />
-    <path d="M38 38 C38 38 41 44 50 44 C59 44 62 38 62 38 C62 44 59 49 50 49 C41 49 38 44 38 38 Z" fill="#fed7aa" />
-    <circle cx="46" cy="35" r="1.5" fill="#000" />
-    <circle cx="54" cy="35" r="1.5" fill="#000" />
-    {/* Kimono */}
-    <path d="M32 58 L18 82 H82 L68 58 Z" fill="#f43f5e" />
-    <path d="M50 58 L50 82" stroke="#ffffff" strokeWidth="1.5" />
-    {/* Little green turtle in hands */}
-    <circle cx="50" cy="72" r="8" fill="#22c55e" stroke="#15803d" strokeWidth="1" />
-    <path d="M46 72 H54 M50 68 V76" stroke="#166534" strokeWidth="1" />
-    {/* Sparkles */}
-    <path d="M22 28 L25 31 M25 28 L22 31 M75 28 L78 31 M78 28 L75 31" stroke="#eab308" strokeWidth="1.5" />
-  </svg>
+  <img src={lessonsMascotImg} alt="Lessons Mascot" className="w-16 h-16 object-contain shrink-0 select-none pointer-events-none rounded-xl" />
 );
 
 const ReviewsMascot = () => (
-  <svg viewBox="0 0 100 100" className="w-16 h-16 text-claude-coral fill-current shrink-0 select-none">
-    <circle cx="50" cy="50" r="45" className="text-claude-coral/10 fill-current" />
-    {/* Ring of children holding hands */}
-    <circle cx="34" cy="50" r="8" fill="#3b82f6" />
-    <circle cx="66" cy="50" r="8" fill="#10b981" />
-    <circle cx="50" cy="32" r="8" fill="#f59e0b" />
-    <circle cx="50" cy="68" r="8" fill="#ec4899" />
-    {/* Arms holding hands */}
-    <path d="M34 50 Q50 32 50 32 Q50 68 34 50 Q50 68 50 68 Q66 50 50 68 Q66 50 50 32" stroke="currentColor" strokeWidth="2.5" fill="none" opacity="0.6" />
-    {/* Center monster face */}
-    <circle cx="50" cy="50" r="10" fill="#22c55e" />
-    <circle cx="47" cy="48" r="1.2" fill="#000" />
-    <circle cx="53" cy="48" r="1.2" fill="#000" />
-    <path d="M48 53 Q50 55 52 53" stroke="#000" strokeWidth="1" fill="none" />
-  </svg>
+  <img src={reviewsMascotImg} alt="Reviews Mascot" className="w-16 h-16 object-contain shrink-0 select-none pointer-events-none rounded-xl" />
 );
 
 const ForecastMascot = () => (
-  <svg viewBox="0 0 100 100" className="w-16 h-16 text-claude-text-heading fill-current shrink-0 select-none">
-    <circle cx="50" cy="50" r="45" className="text-emerald-500/10 fill-current" />
-    {/* Computer monitor */}
-    <rect x="25" y="25" width="50" height="36" rx="4" fill="#475569" />
-    <rect x="29" y="29" width="42" height="28" fill="#1e293b" />
-    {/* Stand */}
-    <path d="M45 61 L40 75 H60 L55 61 Z" fill="#334155" />
-    {/* Grid / Chart lines inside screen */}
-    <path d="M34 50 L42 38 L50 44 L58 34 L66 40" stroke="#10b981" strokeWidth="2" fill="none" strokeLinecap="round" />
-    <circle cx="66" cy="40" r="2.5" fill="#f43f5e" />
-    {/* Small person pointing */}
-    <circle cx="80" cy="65" r="7" fill="#fed7aa" />
-    <path d="M78 72 L70 85 H90 L82 72 Z" fill="#ef4444" />
-    <path d="M73 70 Q62 65 65 62" stroke="#fed7aa" strokeWidth="2.5" strokeLinecap="round" fill="none" />
-  </svg>
+  <img src={forecastMascotImg} alt="Forecast Mascot" className="w-16 h-16 object-contain shrink-0 select-none pointer-events-none rounded-xl" />
 );
 
 const SleepingMascot = () => (
-  <svg viewBox="0 0 100 100" className="w-16 h-16 text-claude-coral fill-current shrink-0 select-none">
-    <circle cx="50" cy="50" r="45" className="text-purple-500/10 fill-current" />
-    {/* Pillow */}
-    <rect x="20" y="32" width="22" height="14" rx="3" fill="#e2e8f0" />
-    {/* Sleeping head */}
-    <circle cx="34" cy="38" r="9" fill="#fed7aa" />
-    <path d="M38 30 C30 30 28 35 28 42 H40 Z" fill="#1e293b" /> {/* hair */}
-    {/* Closed eyes */}
-    <path d="M32 39 Q34 41 36 39 M42 39" stroke="#000" strokeWidth="1" fill="none" />
-    {/* ZZZ letters */}
-    <text x="64" y="28" fontSize="9" fontWeight="bold" fill="currentColor" opacity="0.6">Z</text>
-    <text x="73" y="22" fontSize="12" fontWeight="bold" fill="currentColor" opacity="0.8">Z</text>
-    <text x="82" y="15" fontSize="15" fontWeight="bold" fill="currentColor">Z</text>
-    {/* Bed & Blanket */}
-    <rect x="15" y="46" width="70" height="38" rx="5" fill="#cbd5e1" />
-    <rect x="35" y="46" width="50" height="38" rx="5" fill="#3b82f6" />
-    {/* Sleeping green monster next to bed */}
-    <path d="M68 62 C68 54 78 54 78 62 Z" fill="#22c55e" />
-  </svg>
+  <img src={sleepingMascotImg} alt="Sleeping Mascot" className="w-16 h-16 object-contain shrink-0 select-none pointer-events-none rounded-xl" />
 );
 
 const DojoCommunityMascot = () => (
-  <svg viewBox="0 0 100 100" className="w-16 h-16 text-claude-text-heading fill-current shrink-0 select-none">
-    <circle cx="50" cy="50" r="45" className="text-amber-500/10 fill-current" />
-    {/* Stone Monster */}
-    <rect x="30" y="35" width="40" height="40" rx="8" fill="#64748b" />
-    <circle cx="42" cy="48" r="4" fill="#000" />
-    <circle cx="58" cy="48" r="4" fill="#000" />
-    <circle cx="42" cy="48" r="1.5" fill="#fff" />
-    <circle cx="58" cy="48" r="1.5" fill="#fff" />
-    <path d="M40 60 Q50 52 60 60" stroke="#475569" strokeWidth="3" fill="none" />
-    {/* Kids dancing around */}
-    <circle cx="20" cy="62" r="5" fill="#f43f5e" />
-    <path d="M15 72 L25 72 L20 85 Z" fill="#f43f5e" />
-    <circle cx="80" cy="62" r="5" fill="#0ea5e9" />
-    <path d="M75 72 L85 72 L80 85 Z" fill="#0ea5e9" />
-  </svg>
+  <img src={communityMascotImg} alt="Community Mascot" className="w-16 h-16 object-contain shrink-0 select-none pointer-events-none rounded-xl" />
 );
 
 const SpaceshipMascot = () => (
-  <svg viewBox="0 0 100 100" className="w-20 h-20 text-white fill-current shrink-0 select-none">
-    {/* Spaceship dome */}
-    <path d="M50 15 C34 15 28 32 28 44 H72 C72 32 66 15 50 15 Z" fill="rgba(255,255,255,0.15)" stroke="rgba(255,255,255,0.4)" strokeWidth="1.5" />
-    {/* Pilot head */}
-    <circle cx="50" cy="34" r="8" fill="#fed7aa" />
-    <circle cx="50" cy="34" r="9" fill="none" stroke="#22c55e" strokeWidth="2.5" /> {/* helmet */}
-    {/* Spaceship body */}
-    <ellipse cx="50" cy="52" rx="36" ry="12" fill="#22c55e" stroke="#166534" strokeWidth="1.5" />
-    <ellipse cx="50" cy="52" rx="24" ry="6" fill="#15803d" />
-    {/* Lights */}
-    <circle cx="30" cy="52" r="2" fill="#eab308" />
-    <circle cx="50" cy="55" r="2.5" fill="#eab308" />
-    <circle cx="70" cy="52" r="2" fill="#eab308" />
-    {/* Speed lines */}
-    <path d="M10 38 H22 M6 48 H18 M8 58 H20 M88 48 H94" stroke="rgba(255,255,255,0.3)" strokeWidth="2" strokeLinecap="round" />
-    {/* Floating papers */}
-    <rect x="22" y="70" width="8" height="11" rx="1" fill="#fff" transform="rotate(15 22 70)" opacity="0.7" />
-    <rect x="76" y="68" width="7" height="10" rx="1" fill="#fff" transform="rotate(-25 76 68)" opacity="0.6" />
-  </svg>
+  <img src={spaceshipMascotImg} alt="Spaceship Mascot" className="w-20 h-20 object-contain shrink-0 select-none pointer-events-none" />
 );
 
 const AccuracyGauge = ({ percentage }) => {

@@ -357,7 +357,7 @@ export default function Dashboard({
   };
 
   return (
-    <div className="max-w-6xl mx-auto w-full px-4 py-6 md:py-10 animate-fade-in space-y-8 select-none">
+    <div className="max-w-6xl mx-auto w-full px-4 py-8 md:py-12 animate-fade-in space-y-10 md:space-y-12 select-none">
       
       {/* Top Banner Slim Greeting */}
       <div className="relative overflow-hidden bg-claude-card border border-claude-border rounded-3xl p-5 flex flex-col sm:flex-row justify-between items-center gap-4 shadow-xs">
@@ -386,9 +386,9 @@ export default function Dashboard({
       </div>
 
       {/* Row 1: Lessons, Reviews, Forecast */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Today's Lessons Card */}
-        <div className="bg-claude-card border border-claude-border p-6 rounded-3xl shadow-xs flex items-center gap-6 relative min-h-[160px] overflow-hidden group">
+        <div className="bg-claude-card border border-claude-border p-8 rounded-3xl shadow-xs flex items-center gap-6 relative min-h-[180px] overflow-hidden group">
           <LessonsMascot />
           <div className="flex-1 space-y-3 z-10">
             <div>
@@ -418,7 +418,7 @@ export default function Dashboard({
         </div>
 
         {/* Reviews Card */}
-        <div className="bg-claude-card border border-claude-border p-6 rounded-3xl shadow-xs flex items-center gap-6 relative min-h-[160px] overflow-hidden group">
+        <div className="bg-claude-card border border-claude-border p-8 rounded-3xl shadow-xs flex items-center gap-6 relative min-h-[180px] overflow-hidden group">
           <ReviewsMascot />
           <div className="flex-1 space-y-3 z-10">
             <div>
@@ -457,7 +457,7 @@ export default function Dashboard({
         </div>
 
         {/* Forecast Card */}
-        <div className="bg-claude-card border border-claude-border p-6 rounded-3xl shadow-xs flex items-center gap-4 relative min-h-[160px] overflow-hidden">
+        <div className="bg-claude-card border border-claude-border p-8 rounded-3xl shadow-xs flex items-center gap-4 relative min-h-[180px] overflow-hidden">
           {hasUpcomingReviews ? (
             <div className="flex-1 space-y-3 z-10 w-full">
               <span className="text-xs font-black text-claude-text-muted uppercase tracking-wider block">Forecast</span>
@@ -485,9 +485,9 @@ export default function Dashboard({
       </div>
 
       {/* Row 2: Streaks & Completed volume */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         {/* Study Streak Card (Span 8) */}
-        <div className="lg:col-span-8 bg-claude-card border border-claude-border p-5 rounded-3xl shadow-xs space-y-5">
+        <div className="lg:col-span-8 bg-claude-card border border-claude-border p-7 rounded-3xl shadow-xs space-y-5">
           <div className="flex justify-between items-center border-b border-claude-border pb-2.5">
             <span className="text-xs font-black text-claude-text-heading uppercase tracking-wider">Study Streak</span>
             <span className="text-[10px] font-black text-claude-text-muted uppercase tracking-widest flex items-center gap-1.5">
@@ -530,7 +530,7 @@ export default function Dashboard({
         </div>
 
         {/* Reviews Completed Today Card (Span 4) */}
-        <div className="lg:col-span-4 bg-claude-card border border-claude-border p-5 rounded-3xl shadow-xs flex items-center gap-5 relative min-h-[140px] group overflow-hidden">
+        <div className="lg:col-span-4 bg-claude-card border border-claude-border p-7 rounded-3xl shadow-xs flex items-center gap-5 relative min-h-[150px] group overflow-hidden">
           <SleepingMascot />
           <div className="flex-1 space-y-2.5 z-10">
             <div>
@@ -547,9 +547,9 @@ export default function Dashboard({
       </div>
 
       {/* Row 3: Recent Mistakes & Accuracy Gauge */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         {/* Recent Mistakes Card (Span 8) */}
-        <div className="lg:col-span-8 bg-claude-card border border-claude-border p-5 rounded-3xl shadow-xs space-y-4">
+        <div className="lg:col-span-8 bg-claude-card border border-claude-border p-7 rounded-3xl shadow-xs space-y-4">
           <div className="flex justify-between items-center border-b border-claude-border pb-2.5">
             <div>
               <span className="text-xs font-black text-claude-text-heading uppercase tracking-wider block">Recent Mistakes</span>
@@ -598,7 +598,7 @@ export default function Dashboard({
         </div>
 
         {/* Circular Gauge Card (Span 4) */}
-        <div className="lg:col-span-4 bg-claude-card border border-claude-border p-4.5 rounded-3xl shadow-xs flex items-center gap-5 min-h-[150px]">
+        <div className="lg:col-span-4 bg-claude-card border border-claude-border p-7 rounded-3xl shadow-xs flex items-center gap-5 min-h-[160px]">
           <AccuracyGauge percentage={accuracy7Days} studiedToday={studiedToday} />
           
           <div className="space-y-1 z-10 flex-1 pl-2">
@@ -617,9 +617,9 @@ export default function Dashboard({
       </div>
 
       {/* Row 4: Level Progress & Active Item Spread */}
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
         {/* Level Progress Widget (Span 5) */}
-        <div className="md:col-span-5 bg-claude-card border border-claude-border p-5 sm:p-6 rounded-3xl shadow-xs flex flex-col justify-between space-y-4">
+        <div className="md:col-span-5 bg-claude-card border border-claude-border p-7 rounded-3xl shadow-xs flex flex-col justify-between space-y-4">
           <div>
             <div className="flex items-center justify-between border-b border-claude-border/50 pb-2">
               <span className="text-xs font-black text-claude-text-heading uppercase tracking-wider">Level Progress</span>
@@ -674,7 +674,7 @@ export default function Dashboard({
         </div>
 
         {/* Active Item Spread Chart (Span 7) */}
-        <div className="md:col-span-7 bg-claude-card border border-claude-border p-5 sm:p-6 rounded-3xl shadow-xs flex flex-col justify-between space-y-4">
+        <div className="md:col-span-7 bg-claude-card border border-claude-border p-7 rounded-3xl shadow-xs flex flex-col justify-between space-y-4">
           <div className="flex justify-between items-center border-b border-claude-border/50 pb-2">
             <span className="text-xs font-black text-claude-text-heading uppercase tracking-wider">Active Item Spread</span>
             <span className="text-[10px] font-black text-claude-coral cursor-pointer hover:opacity-80">

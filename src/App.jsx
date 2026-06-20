@@ -1300,7 +1300,7 @@ export default function App() {
       />
 
       {/* Main Content Area */}
-      <main className={`flex-1 flex flex-col overflow-y-auto w-full pt-16 ${
+      <main className={`flex-1 flex flex-col overflow-y-auto w-full pt-20 ${
         activeTab === 'grammar' 
           ? 'h-full justify-start items-stretch' 
           : ['kanji', 'kana', 'study', 'vocab', 'dashboard'].includes(activeTab)

@@ -157,60 +157,24 @@ export default function Navbar({
   return (
     <>
       {/* Top sticky WaniKani horizontal Header */}
-      <header className="fixed top-0 left-0 right-0 h-16 bg-claude-sidebar border-b border-claude-border z-50 flex items-center justify-between px-4 md:px-8 select-none shadow-xs">
+      <header className="fixed top-0 left-0 right-0 h-20 bg-claude-sidebar border-b border-claude-border z-50 flex items-center justify-between px-4 md:px-8 select-none shadow-xs">
         
-        {/* Left: Branding */}
-        <div 
-          onClick={() => setActiveTab('dashboard')}
-          className="flex items-center gap-2.5 cursor-pointer hover:scale-[1.01] transition-transform"
-        >
-          <div className="w-8 h-8 rounded-lg bg-claude-coral/10 border border-claude-coral/25 text-claude-coral flex items-center justify-center shadow-xs shrink-0">
-            <ToriiGateLogo className="w-5 h-5" />
-          </div>
-          <div>
-            <span className="text-sm font-black tracking-tight text-claude-text-heading uppercase font-serif">
-              Kyōto-Slate
-            </span>
-          </div>
-        </div>
-
-        {/* Center: Lessons & Reviews Badges */}
-        <div className="flex items-center gap-3">
-          {/* Lessons Badge */}
-          <button 
-            onClick={() => onStartSession(null, false, true)}
-            disabled={lessonsCount === 0}
-            className="flex items-center rounded-lg overflow-hidden border border-claude-border bg-claude-card hover:scale-[1.02] transition-transform select-none cursor-pointer disabled:opacity-45 disabled:cursor-not-allowed shadow-xs"
-            title="Start Lessons"
+        {/* Left: Branding & Desktop Nav Links */}
+        <div className="flex items-center gap-8 md:gap-10">
+          <div 
+            onClick={() => setActiveTab('dashboard')}
+            className="flex items-center gap-2.5 cursor-pointer hover:scale-[1.01] transition-transform shrink-0"
           >
-            <span className={`${lessonsCount > 0 ? 'bg-sky-500' : 'bg-claude-border'} text-white font-extrabold px-3 py-1 text-xs`}>
-              {lessonsCount}
-            </span>
-            <span className="text-claude-text-muted font-extrabold px-2.5 py-1 text-[10px] uppercase tracking-wider">
-              Lessons
-            </span>
-          </button>
+            <div className="w-9 h-9 rounded-xl bg-claude-coral/10 border border-claude-coral/25 text-claude-coral flex items-center justify-center shadow-xs shrink-0">
+              <ToriiGateLogo className="w-5.5 h-5.5" />
+            </div>
+            <div>
+              <span className="text-base font-black tracking-tight text-claude-text-heading uppercase font-serif">
+                Kyōto-Slate
+              </span>
+            </div>
+          </div>
 
-          {/* Reviews Badge */}
-          <button 
-            onClick={() => onStartSession(null, true, false)}
-            disabled={dueReviewsCount === 0}
-            className="flex items-center rounded-lg overflow-hidden border border-claude-border bg-claude-card hover:scale-[1.02] transition-transform select-none cursor-pointer disabled:opacity-45 disabled:cursor-not-allowed shadow-xs"
-            title="Start Reviews"
-          >
-            <span className={`${dueReviewsCount > 0 ? 'bg-claude-coral' : 'bg-claude-border'} text-white font-extrabold px-3 py-1 text-xs`}>
-              {dueReviewsCount}
-            </span>
-            <span className="text-claude-text-muted font-extrabold px-2.5 py-1 text-[10px] uppercase tracking-wider">
-              Reviews
-            </span>
-          </button>
-        </div>
-
-        {/* Right: Links & Settings */}
-        <div className="flex items-center gap-4">
-          
-          {/* Desktop Nav Items */}
           <nav className="hidden lg:flex items-center gap-6.5 text-[15px] font-extrabold text-claude-text-muted">
             {navItems.map(item => (
               <button
@@ -224,6 +188,43 @@ export default function Navbar({
               </button>
             ))}
           </nav>
+        </div>
+
+        {/* Right: Badges, Settings & Profile */}
+        <div className="flex items-center gap-4">
+          
+          {/* Lessons & Reviews Badges */}
+          <div className="flex items-center gap-3">
+            {/* Lessons Badge */}
+            <button 
+              onClick={() => onStartSession(null, false, true)}
+              disabled={lessonsCount === 0}
+              className="flex items-center rounded-lg overflow-hidden border border-claude-border bg-claude-card hover:scale-[1.02] transition-transform select-none cursor-pointer disabled:opacity-45 disabled:cursor-not-allowed shadow-xs"
+              title="Start Lessons"
+            >
+              <span className={`${lessonsCount > 0 ? 'bg-sky-500' : 'bg-claude-border'} text-white font-extrabold px-3 py-1.5 text-xs`}>
+                {lessonsCount}
+              </span>
+              <span className="text-claude-text-muted font-extrabold px-2.5 py-1.5 text-[10px] uppercase tracking-wider">
+                Lessons
+              </span>
+            </button>
+
+            {/* Reviews Badge */}
+            <button 
+              onClick={() => onStartSession(null, true, false)}
+              disabled={dueReviewsCount === 0}
+              className="flex items-center rounded-lg overflow-hidden border border-claude-border bg-claude-card hover:scale-[1.02] transition-transform select-none cursor-pointer disabled:opacity-45 disabled:cursor-not-allowed shadow-xs"
+              title="Start Reviews"
+            >
+              <span className={`${dueReviewsCount > 0 ? 'bg-claude-coral' : 'bg-claude-border'} text-white font-extrabold px-3 py-1.5 text-xs`}>
+                {dueReviewsCount}
+              </span>
+              <span className="text-claude-text-muted font-extrabold px-2.5 py-1.5 text-[10px] uppercase tracking-wider">
+                Reviews
+              </span>
+            </button>
+          </div>
 
           <div className="flex items-center gap-2 border-l border-claude-border pl-4">
             
@@ -338,7 +339,7 @@ export default function Navbar({
       {mobileMenuOpen && (
         <>
           <div className="fixed inset-0 z-30 bg-black/40 backdrop-blur-xs lg:hidden" onClick={() => setMobileMenuOpen(false)} />
-          <div className="fixed top-16 left-0 right-0 bg-claude-card border-b border-claude-border z-30 p-5 flex flex-col gap-4 animate-fade-in lg:hidden text-claude-text">
+          <div className="fixed top-20 left-0 right-0 bg-claude-card border-b border-claude-border z-30 p-5 flex flex-col gap-4 animate-fade-in lg:hidden text-claude-text">
             <span className="text-[9px] font-black uppercase tracking-wider text-claude-text-muted pl-0.5">Navigation</span>
             <div className="grid grid-cols-2 gap-2">
               {navItems.map(item => (

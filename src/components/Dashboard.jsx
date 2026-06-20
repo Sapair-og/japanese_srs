@@ -10,6 +10,7 @@ import forecastMascotImg from '../assets/forecast_mascot.png';
 import sleepingMascotImg from '../assets/sleeping_mascot.png';
 import communityMascotImg from '../assets/community_mascot.png';
 import spaceshipMascotImg from '../assets/spaceship_mascot.png';
+import learningZoneMascotImg from '../assets/learning_zone_mascot.png';
 
 const calculateLevelInfo = (totalCorrect) => {
   const xp = (totalCorrect || 0) * 10;
@@ -60,38 +61,47 @@ const SpaceshipMascot = () => (
   <img src={spaceshipMascotImg} alt="Spaceship Mascot" className="w-20 h-20 object-contain shrink-0 select-none pointer-events-none" />
 );
 
-const AccuracyGauge = ({ percentage }) => {
-  const radius = 28;
-  const strokeWidth = 5;
-  const circumference = 2 * Math.PI * radius;
-  const strokeDashoffset = circumference - (percentage / 100) * circumference;
+const AccuracyGauge = ({ percentage, studiedToday }) => {
+  const arcLength = 161.27;
+  const strokeDashoffset = arcLength - (percentage / 100) * arcLength;
   
   return (
-    <div className="relative w-24 h-24 flex items-center justify-center shrink-0">
-      <svg className="w-full h-full transform -rotate-90">
-        <circle
-          cx="48"
-          cy="48"
-          r={radius}
-          className="text-claude-border/40 fill-none"
+    <div className="relative w-32 h-32 flex items-center justify-center shrink-0">
+      <svg viewBox="0 0 120 120" className="w-full h-full transform">
+        {/* Unlit background segments */}
+        <path
+          d="M 20.5 74.4 A 42 42 0 1 1 99.5 74.4"
+          className="text-claude-border/30 dark:text-claude-border/15 fill-none"
           stroke="currentColor"
-          strokeWidth={strokeWidth}
-        />
-        <circle
-          cx="48"
-          cy="48"
-          r={radius}
-          className="text-claude-coral fill-none transition-all duration-500"
-          stroke="currentColor"
-          strokeWidth={strokeWidth}
-          strokeDasharray={circumference}
-          strokeDashoffset={strokeDashoffset}
+          strokeWidth="6.5"
+          strokeDasharray="6.5 2.2"
           strokeLinecap="round"
         />
+        {/* Lit foreground segments */}
+        <path
+          d="M 20.5 74.4 A 42 42 0 1 1 99.5 74.4"
+          className={`text-claude-coral fill-none transition-all duration-500 ${studiedToday ? 'animate-pulse-glow' : ''}`}
+          stroke="currentColor"
+          strokeWidth="6.5"
+          strokeDasharray="6.5 2.2"
+          strokeDashoffset={strokeDashoffset}
+          strokeLinecap="round"
+          style={studiedToday ? { filter: 'drop-shadow(0 0 4px var(--accent-coral))' } : {}}
+        />
       </svg>
-      <div className="absolute flex flex-col items-center justify-center">
-        <span className="text-xs font-black text-claude-text-heading leading-none">{percentage}%</span>
-        <span className="text-[7px] font-black text-claude-text-muted uppercase mt-0.5">Correct</span>
+      {/* Mascot Circle in Center */}
+      <div className="absolute top-[22px] left-[22px] w-[76px] h-[76px] rounded-full overflow-hidden flex items-center justify-center bg-claude-bg shadow-inner border border-claude-border/50">
+        <img 
+          src={learningZoneMascotImg} 
+          alt="Learning Zone Mascot" 
+          className="w-[60px] h-[60px] object-contain select-none pointer-events-none" 
+        />
+      </div>
+      {/* Pill overlay */}
+      <div className="absolute bottom-[36px] left-1/2 transform -translate-x-1/2 bg-claude-card border border-claude-border px-2 py-0.5 rounded-full shadow-xs z-10 whitespace-nowrap">
+        <span className="text-[6.5px] font-black tracking-tight text-claude-text-muted uppercase">
+          {percentage >= 75 ? "In Learning Zone! 🎯" : "Outside Learning Zone! 🦖"}
+        </span>
       </div>
     </div>
   );
@@ -281,6 +291,7 @@ export default function Dashboard({
     return days;
   };
   const weeklyDays = getWeeklyCalendar();
+  const studiedToday = weeklyDays[weeklyDays.length - 1]?.isStudied || false;
 
   // Forecast data slots
   const getForecastData = () => {
@@ -587,18 +598,21 @@ export default function Dashboard({
         </div>
 
         {/* Circular Gauge Card (Span 4) */}
-        <div className="lg:col-span-4 bg-claude-card border border-claude-border p-5 rounded-3xl shadow-xs flex items-center justify-between gap-4 min-h-[140px]">
-          <div className="space-y-1.5">
-            <span className="text-[9px] font-extrabold uppercase tracking-widest text-claude-coral block">Correct Reviews</span>
-            <h3 className="text-xs font-black text-claude-text-heading leading-snug">Past 7 Days</h3>
-            <p className="text-[9.5px] text-claude-text-muted font-bold leading-relaxed max-w-[140px]">
-              {accuracy7Days >= 75 ? "You're in The Learning Zone! 🎯" : "You're outside The Learning Zone! 🦖"}
-            </p>
-            <span className="text-[8.5px] text-claude-text-muted font-bold block pt-1">
+        <div className="lg:col-span-4 bg-claude-card border border-claude-border p-4.5 rounded-3xl shadow-xs flex items-center gap-5 min-h-[150px]">
+          <AccuracyGauge percentage={accuracy7Days} studiedToday={studiedToday} />
+          
+          <div className="space-y-1 z-10 flex-1 pl-2">
+            <span className="text-[9.5px] font-black uppercase tracking-wider text-claude-text-muted block">Correct Reviews</span>
+            <div className="flex items-baseline gap-1">
+              <span className="text-3xl font-black text-claude-text-heading leading-none">
+                {accuracy7Days}%
+              </span>
+            </div>
+            <span className="text-[9.5px] font-black text-claude-text-muted block">Past 7 Days</span>
+            <div className="pt-2.5 border-t border-claude-border/50 mt-2 text-[8.5px] font-bold text-claude-text-muted">
               Previous Period: {Math.max(0, accuracy7Days - 5)}%
-            </span>
+            </div>
           </div>
-          <AccuracyGauge percentage={accuracy7Days} />
         </div>
       </div>
 

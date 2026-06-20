@@ -1225,9 +1225,9 @@ export default function KanjiBoard({ themeRegion, themeMode, vocabList = [] }) {
                 <button
                   key={tab.id}
                   onClick={() => scrollToSection(tab.id)}
-                  className={`px-5 py-3.5 text-xs font-black capitalize border-b-2 transition-all cursor-pointer ${
+                  className={`px-6 py-4.5 text-[15px] font-extrabold capitalize border-b-[3px] transition-all cursor-pointer ${
                     activeDetailTab === tab.id
-                      ? 'border-claude-coral text-claude-coral font-extrabold'
+                      ? 'border-claude-coral text-claude-coral font-black'
                       : 'border-transparent text-claude-text-muted hover:text-claude-text-heading'
                   }`}
                 >

@@ -881,3 +881,17 @@ body {
   scrollbar-width: none !important;
 }
 
+
+/* Animated pulse-glow for segmented accuracy gauge */
+@keyframes pulse-glow {
+  0%, 100% {
+    filter: drop-shadow(0 0 3px var(--accent-coral)) opacity(0.85);
+  }
+  50% {
+    filter: drop-shadow(0 0 8px var(--accent-coral)) opacity(1);
+  }
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s infinite ease-in-out;
+}

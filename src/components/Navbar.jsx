@@ -211,13 +211,13 @@ export default function Navbar({
         <div className="flex items-center gap-4">
           
           {/* Desktop Nav Items */}
-          <nav className="hidden lg:flex items-center gap-5 text-xs font-black text-claude-text-muted">
+          <nav className="hidden lg:flex items-center gap-6.5 text-[15px] font-extrabold text-claude-text-muted">
             {navItems.map(item => (
               <button
                 key={item.id}
                 onClick={() => setActiveTab(item.id)}
                 className={`hover:text-claude-text-heading transition-colors cursor-pointer ${
-                  activeTab === item.id ? 'text-claude-coral font-black border-b-2 border-claude-coral pb-1 mt-1' : 'pb-1'
+                  activeTab === item.id ? 'text-claude-coral font-black border-b-[3px] border-claude-coral pb-0.5 mt-1' : 'pb-1'
                 }`}
               >
                 {item.name}

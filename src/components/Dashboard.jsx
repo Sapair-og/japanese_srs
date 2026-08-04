@@ -12,29 +12,8 @@ import communityMascotImg from '../assets/community_mascot.png';
 import spaceshipMascotImg from '../assets/spaceship_mascot.png';
 import learningZoneMascotImg from '../assets/learning_zone_mascot.png';
 
-const calculateLevelInfo = (totalCorrect) => {
-  const xp = (totalCorrect || 0) * 10;
-  let level = 1;
-  let xpForNextLevel = 100;
-  let accumulatedXp = 0;
-  
-  while (xp >= accumulatedXp + xpForNextLevel) {
-    accumulatedXp += xpForNextLevel;
-    level += 1;
-    xpForNextLevel = level * 100;
-  }
-  
-  const xpInCurrentLevel = xp - accumulatedXp;
-  const progressPercent = Math.min(100, Math.floor((xpInCurrentLevel / xpForNextLevel) * 100));
-  
-  return {
-    level,
-    xp,
-    xpInCurrentLevel,
-    xpForNextLevel,
-    progressPercent
-  };
-};
+import { calculateLevelInfo } from '../utils/levelCalculator';
+
 
 // Mascot Image wrappers
 const LessonsMascot = () => (

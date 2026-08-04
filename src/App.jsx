@@ -21,29 +21,7 @@ import GrammarDojo from './components/GrammarDojo';
 import { calculateSM2 } from './utils/srsEngine';
 import { sortVocabByJlptPreference } from './utils/jlptPrioritizer';
 import { setCachedVocab, getCachedVocab } from './utils/indexedDbCache';
-export function calculateLevelInfo(totalCorrect) {
-  const xp = (totalCorrect || 0) * 10;
-  let level = 1;
-  let xpForNextLevel = 100;
-  let accumulatedXp = 0;
-  
-  while (xp >= accumulatedXp + xpForNextLevel) {
-    accumulatedXp += xpForNextLevel;
-    level += 1;
-    xpForNextLevel = level * 100;
-  }
-  
-  const xpInCurrentLevel = xp - accumulatedXp;
-  const progressPercent = Math.min(100, Math.floor((xpInCurrentLevel / xpForNextLevel) * 100));
-  
-  return {
-    level,
-    xp,
-    xpInCurrentLevel,
-    xpForNextLevel,
-    progressPercent
-  };
-}
+import { calculateLevelInfo } from './utils/levelCalculator';
 
 
 const parseDbTheme = (dbThemeString) => {

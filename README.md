@@ -8,7 +8,11 @@ Features user session syncing, a typed answer writing mode with automatic IME tr
 
 ## Core Features
 
-- **Spaced Repetition Quizzer**: Flashcards auto-shuffle and filter by lesson categories. Tracks active accuracy metrics, speed, daily streaks, and custom session history logs.
+- **Spaced Repetition Quizzer**: Flashcards auto-shuffle and filter by lesson categories. Tracks active accuracy metrics, speed, daily streaks, and custom session history logs. Includes N4/N5 past questions weighting for hard difficulty.
+- **WaniKani Dashboard Overhaul**: Redesigned UI featuring Level Progress segmented bars, 7-day Accuracy speedometers, studied days counter widgets, review forecast slots, and weekly streak markers. Utilizes hand-drawn PNG mascot illustrations matching the Crabigator visual quality.
+- **Glowing Speedometer Gauge**: A segmented 220° circular reviews accuracy gauge containing the pointing schoolgirl mascot. Active segments pulse and glow automatically if the user has completed reviews today.
+- **Kanji Dojo & Tracing Canvas**: Searchable JLPT N5/N4 database of 300+ characters. Features stroke-order tracking diagrams using dynamic KanjiVG SVGs, Genkouyoushi calligraphy tracing box with a Zen circle watermark, mnemonic stories with highlighted keywords (radical, kanji, vocab), and voice pronounciation simulation (Tokyo accent Kyoko/Kenichi audio).
+- **Crabigator Shoreline Footer**: Global scenic drawing containing Mount Fuji with snow caps, rising sun, checkered turtle, ocean waves, and the giant Crabigator rising out of the water.
 - **Interactive Particle Themes**: The UI morphs color palettes and canvas particles based on Genshin Impact regions:
   - *Liyue* (Golden geo cores)
   - *Mondstadt* (Dandelion wind seeds)
@@ -22,6 +26,7 @@ Features user session syncing, a typed answer writing mode with automatic IME tr
 - **Typed & Multiple Choice Modes**: Switch between picking definitions or typing the Japanese reading. Typing Romaji (e.g., `neko`) instantly converts to Hiragana (`ねこ`) in real-time.
 - **Audio Pronunciation Engine**: Play custom vocal recordings uploaded by the admin (stored in Supabase Storage) or fallback to browser Japanese Speech Synthesis.
 - **Multi-User Stats Syncing**: Accounts sync streaks, personal study calendars (GitHub-style heatmap consistency grids), and profile designs (Dicebear custom avatars) directly to the database.
+- **Shared levelCalculator Progression**: Optimized level progression utility utilizing the SM-2 spaced repetition parameters.
 - **Role-Based Security**: Only the designated administrator account can upload vocabulary lists, add cards, delete words, or trigger developer test previews. Regular users get a clean, read-only browser.
 
 ---

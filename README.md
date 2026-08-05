@@ -69,3 +69,22 @@ npm run dev
 ```bash
 npm run build
 ```
+
+---
+
+## Testing
+
+The project has a comprehensive unit testing suite using **Vitest** for verifying key functions (SRS spacing calculations, JLPT difficulty prioritizer, Furigana parsing, IndexedDB cache support, and level calculations progression).
+
+To run all unit tests:
+```bash
+npx vitest run
+```
+
+---
+
+## Antigravity Custom Agent Skills
+
+This project leverages Antigravity agent configuration structures. Inside the `.agents/` directory, you will find custom automation definitions:
+- **Fetch Icons from SVG Repo (`.agents/skills/svgrepo.md`)**: Instructs AI agents on programmatically grabbing vector assets from svgrepo.com to dynamically import assets whenever new UI structures are built.
+
